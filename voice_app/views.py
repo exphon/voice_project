@@ -731,33 +731,33 @@ def extract_metadata_to_fields(audio):
         metadata = json.loads(decoded_str)
         
         # 메타데이터에서 기본 정보 추출
-        metainfo_child = metadata.get('metainfo_child', {})
-        
-        # 기본 필드가 비어있거나 없을 때만 메타데이터에서 가져옴
-        if not audio.name and metainfo_child.get('name'):
-            audio.name = metainfo_child.get('name')
-            
-        if not audio.gender and metainfo_child.get('gender'):
-            audio.gender = metainfo_child.get('gender')
-            
-        if not audio.age and metainfo_child.get('age'):
-            audio.age = metainfo_child.get('age')
-            
-        # 기타 정보도 추출
-        if not audio.recording_location and metainfo_child.get('place'):
-            audio.recording_location = metainfo_child.get('place')
-            
-        if not audio.noise_level and metainfo_child.get('noise'):
-            audio.noise_level = metainfo_child.get('noise')
-            
-        if not audio.device_type and metainfo_child.get('device'):
-            audio.device_type = metainfo_child.get('device')
-            
-        if not audio.has_microphone and metainfo_child.get('mic'):
-            audio.has_microphone = metainfo_child.get('mic')
-            
-        if not audio.diagnosis and metainfo_child.get('diagnosis'):
-            audio.diagnosis = metainfo_child.get('diagnosis')
+        metainfo_candidates = [
+            metadata.get('metainfo_child', {}),
+            metadata.get('metainfo_senior', {}),
+            metadata.get('metainfo_old', {}),
+            metadata.get('metainfo_adult', {}),
+            metadata.get('metainfo', {}),
+        ]
+
+        for metainfo in metainfo_candidates:
+            if not metainfo:
+                continue
+            if not audio.name and metainfo.get('name'):
+                audio.name = metainfo.get('name')
+            if not audio.gender and metainfo.get('gender'):
+                audio.gender = metainfo.get('gender')
+            if not audio.age and metainfo.get('age'):
+                audio.age = metainfo.get('age')
+            if not audio.recording_location and metainfo.get('place'):
+                audio.recording_location = metainfo.get('place')
+            if not audio.noise_level and metainfo.get('noise'):
+                audio.noise_level = metainfo.get('noise')
+            if not audio.device_type and metainfo.get('device'):
+                audio.device_type = metainfo.get('device')
+            if not audio.has_microphone and metainfo.get('mic'):
+                audio.has_microphone = metainfo.get('mic')
+            if not audio.diagnosis and metainfo.get('diagnosis'):
+                audio.diagnosis = metainfo.get('diagnosis')
             
     except Exception as e:
         print(f"[DEBUG] Metadata extraction error for audio {audio.id}: {e}")

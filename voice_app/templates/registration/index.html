@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>특수화자 녹음 관리시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+    <header class="flex justify-between items-center p-6 bg-white shadow-md">
+      <h1 class="text-2xl font-bold text-indigo-700">특수화자 녹음 관리시스템</h1>
+      <div class="space-x-4">
+        <a href="{% url 'login' %}" class="text-indigo-600 hover:underline">로그인</a>
+      </div>
+    </header>
+
+    <!-- Main Section -->
+    <main class="max-w-5xl mx-auto py-12 px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <a href="/api/list" class="block p-6 bg-white rounded-2xl shadow hover:shadow-lg transition">
+          <h2 class="text-xl font-semibold text-indigo-600 mb-2">아동 발화</h2>
+          <p class="text-sm text-gray-600">일반 아동의 발화 데이터를 관리합니다.</p>
+        </a>
+
+        <!-- Card 2 -->
+        <div class="p-6 bg-white rounded-2xl shadow">
+          <h2 class="text-xl font-semibold text-indigo-600 mb-2">음성 장애 아동 발화</h2>
+          <p class="text-sm text-gray-600">음성 장애가 있는 아동의 발화 데이터를 관리합니다.</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="p-6 bg-white rounded-2xl shadow">
+          <h2 class="text-xl font-semibold text-indigo-600 mb-2">노인 발화</h2>
+          <p class="text-sm text-gray-600">노인의 발화 데이터를 관리합니다.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 py-6 text-center text-sm text-gray-500">
+      developed and maintained by <a href="https://tyoon.net" target="_blank" class="text-indigo-600 hover:underline">윤태진</a>
+    </footer>
+  </body>
+</html>

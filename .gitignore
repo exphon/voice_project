@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+migrate_files.py
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Media files
+media/
+
+# SSL certificates
+*.crt
+*.key
+
+# Logs
+*.log
+debug_server.log
+django_server.log
+mobile_debug.log
+server.log
+
+# Redis
+dump.rdb
+
+# Test files
+test_*.py
+test_*.wav
+test_*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Assets (audio files are large)
+assets/
+# Keep small assets like favicon
+!assets/favicon.ico

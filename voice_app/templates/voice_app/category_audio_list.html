@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category_name }} 음성 데이터 - 음성 관리 시스템{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-list me-2"></i>{{ category_name }} 음성 데이터 목록</h2>
+    <div>
+        <a href="/api/list/" class="btn btn-outline-primary me-2">전체 보기</a>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                카테고리 선택
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/api/child/list/">아동 말과제</a></li>
+                <li><a class="dropdown-item" href="/api/senior/list/">중장년 말과제</a></li>
+                <li><a class="dropdown-item" href="/api/atypical/list/">음성 장애</a></li>
+                <li><a class="dropdown-item" href="/api/auditory/list/">청각 장애</a></li>
+                <li><a class="dropdown-item" href="/api/normal/list/">일반</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    color: white !important;
+}
+
+.sortable-header:hover {
+    background-color: #1e3a8a !important;
+    color: white !important;
+}
+
+.sortable-header:active {
+    color: white !important;
+}
+
+.sortable-header:focus {
+    color: white !important;
+}
+
+.sort-arrow {
+    margin-left: 5px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.sort-arrow::after {
+    content: "⇅";
+    color: #aaa;
+}
+
+.sort-arrow.asc::after {
+    content: "▲";
+    color: #fff;
+}
+
+.sort-arrow.desc::after {
+    content: "▼";
+    color: #fff;
+}
+</style>
+
+{% if audios %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th class="sortable-header" onclick="sortTable('id')">
+                        ID
+                        <span class="sort-arrow {% if current_sort == 'id' %}asc{% elif current_sort == '-id' %}desc{% endif %}"></span>
+                    </th>
+                    <th>파일명</th>
+                    <th class="sortable-header" onclick="sortTable('category')">
+                        카테고리
+                        <span class="sort-arrow {% if current_sort == 'category' %}asc{% elif current_sort == '-category' %}desc{% endif %}"></span>
+                    </th>
+                    <th class="sortable-header" onclick="sortTable('gender')">
+                        성별
+                        <span class="sort-arrow {% if current_sort == 'gender' %}asc{% elif current_sort == '-gender' %}desc{% endif %}"></span>
+                    </th>
+                    <th class="sortable-header" onclick="sortTable('age')">
+                        나이
+                        <span class="sort-arrow {% if current_sort == 'age' %}asc{% elif current_sort == '-age' %}desc{% endif %}"></span>
+                    </th>
+                    <th>전사 텍스트</th>
+                    <th class="sortable-header" onclick="sortTable('status')">
+                        상태
+                        <span class="sort-arrow {% if current_sort == 'status' %}asc{% elif current_sort == '-status' %}desc{% endif %}"></span>
+                    </th>
+                    <th class="sortable-header" onclick="sortTable('created_at')">
+                        생성일
+                        <span class="sort-arrow {% if current_sort == 'created_at' %}asc{% elif current_sort == '-created_at' %}desc{% endif %}"></span>
+                    </th>
+                    <th>작업</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for audio in audios %}
+                <tr>
+                    <td>{{ audio.id }}</td>
+                    <td>
+                        <i class="fas fa-file-audio text-primary me-1"></i>
+                        <a href="{{ audio.audio_file.url }}" target="_blank" class="text-decoration-none">
+                            {{ audio.audio_file.name|slice:"6:" }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge 
+                            {% if audio.category == 'child' %}bg-primary
+                            {% elif audio.category == 'senior' %}bg-success
+                            {% elif audio.category == 'atypical' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                            {{ audio.get_category_display }}
+                        </span>
+                    </td>
+                    <td>{{ audio.gender|default:'-' }}</td>
+                    <td>{{ audio.age|default:'-' }}</td>
+                    <td>
+                        {% if audio.transcription %}
+                            <div class="text-truncate" style="max-width: 200px;" title="{{ audio.transcription }}">
+                                {{ audio.transcription }}
+                            </div>
+                        {% else %}
+                            <span class="text-muted">전사 대기</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if audio.status == 'completed' %}
+                            <span class="badge bg-success">{{ audio.get_status_display }}</span>
+                        {% elif audio.status == 'processing' %}
+                            <span class="badge bg-warning">{{ audio.get_status_display }}</span>
+                        {% elif audio.status == 'failed' %}
+                            <span class="badge bg-danger">{{ audio.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ audio.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="/api/transcribe/{{ audio.id }}/" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-microphone"></i>
+                            </a>
+                            <a href="{% url 'audio_detail' audio.id %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="페이지 내비게이션">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if current_sort %}&sort={{ current_sort }}{% endif %}">처음</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">이전</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">다음</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">마지막</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">{{ category_name }} 카테고리에 데이터가 없습니다</h4>
+        <p class="text-muted">음성 파일을 업로드해보세요.</p>
+    </div>
+{% endif %}
+
+<script>
+function sortTable(field) {
+    const currentSort = '{{ current_sort }}';
+    let newSort = field;
+    
+    // 현재 정렬이 같은 필드의 오름차순이면 내림차순으로 변경
+    if (currentSort === field) {
+        newSort = '-' + field;
+    }
+    
+    // 현재 URL에 정렬 매개변수 추가
+    const url = new URL(window.location);
+    url.searchParams.set('sort', newSort);
+    url.searchParams.delete('page'); // 페이지는 1페이지로 리셋
+    
+    window.location.href = url.toString();
+}
+</script>
+
+{% endblock %}

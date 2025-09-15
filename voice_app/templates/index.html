@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}특수화자 녹음 관리시스템{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-primary mb-3">특수화자 녹음 관리시스템</h1>
+        <p class="lead text-muted">음성 데이터를 효율적으로 관리하고 분석하는 시스템입니다.</p>
+    </div>
+
+    <!-- Main Cards - 2행 3열 배치 -->
+    <div class="row g-4 mb-4">
+        <!-- 첫 번째 행 -->
+        <!-- Card 1: 아동 발화 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 category-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-child text-primary fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-primary fw-bold mb-3">아동 발화</h5>
+                    <p class="card-text text-muted mb-4">일반 아동의 발화 데이터를 관리합니다.</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: 음성 장애 발화 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 category-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-microphone-slash text-warning fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-warning fw-bold mb-3">음성 장애 발화</h5>
+                    <p class="card-text text-muted mb-4">음성 장애 발화 데이터를 관리합니다.</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-warning btn-lg rounded-pill px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: 청각 장애 발화 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 category-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-deaf text-success fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-success fw-bold mb-3">청각 장애 발화</h5>
+                    <p class="card-text text-muted mb-4">청각 장애 발화 데이터를 관리합니다.</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-success btn-lg rounded-pill px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- 두 번째 행 -->
+        <!-- Card 4: 노인 발화 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 category-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-user-clock text-info fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-info fw-bold mb-3">노인 발화</h5>
+                    <p class="card-text text-muted mb-4">노인의 발화 데이터를 관리합니다.</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-info btn-lg rounded-pill px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: 정상 발화 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 category-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-check-circle text-secondary fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-secondary fw-bold mb-3">정상 발화</h5>
+                    <p class="card-text text-muted mb-4">정상 발화 데이터를 관리합니다.</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: 로그인 필요 -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 category-card login-required-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-lock text-muted fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-muted fw-bold mb-3">데이터 대시보드</h5>
+                    <p class="card-text text-muted mb-4">대시보드를 보려면 로그인이 필요합니다.</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-purple btn-lg rounded-pill px-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>로그인
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5 fw-bold">주요 기능</h2>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0 me-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-upload text-primary fs-3"></i>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="fw-bold">음성 파일 업로드</h5>
+                    <p class="text-muted">다양한 형식의 음성 파일을 손쉽게 업로드할 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0 me-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot text-primary fs-3"></i>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="fw-bold">음성 텍스트 변환</h5>
+                    <p class="text-muted">AI 기술을 활용한 자동 음성 인식 기능을 제공합니다.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0 me-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-database text-primary fs-3"></i>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="fw-bold">데이터 관리</h5>
+                    <p class="text-muted">체계적인 데이터베이스를 통한 효율적인 데이터 관리가 가능합니다.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0 me-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt text-primary fs-3"></i>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="fw-bold">보안 시스템</h5>
+                    <p class="text-muted">사용자 인증을 통한 안전한 데이터 보호 시스템을 제공합니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-4 text-center text-muted border-top">
+        <p class="mb-0">developed and maintained by <a href="https://tyoon.net" target="_blank" class="text-primary text-decoration-none fw-bold">윤태진</a></p>
+    </footer>
+</div>
+
+<!-- Font Awesome CDN for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<style>
+    .category-card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    }
+    
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+    
+    .login-required-card {
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+        border: 2px dashed #dee2e6;
+    }
+    
+    /* 보라색 아웃라인 버튼 스타일 추가 */
+    .btn-outline-purple {
+        color: #6f42c1;
+        border-color: #6f42c1;
+        background-color: transparent;
+    }
+    
+    .btn-outline-purple:hover {
+        color: white;
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(111, 66, 193, 0.3);
+    }
+    
+    .btn-outline-purple:focus,
+    .btn-outline-purple:active {
+        color: white;
+        background-color: #5a32a3;
+        border-color: #5a32a3;
+        box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+    }
+    
+    .icon-wrapper {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .display-4 {
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .btn {
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-outline-primary:hover,
+    .btn-outline-warning:hover,
+    .btn-outline-success:hover,
+    .btn-outline-info:hover,
+    .btn-outline-secondary:hover,
+    .btn-outline-dark:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    /* 반응형 조정 */
+    @media (max-width: 768px) {
+        .col-lg-4 {
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .icon-wrapper {
+            height: 60px;
+        }
+        
+        .icon-wrapper i {
+            font-size: 2.5rem !important;
+        }
+    }
+</style>
+{% endblock %}

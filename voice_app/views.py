@@ -724,11 +724,23 @@ def extract_metadata_to_fields(audio):
         import base64
         import json
         
-        # Base64 디코딩 및 JSON 파싱
+        # Base64 디코딩 및 JSON 파싱 (UTF-8 안전)
         b64_data = audio.category_specific_data['metadata_json']
-        decoded_bytes = base64.b64decode(b64_data)
-        decoded_str = decoded_bytes.decode('utf-8')
-        metadata = json.loads(decoded_str)
+        try:
+            # UTF-8 안전 Base64 디코딩
+            decoded_bytes = base64.b64decode(b64_data)
+            decoded_str = decoded_bytes.decode('utf-8')
+            metadata = json.loads(decoded_str)
+        except UnicodeDecodeError:
+            # 구형 인코딩 방식 fallback
+            try:
+                import urllib.parse
+                decoded_str = urllib.parse.unquote(base64.b64decode(b64_data).decode('latin1'))
+                metadata = json.loads(decoded_str)
+            except:
+                print(f"[DEBUG] UTF-8 decode failed for audio {audio.id}, trying direct decode")
+                decoded_str = base64.b64decode(b64_data).decode('utf-8', errors='ignore')
+                metadata = json.loads(decoded_str)
         
         # 메타데이터에서 기본 정보 추출
         metainfo_candidates = [

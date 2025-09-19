@@ -1216,8 +1216,6 @@ def audio_detail(request, audio_id):
     actual_metadata = {}
     if metadata_json_str:
         try:
-            import base64
-            import json
             decoded_bytes = base64.b64decode(metadata_json_str)
             decoded_str = decoded_bytes.decode('utf-8')
             actual_metadata = json.loads(decoded_str)

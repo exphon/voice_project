@@ -22,9 +22,15 @@
                     </div>
                     <h5 class="card-title text-primary fw-bold mb-3">아동 발화</h5>
                     <p class="card-text text-muted mb-4">일반 아동의 발화 데이터를 관리합니다.</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="/api/child/list/" class="btn btn-primary btn-lg rounded-pill px-4">
+                            <i class="fas fa-eye me-2"></i>데이터 보기
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -38,9 +44,15 @@
                     </div>
                     <h5 class="card-title text-warning fw-bold mb-3">음성 장애 발화</h5>
                     <p class="card-text text-muted mb-4">음성 장애 발화 데이터를 관리합니다.</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-warning btn-lg rounded-pill px-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="/api/atypical/list/" class="btn btn-warning btn-lg rounded-pill px-4">
+                            <i class="fas fa-eye me-2"></i>데이터 보기
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-warning btn-lg rounded-pill px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -54,9 +66,15 @@
                     </div>
                     <h5 class="card-title text-success fw-bold mb-3">청각 장애 발화</h5>
                     <p class="card-text text-muted mb-4">청각 장애 발화 데이터를 관리합니다.</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-success btn-lg rounded-pill px-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="/api/auditory/list/" class="btn btn-success btn-lg rounded-pill px-4">
+                            <i class="fas fa-eye me-2"></i>데이터 보기
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-success btn-lg rounded-pill px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -71,11 +89,17 @@
                     <div class="icon-wrapper mb-3">
                         <i class="fas fa-user-clock text-info fs-1"></i>
                     </div>
-                    <h5 class="card-title text-info fw-bold mb-3">노인 발화</h5>
+                    <h5 class="card-title text-info fw-bold mb-3">장노년층 발화</h5>
                     <p class="card-text text-muted mb-4">노인의 발화 데이터를 관리합니다.</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-info btn-lg rounded-pill px-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="/api/senior/list/" class="btn btn-info btn-lg rounded-pill px-4">
+                            <i class="fas fa-eye me-2"></i>데이터 보기
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-info btn-lg rounded-pill px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -89,27 +113,48 @@
                     </div>
                     <h5 class="card-title text-secondary fw-bold mb-3">정상 발화</h5>
                     <p class="card-text text-muted mb-4">정상 발화 데이터를 관리합니다.</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
-                        <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
-                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="/api/normal/list/" class="btn btn-secondary btn-lg rounded-pill px-4">
+                            <i class="fas fa-eye me-2"></i>데이터 보기
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Card 6: 로그인 필요 -->
+        <!-- Card 6: 데이터 대시보드 -->
         <div class="col-lg-4 col-md-6">
-            <div class="card h-100 shadow-sm border-0 category-card login-required-card">
+            {% if user.is_authenticated %}
+            <div class="card h-100 shadow-sm border-0 category-card dashboard-card">
+                <div class="card-body text-center p-4">
+                    <div class="icon-wrapper mb-3">
+                        <i class="fas fa-chart-line text-dark fs-1"></i>
+                    </div>
+                    <h5 class="card-title text-dark fw-bold mb-3">데이터 대시보드</h5>
+                    <p class="card-text text-muted mb-4">녹음된 파일과 메타 정보를 시각화하여 확인할 수 있습니다.</p>
+                    <a href="/api/dashboard/" class="btn btn-purple btn-lg rounded-pill px-4">
+                        <i class="fas fa-chart-bar me-2"></i>대시보드 보기
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="card h-100 shadow-sm border-0 category-card">
                 <div class="card-body text-center p-4">
                     <div class="icon-wrapper mb-3">
                         <i class="fas fa-lock text-muted fs-1"></i>
                     </div>
-                    <h5 class="card-title text-muted fw-bold mb-3">데이터 대시보드</h5>
+                    <h5 class="card-title text-muted fw-bold mb-3">로그인 필요</h5>
                     <p class="card-text text-muted mb-4">대시보드를 보려면 로그인이 필요합니다.</p>
-                    <a href="{% url 'login' %}" class="btn btn-outline-purple btn-lg rounded-pill px-4">
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
                         <i class="fas fa-sign-in-alt me-2"></i>로그인
                     </a>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -193,31 +238,39 @@
         box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
     }
     
-    .login-required-card {
-        background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-        border: 2px dashed #dee2e6;
+    .dashboard-card {
+        background: linear-gradient(145deg, #f8f9fa, #e9ecef) !important;
+        border: 1px solid #dee2e6;
     }
     
-    /* 보라색 아웃라인 버튼 스타일 추가 */
-    .btn-outline-purple {
-        color: #6f42c1;
-        border-color: #6f42c1;
-        background-color: transparent;
+    .dashboard-card .card-text {
+        color: #6c757d !important;
     }
     
-    .btn-outline-purple:hover {
-        color: white;
+    .dashboard-card .card-title {
+        color: #495057 !important;
+    }
+    
+    /* 보라색 버튼 스타일 추가 */
+    .btn-purple {
         background-color: #6f42c1;
         border-color: #6f42c1;
+        color: white;
+    }
+    
+    .btn-purple:hover {
+        background-color: #5a32a3;
+        border-color: #5a32a3;
+        color: white;
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(111, 66, 193, 0.3);
     }
     
-    .btn-outline-purple:focus,
-    .btn-outline-purple:active {
-        color: white;
+    .btn-purple:focus,
+    .btn-purple:active {
         background-color: #5a32a3;
         border-color: #5a32a3;
+        color: white;
         box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
     }
     
@@ -253,16 +306,6 @@
     
     .btn:hover {
         transform: translateY(-2px);
-    }
-    
-    .btn-outline-primary:hover,
-    .btn-outline-warning:hover,
-    .btn-outline-success:hover,
-    .btn-outline-info:hover,
-    .btn-outline-secondary:hover,
-    .btn-outline-dark:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
 
     /* 반응형 조정 */

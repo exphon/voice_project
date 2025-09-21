@@ -26,10 +26,8 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/api/list/">전체 보기</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/api/child/list/">아동 말과제</a></li>
-                                <li><a class="dropdown-item" href="/api/senior/list/">중장년 말과제</a></li>
-                                <li><a class="dropdown-item" href="/api/atypical/list/">음성 장애</a></li>
-                                <li><a class="dropdown-item" href="/api/normal/list/">일반</a></li>
+                                <li><a class="dropdown-item" href="/voice/child/list/">아동 말과제</a></li>
+                                <li><a class="dropdown-item" href="/voice/senior/list/">장노년 말과제</a></li>
                             </ul>
                         </li>
                     {% endif %}
@@ -52,7 +50,7 @@
                             <a class="nav-link" href="{% url 'login' %}">로그인</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'signup' %}">회원가입</a>
+                            <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
                         </li>
                     {% endif %}
                 </ul>

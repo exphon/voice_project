@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/test/', api_test, name='api_test'),  # 테스트용 API 엔드포인트
     path('api/', include('voice_app.urls')),  # api/ 경로를 voice_app으로 연결
     path('voice/', include('voice_app.urls')),  # voice_app URLs 포함
+    path('accounts/', include('accounts.urls')),  # accounts 앱 URL 추가
 ]
 
 # 미디어 파일 URL 패턴 추가

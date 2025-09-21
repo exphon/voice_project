@@ -8,7 +8,7 @@ from .views import transcribe_unprocessed
 from .views import api_all_audio_list, api_audio_detail
 from .views import whisperx_transcribe, whisperx_transcribe_simple
 from .views import whisperx_align_audio, get_alignment_data, get_alignment_status
-from .views import api_child_info, api_status, api_config, test_file_upload, signup
+from .views import api_child_info, api_status, api_config, test_file_upload
 
 # app_name = 'voice_app'  # namespace 제거
 
@@ -44,7 +44,6 @@ urlpatterns = [
     # 인증 관련
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('signup/', signup, name='signup'),  # 회원가입 URL 추가
     
     # 기타 기능들
     path('reset_processing/', views.reset_processing_status, name='reset_processing_status'),

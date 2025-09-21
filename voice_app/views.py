@@ -710,11 +710,6 @@ def index(request):
     
     return render(request, 'index.html')
 
-def signup(request):
-    """회원가입 페이지 (임시로 로그인 페이지로 리다이렉트)"""
-    from django.shortcuts import redirect
-    return redirect('login')
-
 def extract_metadata_to_fields(audio):
     """React Native 메타데이터에서 기본 필드로 정보 추출"""
     if not audio.category_specific_data or 'metadata_json' not in audio.category_specific_data:

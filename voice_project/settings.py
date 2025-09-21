@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     "rest_framework",    
     "corsheaders",         
     "voice_app",  # 음성 앱 활성화
-    # "accounts",  # 사용자 인증 앱 (필요시 주석 해제)
+    "accounts",  # 사용자 인증 앱
     # 'django_extensions',  # Django 확장 (필요시 주석 해제)
 ]
 

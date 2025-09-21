@@ -43,7 +43,7 @@
                             <a class="nav-link" href="{% url 'login' %}">로그인</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'signup' %}">회원가입</a>
+                            <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -137,7 +137,7 @@
                         <div class="icon-wrapper mb-3">
                             <i class="fas fa-user-clock text-info fs-1"></i>
                         </div>
-                        <h5 class="card-title text-info fw-bold mb-3">노인 발화</h5>
+                        <h5 class="card-title text-info fw-bold mb-3">장노년층 발화</h5>
                         <p class="card-text text-muted mb-4">노인의 발화 데이터를 관리합니다.</p>
                         {% if user.is_authenticated %}
                             <a href="/api/senior/list/" class="btn btn-info btn-lg rounded-pill px-4">

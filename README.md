@@ -269,14 +269,6 @@ voice_project/
 │   └── wsgi.py             # WSGI 설정
 ├── media/                  # 업로드된 미디어 파일
 ├── assets/                 # 정적 자산
-├── docs/                   # 문서 파일들
-│   ├── API_ASSETS_GUIDE.md
-│   ├── AUDIO_REUPLOAD_GUIDE.md
-│   ├── GENDER_TRANSLATION_GUIDE.md
-│   ├── METADATA_FIELDS_MAPPING.md
-│   ├── TRANSCRIPT_FIELD_UPDATE_GUIDE.md
-│   ├── WHISPER_TEST_GUIDE.md
-│   └── WHISPER_TRANSCRIPTION_REVIEW.md
 ├── manage.py               # Django 관리 스크립트
 ├── requirements.txt        # Python 의존성
 └── README.md              # 이 파일

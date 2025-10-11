@@ -3092,3 +3092,126 @@ def api_participant_metadata(request, identifier):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+@api_view(['GET'])
+def api_category_participant_metadata(request, category, identifier):
+    """
+    카테고리별 참가자 메타데이터 조회 API
+    URL: /api/{category}/participant/{identifier}/
+    
+    카테고리와 ID 접두사 매핑:
+    - child: C로 시작 (예: C27508)
+    - senior: S로 시작 (예: S12345)
+    - auditory: A로 시작 (예: A46670)
+    - atypical: A로 시작 (예: A99999)
+    - normal: 제약 없음
+    """
+    try:
+        # 카테고리와 ID 접두사 매핑
+        category_prefix_map = {
+            'child': 'C',
+            'senior': 'S',
+            'auditory': 'A',
+            'atypical': 'A',
+        }
+        
+        # 카테고리가 유효한지 확인
+        valid_categories = ['child', 'senior', 'auditory', 'atypical', 'normal']
+        if category not in valid_categories:
+            return Response({
+                'success': False,
+                'error': f'유효하지 않은 카테고리입니다: {category}. 허용된 값: {", ".join(valid_categories)}'
+            }, status=400)
+        
+        # ID 접두사 검증 (normal 제외)
+        if category in category_prefix_map:
+            expected_prefix = category_prefix_map[category]
+            if not identifier.startswith(expected_prefix):
+                return Response({
+                    'success': False,
+                    'error': f'{category} 카테고리의 ID는 {expected_prefix}로 시작해야 합니다. 입력된 ID: {identifier}'
+                }, status=400)
+        
+        # 해당 identifier를 가진 모든 레코드 조회
+        audio_records = AudioRecord.objects.filter(
+            identifier=identifier,
+            category=category
+        ).order_by('-created_at')
+        
+        if not audio_records.exists():
+            return Response({
+                'success': False,
+                'error': f'{category} 카테고리에서 참가자를 찾을 수 없습니다: {identifier}'
+            }, status=404)
+        
+        # 가장 최근 레코드에서 메타데이터 추출
+        latest_record = audio_records.first()
+        
+        # 생년월일 조합 (birth_year, birth_month, birth_day를 사용)
+        birth_date_str = None
+        if latest_record.birth_year and latest_record.birth_month and latest_record.birth_day:
+            try:
+                year = int(latest_record.birth_year) if latest_record.birth_year else 0
+                month = int(latest_record.birth_month) if latest_record.birth_month else 0
+                day = int(latest_record.birth_day) if latest_record.birth_day else 0
+                if year > 0 and month > 0 and day > 0:
+                    birth_date_str = f"{year:04d}-{month:02d}-{day:02d}"
+            except (ValueError, TypeError):
+                birth_date_str = None
+        
+        # 기본 메타데이터
+        metadata = {
+            'identifier': identifier,
+            'name': latest_record.name,
+            'category': latest_record.category,
+            'gender': latest_record.gender,
+            'age': latest_record.age,
+            'age_in_months': latest_record.age_in_months,
+            'birth_year': latest_record.birth_year,
+            'birth_month': latest_record.birth_month,
+            'birth_day': latest_record.birth_day,
+            'birth_date': birth_date_str,
+            'total_recordings': audio_records.count(),
+            'latest_recording_date': latest_record.created_at.isoformat(),
+        }
+        
+        # 카테고리별 상세 메타데이터 (category_specific_data)
+        if latest_record.category_specific_data:
+            metadata['category_data'] = latest_record.category_specific_data
+        
+        # 모든 녹음 파일 목록 (선택적으로 포함)
+        recordings = []
+        for record in audio_records:
+            recordings.append({
+                'id': record.id,
+                'audio_file': record.audio_file.url if record.audio_file else None,
+                'transcript': record.manual_transcript or record.transcript,
+                'status': record.status,
+                'created_at': record.created_at.isoformat(),
+                'snr_mean': record.snr_mean,
+            })
+        
+        metadata['recordings'] = recordings
+        
+        # 통계 정보
+        completed_count = audio_records.filter(status='completed').count()
+        metadata['statistics'] = {
+            'total': audio_records.count(),
+            'completed': completed_count,
+            'pending': audio_records.filter(status='pending').count(),
+            'processing': audio_records.filter(status='processing').count(),
+            'failed': audio_records.filter(status='failed').count(),
+        }
+        
+        return Response({
+            'success': True,
+            'data': metadata
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+

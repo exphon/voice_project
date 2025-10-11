@@ -5,7 +5,7 @@ from .views import AudioUploadView, SimpleCategoryUploadView
 from .views import audio_list, delete_all_audios, category_audio_list, audio_detail, dashboard, userprofile
 from .views import update_transcription, update_audio_metadata
 from .views import transcribe_unprocessed
-from .views import api_all_audio_list, api_audio_detail
+from .views import api_all_audio_list, api_audio_detail, api_participant_metadata
 from .views import whisperx_transcribe, whisperx_transcribe_simple
 from .views import whisperx_align_audio, get_alignment_data, get_alignment_status
 from .views import api_child_info, api_status, api_config, test_file_upload
@@ -29,6 +29,7 @@ urlpatterns = [
     
     # 누락된 API 엔드포인트들 추가
     path('child/info/', views.api_child_info, name='api_child_info'),
+    path('child/participant/<str:identifier>/', api_participant_metadata, name='api_participant_metadata'),
     path('status/', views.api_status, name='api_status'),
     path('config/', views.api_config, name='api_config'),
     path('test-upload/', views.test_file_upload, name='api_test_upload'),  # React Native 테스트용

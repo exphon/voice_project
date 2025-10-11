@@ -1,13 +1,22 @@
 # React Native 앱에서 참가자 정보 가져오기 가이드
 
-## 📱 빠른 시작
+## � 중요 업데이트
+
+**✅ 2025-10-11 업데이트:**
+- **모든 카테고리 지원**: `/api/participant/{id}/` 엔드포인트 추가
+- **카테고리 제약 없음**: child, auditory, senior, atypical, normal 모두 조회 가능
+- **하위 호환성 유지**: 기존 `/api/child/participant/{id}/` 계속 사용 가능
+
+---
+
+## �📱 빠른 시작
 
 ### 1. 기본 사용법
 
 ```javascript
-// 참가자 ID로 데이터 가져오기
-const participantId = "C27508";
-const apiUrl = `http://210.125.93.241:8010/api/child/participant/${participantId}/`;
+// 참가자 ID로 데이터 가져오기 (모든 카테고리 지원)
+const participantId = "C27508";  // 또는 "A46670" (auditory), "S12345" (senior) 등
+const apiUrl = `http://210.125.93.241:8010/api/participant/${participantId}/`;
 
 fetch(apiUrl)
   .then(response => response.json())
@@ -35,11 +44,11 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://210.125.93.241:8010';
 
-// 참가자 정보 가져오기
+// 참가자 정보 가져오기 (모든 카테고리 지원: child, auditory, senior, atypical, normal)
 export const getParticipantInfo = async (identifier) => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/api/child/participant/${identifier}/`
+      `${API_BASE_URL}/api/participant/${identifier}/`
     );
     
     if (response.data.success) {
@@ -56,7 +65,9 @@ export const getParticipantInfo = async (identifier) => {
 // 사용 예시
 const loadParticipant = async () => {
   try {
-    const participant = await getParticipantInfo('C27508');
+    const participant = await getParticipantInfo('C27508');  // child
+    // const participant = await getParticipantInfo('A46670');  // auditory
+    // const participant = await getParticipantInfo('S12345');  // senior
     
     console.log('ID:', participant.identifier);
     console.log('이름:', participant.name);
@@ -347,7 +358,7 @@ class VoiceAPI {
   async getParticipant(identifier) {
     try {
       const response = await this.client.get(
-        `/api/child/participant/${identifier}/`
+        `/api/participant/${identifier}/`
       );
       return response.data;
     } catch (error) {
@@ -405,7 +416,7 @@ const MyComponent = () => {
 const getParticipantWithErrorHandling = async (identifier) => {
   try {
     const response = await axios.get(
-      `http://210.125.93.241:8010/api/child/participant/${identifier}/`
+      `http://210.125.93.241:8010/api/participant/${identifier}/`
     );
     
     if (response.data.success) {
@@ -495,7 +506,7 @@ export const getParticipantInfo = async (
   identifier: string
 ): Promise<ParticipantData> => {
   const response = await axios.get<APIResponse>(
-    `${API_BASE_URL}/api/child/participant/${identifier}/`
+    `${API_BASE_URL}/api/participant/${identifier}/`
   );
   
   if (response.data.success && response.data.data) {
@@ -533,7 +544,7 @@ const App = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://210.125.93.241:8010/api/child/participant/${participantId}/`
+        `http://210.125.93.241:8010/api/participant/${participantId}/`
       );
       
       if (response.data.success) {
@@ -644,12 +655,24 @@ export default App;
 
 | 메서드 | URL | 설명 |
 |--------|-----|------|
-| GET | `/api/child/participant/{identifier}/` | 특정 참가자 정보 조회 |
+| GET | `/api/participant/{identifier}/` | 특정 참가자 정보 조회 (모든 카테고리) |
+| GET | `/api/child/participant/{identifier}/` | 특정 참가자 정보 조회 (하위 호환성, child 전용) |
 
 **예시:**
 ```
+# 범용 (권장) - 모든 카테고리 지원
+http://210.125.93.241:8010/api/participant/C27508/  # child
+http://210.125.93.241:8010/api/participant/A46670/  # auditory
+http://210.125.93.241:8010/api/participant/S12345/  # senior
+
+# 하위 호환성 (child만)
 http://210.125.93.241:8010/api/child/participant/C27508/
 ```
+
+**참가자 ID 형식:**
+- `C#####`: Child (아동)
+- `A#####`: Auditory (청각 장애)
+- `S#####`: Senior (노인)
 
 ---
 

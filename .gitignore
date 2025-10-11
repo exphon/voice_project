@@ -54,6 +54,17 @@ test_*.py
 test_*.wav
 test_*.json
 
+# Temporary and backup files
+Untitled-*
+user.txt
+*.backup
+*.bak
+*.backup_*
+backfill_indexed_fields.py
+change_admin_password.py
+make_admin_superuser.py
+set_user_permissions.py
+
 # IDE
 .vscode/
 .idea/

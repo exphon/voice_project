@@ -2,18 +2,27 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import AudioUploadView, SimpleCategoryUploadView
-from .views import audio_list, delete_all_audios, category_audio_list, audio_detail, dashboard
+from .views import audio_list, delete_all_audios, category_audio_list, audio_detail, dashboard, userprofile
 from .views import update_transcription, update_audio_metadata
 from .views import transcribe_unprocessed
 from .views import api_all_audio_list, api_audio_detail
 from .views import whisperx_transcribe, whisperx_transcribe_simple
 from .views import whisperx_align_audio, get_alignment_data, get_alignment_status
 from .views import api_child_info, api_status, api_config, test_file_upload
+from .views import audio_download, audio_reupload  # 새로 추가
 
 # app_name = 'voice_app'  # namespace 제거
 
 urlpatterns = [
     path('', views.index, name='index'),  # ✅ 루트 경로에 index.html 연결
+    
+    # 프로필 및 대시보드
+    path('userprofile/', userprofile, name='userprofile'),
+    path('dashboard/', dashboard, name='dashboard'),
+    
+    # Assets 파일 목록 API (React Native용) - 먼저 배치
+    path('assets/list/', views.api_assets_list, name='api_assets_list'),
+    path('assets/list/<str:category>/<str:folder>/', views.api_assets_files, name='api_assets_files'),
     
     # REST API 업로드 엔드포인트
     path('<str:category>/upload/', AudioUploadView.as_view(), name='api_category_audio_upload'),
@@ -30,6 +39,10 @@ urlpatterns = [
     path('audio/<int:audio_id>/', audio_detail, name='audio_detail'),
     path('<str:category>/list/', category_audio_list, name='category_audio_list'),
     
+    # 오디오 파일 다운로드 및 재업로드
+    path('audio/<int:audio_id>/download/', audio_download, name='audio_download'),
+    path('audio/<int:audio_id>/reupload/', audio_reupload, name='audio_reupload'),
+    
     # React Native API URL들 (JSON 응답)
     path('<str:category>/list/api/', SimpleCategoryUploadView.as_view(), name='api_category_audio_list'),
     path('<str:category>/upload/api/', SimpleCategoryUploadView.as_view(), name='api_category_upload'),  # 카테고리별 업로드 API
@@ -40,10 +53,6 @@ urlpatterns = [
     path('upload/', AudioUploadView.as_view(), name='audio-upload'),
     path('<str:category>/upload/', AudioUploadView.as_view(), name='category-audio-upload'),
     path('django-upload/', views.django_upload, name='django_upload'),
-    
-    # 인증 관련
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     
     # 기타 기능들
     path('reset_processing/', views.reset_processing_status, name='reset_processing_status'),
@@ -74,4 +83,7 @@ urlpatterns = [
     # API 관련 패턴들도 추가
     path('alignment-status/<int:audio_id>/', views.alignment_status_api, name='alignment_status_api'),
     path('alignment-data/<int:audio_id>/', views.alignment_data_api, name='alignment_data_api'),
+    
+    # 고유 ID 필터링
+    path('identifier/<str:identifier>/', views.identifier_audio_list, name='identifier_audio_list'),
 ]

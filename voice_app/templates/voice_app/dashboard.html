@@ -1,76 +1,87 @@
 {% extends 'base.html' %}
 
-{% block title %}데이터 대시보드 - 음성 관리 시스템{% endblock %}
+{% block title %}화자 기반 대시보드 - 음성 관리 시스템{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-chart-dashboard me-2"></i>데이터 대시보드</h2>
-        <a href="{% url 'index' %}" class="btn btn-outline-primary">
-            <i class="fas fa-home me-1"></i>홈으로
-        </a>
+        <div>
+            <h2><i class="fas fa-users me-2"></i>화자 기반 대시보드</h2>
+            <p class="text-muted mb-0"><small>Identifier(고유 ID) 기준으로 화자를 그룹핑한 통계입니다</small></p>
+        </div>
+        <div>
+            <a href="{% url 'index' %}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-1"></i>홈으로
+            </a>
+        </div>
     </div>
 
-    <!-- 통계 카드들 -->
+    <!-- 주요 통계 카드들 -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-primary stats-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h4 class="card-title">{{ total_files }}</h4>
-                            <p class="card-text">총 음성 파일</p>
+                            <h3 class="card-title mb-1">{{ total_speakers|default:0 }}</h3>
+                            <p class="card-text mb-0">총 화자 수</p>
+                            <small class="text-white-50">고유 Identifier</small>
                         </div>
                         <div class="flex-shrink-0">
-                            <i class="fas fa-file-audio fa-2x"></i>
+                            <i class="fas fa-user-friends fa-3x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-success stats-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h4 class="card-title">{{ snr_stats.count_with_snr|default:0 }}</h4>
-                            <p class="card-text">SNR 데이터</p>
+                            <h3 class="card-title mb-1">{{ total_files|default:0 }}</h3>
+                            <p class="card-text mb-0">총 음성 파일</p>
+                            <small class="text-white-50">전체 녹음</small>
                         </div>
                         <div class="flex-shrink-0">
-                            <i class="fas fa-chart-line fa-2x"></i>
+                            <i class="fas fa-file-audio fa-3x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-warning stats-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h4 class="card-title">{{ snr_stats.avg_snr|floatformat:2|default:"N/A" }}</h4>
-                            <p class="card-text">평균 SNR</p>
+                            <h3 class="card-title mb-1">{{ avg_recordings_per_speaker|default:0 }}</h3>
+                            <p class="card-text mb-0">화자당 평균 녹음</p>
+                            <small class="text-white-50">개/화자</small>
                         </div>
                         <div class="flex-shrink-0">
-                            <i class="fas fa-signal fa-2x"></i>
+                            <i class="fas fa-chart-bar fa-3x opacity-75"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
+        <div class="col-lg-3 col-md-6 mb-3">
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-info stats-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h4 class="card-title">4</h4>
-                            <p class="card-text">카테고리</p>
+                            <h3 class="card-title mb-1">{{ region_speaker_stats|length|default:0 }}</h3>
+                            <p class="card-text mb-0">녹음 지역 수</p>
+                            <small class="text-white-50">화자 분포 지역</small>
                         </div>
                         <div class="flex-shrink-0">
-                            <i class="fas fa-tags fa-2x"></i>
+                            <i class="fas fa-map-marked-alt fa-3x opacity-75"></i>
                         </div>
                     </div>
                 </div>
@@ -78,287 +89,655 @@
         </div>
     </div>
 
-    <!-- 차트 섹션 -->
-    <div class="row">
-        <!-- 카테고리별 분포 -->
-        <div class="col-md-6 mb-4">
-            <div class="card">
+    <!-- 화자 기반 핵심 통계 차트 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-3"><i class="fas fa-user-check me-2"></i>화자(Speaker) 기반 통계</h4>
+            <p class="text-muted"><small>동일한 Identifier를 가진 녹음들은 하나의 화자로 그룹핑됩니다</small></p>
+        </div>
+
+        <!-- 카테고리별 화자 수 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card chart-card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-pie me-2"></i>카테고리별 분포</h5>
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>카테고리별 화자 수</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="categoryChart" height="300"></canvas>
+                    <canvas id="categorySpeakerChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- 성별 분포 -->
-        <div class="col-md-6 mb-4">
-            <div class="card">
+        <!-- 성별 화자 수 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card chart-card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-donut me-2"></i>성별 분포</h5>
+                    <h5 class="mb-0"><i class="fas fa-venus-mars me-2"></i>성별 화자 수</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="genderChart" height="300"></canvas>
+                    <canvas id="genderSpeakerChart"></canvas>
                 </div>
             </div>
+        </div>
+
+        <!-- 화자별 녹음 수 분포 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>화자별 녹음 수 분포</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="recordingsPerSpeakerChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 지역별 화자 수 -->
+        <div class="col-lg-6 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>지역별 화자 분포</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="regionSpeakerChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 교육 수준별 화자 수 -->
+        {% if education_speaker_stats %}
+        <div class="col-lg-6 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>교육 수준별 화자 분포</h5>
+                    <small class="text-muted">Senior / Auditory</small>
+                </div>
+                <div class="card-body">
+                    <canvas id="educationSpeakerChart"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 카테고리별 화자 상세 통계 -->
+    <div class="row mt-4">
+        <div class="col-12 mb-3">
+            <h4><i class="fas fa-layer-group me-2"></i>카테고리별 화자 상세 분석</h4>
+        </div>
+
+        <!-- 아동 (Child) 화자 통계 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-primary category-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-child me-2"></i>아동 화자</h5>
+                </div>
+                <div class="card-body">
+                    {% if age_group_speaker_stats %}
+                    <h6 class="mb-3">연령대별 화자 분포</h6>
+                    <canvas id="childAgeGroupChart"></canvas>
+                    <div class="mt-3">
+                        <p class="text-muted mb-0"><small><i class="fas fa-info-circle me-1"></i>월령 기반 연령대</small></p>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">연령 데이터 없음</p>
+                    {% endif %}
+                    
+                    {% if child_device_stats %}
+                    <div class="mt-4">
+                        <h6 class="mb-2">사용 기기 (화자 수)</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for item in child_device_stats|slice:":5" %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                <small>{{ item.device }}</small>
+                                <span class="badge bg-primary rounded-pill">{{ item.count }}명</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 노인 (Senior) 화자 통계 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-success category-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-elderly me-2"></i>노인 화자</h5>
+                </div>
+                <div class="card-body">
+                    {% if senior_cognitive_stats %}
+                    <h6 class="mb-3">인지 저하 여부 (화자 수)</h6>
+                    <canvas id="seniorCognitiveChart"></canvas>
+                    {% else %}
+                    <p class="text-muted text-center py-3">인지 저하 데이터 없음</p>
+                    {% endif %}
+                    
+                    {% if senior_job_stats %}
+                    <div class="mt-4">
+                        <h6 class="mb-2">주요 직업군 (화자 수)</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for job in senior_job_stats|slice:":5" %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                <small>{{ job.job }}</small>
+                                <span class="badge bg-success rounded-pill">{{ job.count }}명</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 청각 장애 (Auditory) 화자 통계 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-warning category-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-ear-listen me-2"></i>청각 장애 화자</h5>
+                </div>
+                <div class="card-body">
+                    {% if hearing_speaker_stats %}
+                    <h6 class="mb-3">청력 수준별 화자 분포</h6>
+                    <canvas id="hearingSpeakerChart"></canvas>
+                    {% else %}
+                    <p class="text-muted text-center py-3">청력 수준 데이터 없음</p>
+                    {% endif %}
+                    
+                    {% if auditory_hearing_aid_stats %}
+                    <div class="mt-4">
+                        <h6 class="mb-3">보청기 사용 (화자 수)</h6>
+                        <canvas id="hearingAidSpeakerChart"></canvas>
+                    </div>
+                    {% endif %}
+                    
+                    {% if auditory_language_stats %}
+                    <div class="mt-4">
+                        <h6 class="mb-2">모국어 분포 (화자 수)</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for lang in auditory_language_stats|slice:":5" %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                <small>{{ lang.language }}</small>
+                                <span class="badge bg-warning text-dark rounded-pill">{{ lang.count }}명</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 파일 기반 참고 통계 -->
+    <div class="row mt-4">
+        <div class="col-12 mb-3">
+            <h4><i class="fas fa-file-medical-alt me-2"></i>파일 기반 참고 통계</h4>
+            <p class="text-muted"><small>전체 음성 파일을 기준으로 한 통계입니다</small></p>
         </div>
 
         <!-- 월별 업로드 현황 -->
-        <div class="col-md-8 mb-4">
-            <div class="card">
+        <div class="col-lg-6 mb-4">
+            <div class="card chart-card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-bar me-2"></i>월별 업로드 현황</h5>
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>월별 업로드 현황</h5>
+                    <small class="text-muted">최근 12개월</small>
                 </div>
                 <div class="card-body">
-                    <canvas id="monthlyChart" height="200"></canvas>
+                    <canvas id="monthlyChart"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- 전사 상태 -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
+        <div class="col-lg-6 mb-4">
+            <div class="card chart-card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-donut me-2"></i>전사 상태</h5>
+                    <h5 class="mb-0"><i class="fas fa-chart-donut me-2"></i>전사 상태</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="statusChart" height="200"></canvas>
+                    <canvas id="statusChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- SNR 분포 -->
-        <div class="col-12 mb-4">
-            <div class="card">
+        <!-- SNR 통계 -->
+
+        <!-- SNR 통계 -->
+        <div class="col-lg-6 mb-4">
+            <div class="card chart-card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-area me-2"></i>SNR 통계</h5>
+                    <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>SNR 통계</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-4">
                             <div class="text-center p-3 bg-light rounded">
-                                <h4 class="text-primary">{{ snr_stats.min_snr|floatformat:2|default:"N/A" }}</h4>
-                                <p class="mb-0">최소 SNR</p>
+                                <h4 class="text-primary mb-1">{{ snr_stats.min_snr|floatformat:2|default:"N/A" }}</h4>
+                                <p class="mb-0 small">최소</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-4">
                             <div class="text-center p-3 bg-light rounded">
-                                <h4 class="text-success">{{ snr_stats.avg_snr|floatformat:2|default:"N/A" }}</h4>
-                                <p class="mb-0">평균 SNR</p>
+                                <h4 class="text-success mb-1">{{ snr_stats.avg_snr|floatformat:2|default:"N/A" }}</h4>
+                                <p class="mb-0 small">평균</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-4">
                             <div class="text-center p-3 bg-light rounded">
-                                <h4 class="text-danger">{{ snr_stats.max_snr|floatformat:2|default:"N/A" }}</h4>
-                                <p class="mb-0">최대 SNR</p>
+                                <h4 class="text-danger mb-1">{{ snr_stats.max_snr|floatformat:2|default:"N/A" }}</h4>
+                                <p class="mb-0 small">최대</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- 진단명 -->
+        {% if diagnosis_stats %}
+        <div class="col-lg-6 mb-4">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-stethoscope me-2"></i>주요 진단명</h5>
+                    <small class="text-muted">상위 10개 (파일 기준)</small>
+                </div>
+                <div class="card-body">
+                    <canvas id="diagnosisChart"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
-<!-- 데이터를 JavaScript로 전달 -->
-{{ category_stats|json_script:"category-stats" }}
-{{ gender_stats|json_script:"gender-stats" }}
+<!-- 화자 기반 데이터 -->
+{{ category_speaker_stats|json_script:"category-speaker-stats" }}
+{{ gender_speaker_stats|json_script:"gender-speaker-stats" }}
+{{ region_speaker_stats|json_script:"region-speaker-stats" }}
+{{ education_speaker_stats|json_script:"education-speaker-stats" }}
+{{ hearing_speaker_stats|json_script:"hearing-speaker-stats" }}
+{{ age_group_speaker_stats|json_script:"age-group-speaker-stats" }}
+{{ recordings_per_speaker|json_script:"recordings-per-speaker" }}
+{{ child_device_stats|json_script:"child-device-stats" }}
+{{ senior_cognitive_stats|json_script:"senior-cognitive-stats" }}
+{{ auditory_hearing_aid_stats|json_script:"auditory-hearing-aid-stats" }}
+
+<!-- 파일 기반 데이터 -->
 {{ monthly_stats|json_script:"monthly-stats" }}
 {{ status_stats|json_script:"status-stats" }}
+{{ diagnosis_stats|json_script:"diagnosis-stats" }}
 
 <script>
 // 데이터 파싱
-const categoryStats = JSON.parse(document.getElementById('category-stats').textContent);
-const genderStats = JSON.parse(document.getElementById('gender-stats').textContent);
+const categorySpeakerStats = JSON.parse(document.getElementById('category-speaker-stats').textContent);
+const genderSpeakerStats = JSON.parse(document.getElementById('gender-speaker-stats').textContent);
+const regionSpeakerStats = JSON.parse(document.getElementById('region-speaker-stats').textContent);
+const educationSpeakerStats = JSON.parse(document.getElementById('education-speaker-stats').textContent);
+const hearingSpeakerStats = JSON.parse(document.getElementById('hearing-speaker-stats').textContent);
+const ageGroupSpeakerStats = JSON.parse(document.getElementById('age-group-speaker-stats').textContent);
+const recordingsPerSpeaker = JSON.parse(document.getElementById('recordings-per-speaker').textContent);
+const childDeviceStats = JSON.parse(document.getElementById('child-device-stats').textContent);
+const seniorCognitiveStats = JSON.parse(document.getElementById('senior-cognitive-stats').textContent);
+const auditoryHearingAidStats = JSON.parse(document.getElementById('auditory-hearing-aid-stats').textContent);
+
 const monthlyStats = JSON.parse(document.getElementById('monthly-stats').textContent);
 const statusStats = JSON.parse(document.getElementById('status-stats').textContent);
+const diagnosisStats = JSON.parse(document.getElementById('diagnosis-stats').textContent);
 
-// 카테고리별 분포 차트
-const categoryLabels = categoryStats.map(stat => {
-    switch(stat.category) {
-        case 'child': return '아동';
-        case 'senior': return '노인';
-        case 'atypical': return '음성 장애';
-        default: return '일반';
-    }
-});
+const colorPalette = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#e83e8c', '#20c997', '#fd7e14'];
 
-const categoryChartData = {
-    labels: categoryLabels,
-    datasets: [{
-        data: categoryStats.map(stat => stat.count),
-        backgroundColor: [
-            '#007bff',
-            '#28a745', 
-            '#ffc107',
-            '#6c757d'
-        ]
-    }]
-};
-
-new Chart(document.getElementById('categoryChart'), {
-    type: 'pie',
-    data: categoryChartData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
+const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: { padding: 15, font: { size: 11 } }
         }
     }
-});
-
-// 성별 분포 차트
-const genderLabels = genderStats.map(stat => {
-    switch(stat.gender) {
-        case 'male': return '남성';
-        case 'female': return '여성';
-        default: return stat.gender;
-    }
-});
-
-const genderChartData = {
-    labels: genderLabels,
-    datasets: [{
-        data: genderStats.map(stat => stat.count),
-        backgroundColor: ['#17a2b8', '#e83e8c']
-    }]
 };
 
-new Chart(document.getElementById('genderChart'), {
+// 카테고리별 화자 수
+const categoryLabels = categorySpeakerStats.map(s => {
+    const map = {child: '아동', senior: '노인', auditory: '청각 장애', atypical: '음성 장애'};
+    return map[s.category] || s.category;
+});
+
+new Chart(document.getElementById('categorySpeakerChart'), {
     type: 'doughnut',
-    data: genderChartData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
+    data: {
+        labels: categoryLabels,
+        datasets: [{
+            data: categorySpeakerStats.map(s => s.count),
+            backgroundColor: colorPalette
+        }]
+    },
+    options: commonOptions
 });
 
-// 월별 업로드 현황 차트
-const monthlyChartData = {
-    labels: monthlyStats.map(stat => stat.month),
-    datasets: [{
-        label: '업로드 수',
-        data: monthlyStats.map(stat => stat.count),
-        backgroundColor: '#007bff',
-        borderColor: '#0056b3',
-        borderWidth: 1
-    }]
-};
+// 성별 화자 수
+if (genderSpeakerStats.length > 0) {
+    const genderLabels = genderSpeakerStats.map(s => s.gender === 'male' ? '남성' : '여성');
+    new Chart(document.getElementById('genderSpeakerChart'), {
+        type: 'pie',
+        data: {
+            labels: genderLabels,
+            datasets: [{
+                data: genderSpeakerStats.map(s => s.count),
+                backgroundColor: ['#007bff', '#e83e8c']
+            }]
+        },
+        options: commonOptions
+    });
+}
 
+// 화자별 녹음 수 분포
+if (recordingsPerSpeaker.length > 0) {
+    new Chart(document.getElementById('recordingsPerSpeakerChart'), {
+        type: 'bar',
+        data: {
+            labels: recordingsPerSpeaker.map(s => s.range),
+            datasets: [{
+                label: '화자 수',
+                data: recordingsPerSpeaker.map(s => s.count),
+                backgroundColor: '#ffc107'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// 지역별 화자 수
+if (regionSpeakerStats.length > 0) {
+    new Chart(document.getElementById('regionSpeakerChart'), {
+        type: 'bar',
+        data: {
+            labels: regionSpeakerStats.map(s => s.region),
+            datasets: [{
+                label: '화자 수',
+                data: regionSpeakerStats.map(s => s.count),
+                backgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+} else {
+    document.getElementById('regionSpeakerChart').parentElement.innerHTML = '<p class="text-muted text-center py-5">데이터가 없습니다</p>';
+}
+
+// 교육 수준별 화자 수
+if (educationSpeakerStats.length > 0) {
+    const eduLabels = educationSpeakerStats.map(s => {
+        const level = s.education_level;
+        if (level <= 6) return '초등 ' + level + '년';
+        else if (level <= 9) return '중등 ' + (level - 6) + '년';
+        else if (level <= 12) return '고등 ' + (level - 9) + '년';
+        else if (level <= 16) return '대학 ' + (level - 12) + '년';
+        else return '대학원 ' + level + '년';
+    });
+    
+    new Chart(document.getElementById('educationSpeakerChart'), {
+        type: 'bar',
+        data: {
+            labels: eduLabels,
+            datasets: [{
+                label: '화자 수',
+                data: educationSpeakerStats.map(s => s.count),
+                backgroundColor: '#6f42c1'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// 아동 연령대별 화자 수
+if (ageGroupSpeakerStats.length > 0) {
+    new Chart(document.getElementById('childAgeGroupChart'), {
+        type: 'bar',
+        data: {
+            labels: ageGroupSpeakerStats.map(s => s.age_group),
+            datasets: [{
+                label: '화자 수',
+                data: ageGroupSpeakerStats.map(s => s.count),
+                backgroundColor: '#007bff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// 노인 인지 저하 화자 수
+if (seniorCognitiveStats.length > 0) {
+    new Chart(document.getElementById('seniorCognitiveChart'), {
+        type: 'doughnut',
+        data: {
+            labels: seniorCognitiveStats.map(s => s.status),
+            datasets: [{
+                data: seniorCognitiveStats.map(s => s.count),
+                backgroundColor: ['#28a745', '#dc3545', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+// 청각 장애 청력 수준별 화자 수
+if (hearingSpeakerStats.length > 0) {
+    new Chart(document.getElementById('hearingSpeakerChart'), {
+        type: 'bar',
+        data: {
+            labels: hearingSpeakerStats.map(s => s.hearing_level),
+            datasets: [{
+                label: '화자 수',
+                data: hearingSpeakerStats.map(s => s.count),
+                backgroundColor: '#ffc107'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+// 보청기 사용 화자 수
+if (auditoryHearingAidStats.length > 0) {
+    new Chart(document.getElementById('hearingAidSpeakerChart'), {
+        type: 'doughnut',
+        data: {
+            labels: auditoryHearingAidStats.map(s => s.status === 'true' || s.status === true ? '사용' : '미사용'),
+            datasets: [{
+                data: auditoryHearingAidStats.map(s => s.count),
+                backgroundColor: ['#28a745', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+// 월별 업로드 (파일 기반)
 new Chart(document.getElementById('monthlyChart'), {
-    type: 'bar',
-    data: monthlyChartData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
+    type: 'line',
+    data: {
+        labels: monthlyStats.map(s => s.month),
+        datasets: [{
+            label: '파일 수',
+            data: monthlyStats.map(s => s.count),
+            backgroundColor: 'rgba(0,123,255,0.1)',
+            borderColor: '#007bff',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: { ...commonOptions, scales: { y: { beginAtZero: true } } }
 });
 
-// 전사 상태 차트
-const statusLabels = statusStats.map(stat => {
-    switch(stat.status) {
-        case 'unprocessed': return '미전사';
-        case 'processing': return '처리 중';
-        case 'completed': return '전사 완료';
-        case 'failed': return '실패';
-        default: return stat.status;
-    }
+// 전사 상태 (파일 기반)
+const statusLabels = statusStats.map(s => {
+    const map = {unprocessed: '미전사', processing: '처리 중', completed: '전사 완료', failed: '실패'};
+    return map[s.status] || s.status;
 });
-
-const statusChartData = {
-    labels: statusLabels,
-    datasets: [{
-        data: statusStats.map(stat => stat.count),
-        backgroundColor: ['#6c757d', '#ffc107', '#28a745', '#dc3545']
-    }]
-};
 
 new Chart(document.getElementById('statusChart'), {
     type: 'doughnut',
-    data: statusChartData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
+    data: {
+        labels: statusLabels,
+        datasets: [{
+            data: statusStats.map(s => s.count),
+            backgroundColor: ['#6c757d', '#ffc107', '#28a745', '#dc3545']
+        }]
+    },
+    options: commonOptions
 });
+
+// 진단명 (파일 기반)
+if (diagnosisStats.length > 0) {
+    new Chart(document.getElementById('diagnosisChart'), {
+        type: 'bar',
+        data: {
+            labels: diagnosisStats.map(s => s.diagnosis),
+            datasets: [{
+                label: '파일 수',
+                data: diagnosisStats.map(s => s.count),
+                backgroundColor: '#dc3545'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } }
+        }
+    });
+}
 </script>
 
 <style>
-.card {
-    transition: transform 0.2s ease-in-out;
+.stats-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.card:hover {
-    transform: translateY(-2px);
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
-.card-header {
+.stats-card .card-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.stats-card .card-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.chart-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.chart-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.chart-card .card-header {
     background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 2px solid #dee2e6;
     font-weight: 600;
 }
 
-.bg-primary {
-    background-color: #007bff !important;
+.category-card {
+    border-width: 2px;
 }
 
-.bg-success {
-    background-color: #28a745 !important;
+.category-card .card-header {
+    font-weight: 600;
 }
 
-.bg-warning {
-    background-color: #ffc107 !important;
+.list-group-item {
+    border-left: none;
+    border-right: none;
 }
 
-.bg-info {
-    background-color: #17a2b8 !important;
+.list-group-item:first-child {
+    border-top: none;
 }
 
-.card-body i {
-    opacity: 0.8;
-}
-
-.bg-light {
-    background-color: #f8f9fa !important;
-}
-
-.rounded {
-    border-radius: 0.375rem !important;
+.list-group-item:last-child {
+    border-bottom: none;
 }
 
 .container-fluid {
-    max-width: 1200px;
-}
-
-.fas {
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
+    max-width: 1600px;
+    padding: 20px;
 }
 
 canvas {
     max-height: 400px;
+}
+
+@media (max-width: 768px) {
+    .stats-card .card-title {
+        font-size: 1.8rem;
+    }
+    .stats-card .card-text {
+        font-size: 0.85rem;
+    }
+    .container-fluid {
+        padding: 10px;
+    }
 }
 </style>
 

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>특수화자 음성 관리 시스템 파일 목록</title>
+  <title>고유 ID: {{ identifier }} - 특수화자 음성 관리 시스템</title>
   <!-- Bootstrap CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- FontAwesome CDN -->
@@ -14,7 +14,6 @@
       padding: 40px;
     }
 
-    /* 헤더 섹션 스타일 개선 */
     .header-section {
       display: flex;
       justify-content: space-between;
@@ -37,7 +36,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-shrink: 0; /* 줄어들지 않도록 설정 */
+      flex-shrink: 0;
     }
 
     h1 {
@@ -46,7 +45,44 @@
       flex-shrink: 1;
     }
 
-    /* 홈 버튼 스타일 - 항상 보이도록 개선 */
+    .identifier-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .stat-card h4 {
+      margin: 0 0 5px 0;
+      font-size: 14px;
+      color: #6c757d;
+    }
+
+    .stat-card p {
+      margin: 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+
     .home-button {
       color: #0d6efd !important;
       border: 1px solid #0d6efd;
@@ -59,8 +95,8 @@
       display: flex !important;
       align-items: center;
       gap: 5px;
-      white-space: nowrap; /* 텍스트 줄바꿈 방지 */
-      min-width: fit-content; /* 최소 너비 보장 */
+      white-space: nowrap;
+      min-width: fit-content;
     }
     
     .home-button:hover {
@@ -70,7 +106,30 @@
       text-decoration: none !important;
       transform: translateY(-1px);
     }
+
+    .back-button {
+      color: #6c757d !important;
+      border: 1px solid #6c757d;
+      background-color: transparent;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 8px;
+      text-decoration: none !important;
+      transition: all 0.3s ease;
+      display: flex !important;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      min-width: fit-content;
+    }
     
+    .back-button:hover {
+      color: white !important;
+      background-color: #6c757d;
+      border-color: #6c757d;
+      text-decoration: none !important;
+    }
+
     .logout-button {
       background-color: #444;
       color: white !important;
@@ -84,35 +143,14 @@
       display: flex !important;
       align-items: center;
       gap: 5px;
-      white-space: nowrap; /* 텍스트 줄바꿈 방지 */
-      min-width: fit-content; /* 최소 너비 보장 */
+      white-space: nowrap;
+      min-width: fit-content;
     }
 
     .logout-button:hover {
       background-color: #222;
       color: white !important;
       text-decoration: none !important;
-    }
-
-    /* 처리중 초기화 버튼 스타일 */
-    .btn-reset {
-      background-color: orange;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
-    }
-
-    .btn-reset:hover {
-      background-color: #e67e22;
-      transform: translateY(-1px);
     }
 
     .button-row {
@@ -122,10 +160,6 @@
       flex-wrap: wrap;
     }
 
-    .button-row form {
-      display: inline;
-    }
-
     .btn {
       padding: 10px 20px;
       font-size: 16px;
@@ -133,29 +167,6 @@
       border-radius: 5px;
       color: white;
       cursor: pointer;
-    }
-
-    .btn-transcribe {
-      background-color: green;
-    }
-
-    .btn-delete {
-      background-color: red;
-    }
-
-    .btn-save {
-      background-color: dodgerblue;
-      padding: 6px 12px;
-      font-size: 12px;
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
-    }
-
-    textarea {
-      width: 100%;
-      resize: vertical;
     }
 
     table {
@@ -213,14 +224,6 @@
       color: white !important;
     }
 
-    .sortable-header:active {
-      color: #333 !important;
-    }
-
-    .sortable-header:focus {
-      color: #333 !important;
-    }
-
     .sort-arrow {
       margin-left: 5px;
       font-size: 16px;
@@ -242,58 +245,6 @@
       color: #333;
     }
 
-    /* 반응형 디자인 개선 */
-    @media (max-width: 768px) {
-      .header-section {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 15px;
-      }
-
-      .header-left {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-      }
-
-      .header-right {
-        align-self: flex-end; /* 오른쪽 정렬 유지 */
-        flex-direction: row;
-        gap: 10px;
-      }
-
-      h1 {
-        font-size: 1.3rem;
-        margin-right: 0;
-        text-align: center;
-      }
-
-      /* 모바일에서도 버튼들이 보이도록 강제 설정 */
-      .home-button,
-      .logout-button {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-      }
-    }
-
-    /* 매우 작은 화면에서도 버튼 보장 */
-    @media (max-width: 480px) {
-      .header-right {
-        flex-direction: column;
-        align-items: stretch;
-        width: 100%;
-      }
-
-      .home-button,
-      .logout-button {
-        width: 100%;
-        justify-content: center;
-        margin: 0;
-      }
-    }
-
-    /* 오디오 플레이어 스타일 추가 */
     .audio-cell {
       min-width: 200px;
       max-width: 250px;
@@ -327,49 +278,41 @@
       background-color: #0056b3;
     }
     
-    .play-button:disabled {
-      background-color: #6c757d;
-      cursor: not-allowed;
-    }
-    
     .audio-info {
       flex: 1;
       font-size: 12px;
       color: #6c757d;
     }
-    
-    .audio-controls {
-      display: none !important;
-    }
-    
-    /* 기본 오디오 컨트롤 숨기기 */
+
     audio::-webkit-media-controls-panel {
       display: none !important;
     }
-    
-    audio::-webkit-media-controls-play-button {
-      display: none !important;
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
-    audio::-webkit-media-controls-timeline {
-      display: none !important;
+
+    .empty-state i {
+      font-size: 64px;
+      color: #dee2e6;
+      margin-bottom: 20px;
     }
-    
-    audio::-webkit-media-controls-volume-slider {
-      display: none !important;
+
+    .empty-state h3 {
+      color: #6c757d;
+      margin-bottom: 10px;
     }
-    
-    audio::-webkit-media-controls-mute-button {
-      display: none !important;
-    }
-    
-    audio::-webkit-media-controls-fullscreen-button {
-      display: none !important;
+
+    .empty-state p {
+      color: #adb5bd;
     }
   </style>
 
   <script>
-    // 현재 재생 중인 오디오 추적
     let currentAudio = null;
     let currentButton = null;
 
@@ -377,7 +320,6 @@
         const audio = document.getElementById(`audio-${index}`);
         const icon = document.getElementById(`icon-${index}`);
         
-        // 다른 오디오가 재생 중이면 정지
         if (currentAudio && currentAudio !== audio) {
             currentAudio.pause();
             currentAudio.currentTime = 0;
@@ -385,8 +327,7 @@
         }
         
         if (audio.paused) {
-            // 재생 시작
-            audio.src = audioUrl; // URL 설정
+            audio.src = audioUrl;
             audio.play().then(() => {
                 icon.className = 'fas fa-pause';
                 button.disabled = false;
@@ -397,7 +338,6 @@
                 alert('오디오 파일을 재생할 수 없습니다.');
             });
         } else {
-            // 재생 정지
             audio.pause();
             audio.currentTime = 0;
             resetButton(index);
@@ -429,16 +369,13 @@
         return -1;
     }
 
-    // duration을 포맷팅하는 함수
     function formatDuration(seconds) {
         if (!seconds || seconds === 0) return '0:00';
-        
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = Math.floor(seconds % 60);
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 
-    // 오디오 duration 로드 함수
     function loadAudioDuration(index) {
         const audio = document.getElementById(`audio-${index}`);
         const durationElement = document.getElementById(`duration-${index}`);
@@ -450,42 +387,29 @@
                 }
             };
 
-            // duration이 이미 로드되었는지 확인
             if (audio.duration && !isNaN(audio.duration)) {
                 updateDuration();
             } else {
-                // duration 로드 이벤트 리스너
                 audio.addEventListener('loadedmetadata', updateDuration);
                 audio.addEventListener('durationchange', updateDuration);
             }
         }
     }
 
-    // 페이지 로드 시 모든 오디오의 duration 로드
     window.addEventListener('load', function() {
         const audioElements = document.querySelectorAll('audio[id^="audio-"]');
         audioElements.forEach((audio, index) => {
             const actualIndex = audio.id.split('-')[1];
             loadAudioDuration(actualIndex);
         });
-
-        // 기존 스크롤 위치 복원
-        const y = localStorage.getItem("scrollY");
-        if (y !== null) window.scrollTo(0, parseInt(y));
     });
     
-    // 페이지 떠날 때 오디오 정리
     window.addEventListener('beforeunload', function() {
         if (currentAudio) {
             currentAudio.pause();
             currentAudio = null;
         }
-        localStorage.setItem("scrollY", window.scrollY);
     });
-
-    function stayHere() {
-        return true;
-    }
     
     function sortTable(field) {
         const currentSort = '{{ current_sort }}';
@@ -507,70 +431,34 @@
   <!-- 헤더 섹션 -->
   <div class="header-section">
     <div class="header-left">
-      <h1>📂 특수화자 음성 관리 시스템 (전체 음성 파일)</h1>
-      
-      <!-- 카테고리 선택 드롭다운 -->
-      <div class="btn-group" role="group">
-        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-          <i class="fas fa-filter me-2"></i>카테고리 선택
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="/voice/child/list/">
-            <i class="fas fa-child me-2"></i>아동 말과제
-          </a></li>
-          <li><a class="dropdown-item" href="/api/senior/list/">
-            <i class="fas fa-user-clock me-2"></i>장노년 말과제
-          </a></li>
-        </ul>
-      </div>
-
-      <!-- 처리중 초기화 버튼 -->
-      <form method="POST" action="{% url 'reset_processing_status' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-reset">
-          <i class="fas fa-broom me-2"></i>처리중 초기화
-        </button>
-      </form>
+      <h1>🆔 고유 ID: <span class="identifier-badge">{{ identifier }}</span></h1>
     </div>
 
     <div class="header-right">
-      <!-- 홈 버튼 - 클래스명 변경 및 Bootstrap 클래스 제거 -->
+      <a href="javascript:history.back()" class="back-button">
+        <i class="fas fa-arrow-left"></i> 뒤로가기
+      </a>
+      <a href="{% url 'audio_list' %}" class="home-button">
+        <i class="fas fa-list"></i> 전체목록
+      </a>
       <a href="/" class="home-button">
         <i class="fas fa-home"></i>홈
       </a>
-      
-      <!-- 로그아웃 버튼 -->
-      <a href="{% url 'logout' %}" class="logout-button">
+      <a href="/accounts/logout/" class="logout-button">
         <i class="fas fa-sign-out-alt"></i>로그아웃
       </a>
     </div>
   </div>
 
-  <!-- 버튼 행 -->
-  <div class="button-row">
-    <form method="POST" action="{% url 'transcribe_unprocessed' %}">
-      {% csrf_token %}
-      <button 
-        type="submit"
-        class="btn btn-transcribe"
-        onclick="return confirm('전사되지 않은 모든 파일을 Whisper로 전사하시겠습니까?');"
-      >
-        🧠 Whisper 전사 실행
-      </button>
-    </form>
-
-    <form method="POST" action="{% url 'delete_all_audios' %}">
-      {% csrf_token %}
-      <button 
-        type="submit"
-        class="btn btn-delete"
-        onclick="return confirm('정말 전체 삭제하시겠습니까?');"
-      >
-        ⚠️ 전체 삭제
-      </button>
-    </form>
+  <!-- 통계 카드 -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <h4>전체 레코드</h4>
+      <p>{{ total_count }}</p>
+    </div>
   </div>
 
+  {% if audio_list %}
   <!-- 파일 목록 테이블 -->
   <table>
     <thead>
@@ -580,6 +468,10 @@
           <span class="sort-arrow {% if current_sort == 'id' %}asc{% elif current_sort == '-id' %}desc{% endif %}"></span>
         </th>
         <th>음성 파일</th>
+        <th class="sortable-header" onclick="sortTable('name')">
+          이름
+          <span class="sort-arrow {% if current_sort == 'name' %}asc{% elif current_sort == '-name' %}desc{% endif %}"></span>
+        </th>
         <th class="sortable-header" onclick="sortTable('gender')">
           성별
           <span class="sort-arrow {% if current_sort == 'gender' %}asc{% elif current_sort == '-gender' %}desc{% endif %}"></span>
@@ -592,7 +484,7 @@
           카테고리
           <span class="sort-arrow {% if current_sort == 'category' %}asc{% elif current_sort == '-category' %}desc{% endif %}"></span>
         </th>
-        <th>인식 결과 (편집 가능)</th>
+        <th>전사 텍스트</th>
         <th class="sortable-header" onclick="sortTable('status')">
           상태 / 다시 전사
           <span class="sort-arrow {% if current_sort == 'status' %}asc{% elif current_sort == '-status' %}desc{% endif %}"></span>
@@ -601,15 +493,11 @@
           업로드 시간
           <span class="sort-arrow {% if current_sort == 'created_at' %}asc{% elif current_sort == '-created_at' %}desc{% endif %}"></span>
         </th>
-        <th class="sortable-header" onclick="sortTable('snr_mean')">
-          SNR Mean
-          <span class="sort-arrow {% if current_sort == 'snr_mean' %}asc{% elif current_sort == '-snr_mean' %}desc{% endif %}"></span>
-        </th>
         <th>작업</th>
       </tr>
     </thead>
     <tbody>
-      {% for audio in audios %}
+      {% for audio in audio_list %}
       <tr>
         <td>{{ forloop.counter }}</td>
         <td class="audio-cell">
@@ -632,8 +520,37 @@
             </audio>
           </div>
         </td>
-        <td>{{ audio.gender }}</td>
-        <td>{{ audio.age }}</td>
+        <td>
+          {% if audio.name %}
+            <span title="장소: {{ audio.recording_location|default:'미입력' }}, 기기: {{ audio.device_type|default:'미입력' }}">
+              {{ audio.name }}
+            </span>
+          {% else %}
+            <span style="color: #999; font-style: italic;" title="장소: {{ audio.recording_location|default:'미입력' }}, 기기: {{ audio.device_type|default:'미입력' }}">
+              미입력
+            </span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.gender == 'male' or audio.gender == 'M' or audio.gender == 'MALE' %}
+            남
+          {% elif audio.gender == 'female' or audio.gender == 'F' or audio.gender == 'FEMALE' %}
+            여
+          {% elif audio.gender == '남' or audio.gender == '여' %}
+            {{ audio.gender }}
+          {% elif audio.gender %}
+            {{ audio.gender }}
+          {% else %}
+            <span style="color: #999; font-style: italic;">미입력</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.age %}
+            {{ audio.age }}
+          {% else %}
+            <span style="color: #999; font-style: italic;">미입력</span>
+          {% endif %}
+        </td>
         <td>
           {% if audio.category == 'child' %}
             <span class="badge bg-primary">아동</span>
@@ -650,20 +567,29 @@
           {% endif %}
         </td>
         <td>
-          <form method="POST" action="{% url 'update_transcription' audio.id %}" onsubmit="return stayHere();">
-            {% csrf_token %}
-            <textarea name="transcription" rows="2">{{ audio.transcription|default_if_none:"" }}</textarea>
-            <button type="submit" class="btn btn-save">💾 저장</button>
-          </form>
+          {% if audio.manual_transcript %}
+            <div style="max-width: 300px; word-wrap: break-word;">
+              {{ audio.manual_transcript }}
+              {% if audio.manual_transcript != audio.transcript %}
+                <span style="color: #666; font-size: 11px;"><i class="fas fa-edit"></i></span>
+              {% endif %}
+            </div>
+          {% elif audio.transcript %}
+            <div style="max-width: 300px; word-wrap: break-word;">
+              {{ audio.transcript }}
+            </div>
+          {% else %}
+            <span style="color: #999; font-style: italic;">전사 대기</span>
+          {% endif %}
         </td>
         <td>
           <div><strong>상태:</strong> {{ audio.get_status_display }}</div>
 
           {% if audio.status != 'processing' %}
             <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" 
-                  style="margin-top: 5px;" onsubmit="return stayHere();">
+                  style="margin-top: 5px;">
               {% csrf_token %}
-              <button type="submit" class="btn btn-transcribe" style="font-size: 12px; padding: 5px 10px;">
+              <button type="submit" class="btn btn-transcribe" style="font-size: 12px; padding: 5px 10px; background-color: green;">
                 🧠 다시 전사
               </button>
             </form>
@@ -672,7 +598,6 @@
           {% endif %}
         </td>
         <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
-        <td>{{ audio.snr_mean|default_if_none:"N/A" }}</td>
         <td>
           <a href="{% url 'audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
             <i class="fas fa-edit"></i>
@@ -698,6 +623,14 @@
       <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">다음 ➡</a>
     {% endif %}
   </div>
+
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-inbox"></i>
+    <h3>데이터가 없습니다</h3>
+    <p>고유 ID "{{ identifier }}"에 해당하는 오디오 레코드가 없습니다.</p>
+  </div>
+  {% endif %}
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

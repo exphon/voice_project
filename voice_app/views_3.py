@@ -74,12 +74,15 @@ class AudioUploadView(APIView):
             
             # 🧠 Whisper로 transcription 수행
             transcription_text = transcribe_audio_whisper(wav_path)
-            audio_record.transcription = transcription_text
+            audio_record.transcript = transcription_text
+            # manual_transcript가 비어있으면 자동 전사 결과로 초기화
+            if not audio_record.manual_transcript:
+                audio_record.manual_transcript = transcription_text
             audio_record.save()
 
             return Response({'message': '업로드 성공', 
                             'file_path': audio_record.audio_file.url,
-                            'transcription': transcription_text
+                            'transcript': transcription_text
                              })
         
 def audio_list(request):

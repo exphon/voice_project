@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>오디오 파일 상세 정보</title>
-  <!-- WaveSurfer.js CDN -->
-  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <!-- WaveSurfer.js CDN - 버전 6 -->
+  <script src="https://unpkg.com/wavesurfer.js@6.6.4/dist/wavesurfer.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -72,7 +72,7 @@
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
       gap: 20px;
       margin-bottom: 30px;
     }
@@ -448,6 +448,7 @@
   </style>
 </head>
 <body>
+  
   <div class="container">
     <a href="{% url 'audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
     
@@ -462,94 +463,23 @@
       {% endfor %}
     {% endif %}
 
-    <!-- WaveSurfer.js 시각화 -->
+        <!-- 기본 정보 -->
     <div class="section">
-      <h3>🎵 오디오 파형 시각화</h3>
-      <div id="waveform"></div>
-      <div class="waveform-controls">
-        <button id="playPauseBtn" class="btn btn-success">▶️ 재생</button>
-        <button id="stopBtn" class="btn btn-danger">⏹️ 정지</button>
-        <div class="time-display">
-          <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
-        </div>
-        <div class="volume-control">
-          <label for="volumeSlider">볼륨:</label>
-          <input type="range" id="volumeSlider" min="0" max="100" value="50">
-        </div>
-      </div>
-    </div>
-
-    <!-- 기본 오디오 파일 섹션 -->
-    <div class="section">
-      <h3>🎧 오디오 파일 (기본 컨트롤)</h3>
-      <audio controls src="{{ audio.audio_file.url }}" style="width: 100%;"></audio>
-      
-      <div style="margin-top: 15px;">
-        <a href="{{ audio.audio_file.url }}" download class="btn btn-primary">💾 다운로드</a>
-        
-        <!-- Whisper 전사 버튼과 상태 표시 -->
-        {% if audio.status == 'processing' %}
-          <button class="btn btn-warning" disabled>
-            <span class="spinner-border spinner-border-sm" role="status"></span>
-            🧠 전사 진행 중...
-          </button>
-        {% else %}
-          <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
-          </form>
-        {% endif %}
-        
-        <!-- 전사 상태 표시 -->
-        {% if audio.status == 'completed' %}
-          <span class="badge bg-success">✅ 전사 완료</span>
-        {% elif audio.status == 'processing' %}
-          <span class="badge bg-warning">⏳ 전사 진행 중</span>
-        {% elif audio.status == 'failed' %}
-          <span class="badge bg-danger">❌ 전사 실패</span>
-        {% else %}
-          <span class="badge bg-secondary">⏸️ 전사 대기</span>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- 기본 정보 -->
-    <div class="info-grid">
-      <div class="info-item">
-        <h3>📊 카테고리</h3>
-        <p>{{ audio.get_category_display }}</p>
-      </div>
-      
-      <div class="info-item">
-        <h3>📅 업로드 시간</h3>
-        <p>{{ audio.created_at|date:"Y-m-d H:i" }}</p>
-      </div>
-      
-      <div class="info-item">
-        <h3>🚦 상태</h3>
-        <p>{{ audio.get_status_display }}</p>
-      </div>
-      
-      <div class="info-item">
-        <h3>🆔 파일 ID</h3>
-        <p>{{ audio.id }}</p>
-      </div>
-
-      <div class="info-item">
-        <h3>📱 데이터 소스</h3>
-        <p>{{ audio.get_data_source_display|default:"모바일 앱" }}</p>
-      </div>
-
-      <div class="info-item">
-        <h3>🔄 마지막 업데이트</h3>
-        <p>{{ audio.updated_at|date:"Y-m-d H:i" }}</p>
-      </div>
-    </div>
-
-    <!-- 공통 필드 정보 -->
-    <div class="section">
-      <h3>👤 공통 기본 정보</h3>
+      <h3>👤 기본 정보</h3>
       <div class="info-grid">
+        <div class="info-item">
+          <h3>🆔 고유 ID</h3>
+          <p>
+            {% if audio.identifier %}
+              <a href="{% url 'identifier_audio_list' identifier=audio.identifier %}" style="color: #007bff; text-decoration: none; font-weight: bold;">
+                {{ audio.identifier }}
+              </a>
+            {% else %}
+              <span class='empty-value'>입력되지 않음</span>
+            {% endif %}
+          </p>
+        </div>
+
         <div class="info-item">
           <h3>👤 이름</h3>
           <p>{{ audio.name|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
@@ -557,7 +487,19 @@
         
         <div class="info-item">
           <h3>⚥ 성별</h3>
-          <p>{{ audio.gender|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+          <p>
+            {% if audio.gender == 'male' or audio.gender == 'M' or audio.gender == 'MALE' %}
+              남
+            {% elif audio.gender == 'female' or audio.gender == 'F' or audio.gender == 'FEMALE' %}
+              여
+            {% elif audio.gender == '남' or audio.gender == '여' %}
+              {{ audio.gender }}
+            {% elif audio.gender %}
+              {{ audio.gender }}
+            {% else %}
+              <span class='empty-value'>입력되지 않음</span>
+            {% endif %}
+          </p>
         </div>
         
         <div class="info-item">
@@ -565,6 +507,12 @@
           <p>{{ audio.age|default:"<span class='empty-value'>계산되지 않음</span>"|safe }}</p>
         </div>
         
+        {% if birth_date %}
+        <div class="info-item">
+          <h3>📅 생년월일</h3>
+          <p>{{ birth_date }}</p>
+        </div>
+        {% else %}
         <div class="info-item">
           <h3>📅 출생연도</h3>
           <p>{{ audio.birth_year|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
@@ -579,253 +527,109 @@
           <h3>📅 출생일</h3>
           <p>{{ audio.birth_day|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
         </div>
+        {% endif %}
+
+        {% if audio.age_in_months %}
+        <div class="info-item">
+          <h3>👶 월령</h3>
+          <p>{{ audio.age_in_months }}개월</p>
+        </div>
+        {% endif %}
       </div>
     </div>
 
-    <!-- 녹음 환경 정보 -->
+    <!-- WaveSurfer.js 시각화 -->
     <div class="section">
-      <h3>🎤 녹음 환경 정보</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <h3>📍 녹음 장소</h3>
-          <p>{{ audio.recording_location|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+      <h3>🎵 오디오 파형 시각화</h3>
+      <div style="display: flex; gap: 10px; align-items: stretch;">
+        <!-- dB 스케일 (Y축) - 0을 중심으로 대칭 -->
+        <div id="db-scale" style="display: flex; flex-direction: column; justify-content: space-between; padding: 5px 0; font-size: 11px; color: #666; min-height: 120px; text-align: right; padding-right: 5px;">
+          <span style="font-weight: 500;">+40 dB</span>
+          <span>+20 dB</span>
+          <span style="font-weight: bold; color: #333;">0 dB</span>
+          <span>-20 dB</span>
+          <span style="font-weight: 500;">-40 dB</span>
         </div>
         
-        <div class="info-item">
-          <h3>🔊 소음 수준</h3>
-          <p>{{ audio.noise_level|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        <!-- Waveform -->
+        <div id="waveform-wrapper" style="position: relative; min-height: 120px; flex: 1;">
+          <div id="waveform"></div>
+          <div id="waveform-loading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+            <span style="color: #666;">파형 로딩 중...</span>
+          </div>
+        </div>
+      </div>
+      <div class="waveform-controls">
+        <button id="playPauseBtn" class="btn btn-success">▶️ 재생</button>
+        <button id="stopBtn" class="btn btn-danger">⏹️ 정지</button>
+        <div class="time-display">
+          <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+        </div>
+        <div class="volume-control">
+          <label for="volumeSlider">볼륨:</label>
+          <input type="range" id="volumeSlider" min="0" max="100" value="50">
         </div>
         
-        <div class="info-item">
-          <h3>📱 녹음 기기</h3>
-          <p>{{ audio.device_type|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>🎤 마이크 유무</h3>
-          <p>{{ audio.has_microphone|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>🏥 진단명</h3>
-          <p>{{ audio.diagnosis|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        <!-- 다운로드 및 전사 버튼 -->
+        <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+          <a href="{% url 'audio_download' audio.id %}" class="btn btn-primary">💾 다운로드</a>
+          
+          {% if user.is_staff or user.is_superuser %}
+          <!-- 오디오 파일 재업로드 (보안 검증) -->
+          <button type="button" class="btn btn-warning" onclick="document.getElementById('reuploadModal').style.display='block'">
+            🔄 파일 재업로드
+          </button>
+          {% endif %}
+          
+          <!-- Whisper 전사 버튼과 상태 표시 -->
+          {% if audio.status == 'processing' %}
+            <button class="btn btn-warning" disabled>
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+              🧠 전사 진행 중...
+            </button>
+          {% else %}
+            <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
+            </form>
+          {% endif %}
+          
+          <!-- 전사 상태 표시 -->
+          {% if audio.status == 'completed' %}
+            <span class="badge bg-success">✅ 전사 완료</span>
+          {% elif audio.status == 'processing' %}
+            <span class="badge bg-warning">⏳ 전사 진행 중</span>
+          {% elif audio.status == 'failed' %}
+            <span class="badge bg-danger">❌ 전사 실패</span>
+          {% else %}
+            <span class="badge bg-secondary">⏸️ 전사 대기</span>
+          {% endif %}
         </div>
       </div>
     </div>
 
-    <!-- React Native 메타데이터 정보 -->
-    <div class="metadata-section" id="react-native-metadata" style="background-color: #e8f5e8; border-left: 4px solid #28a745;">
-      <h3>📱 React Native 앱 메타데이터</h3>
-      <div id="metadata-display">
-        <div class="loading-spinner">
-          <div style="text-align: center;">
-            <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #28a745; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
-            메타데이터 로딩 중...
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- 기본 오디오 파일 섹션 -->
+    <!-- <div class="section">
+      <h3>🎧 오디오 파일 (기본 컨트롤)</h3>
+      <audio controls src="{{ audio.audio_file.url }}" style="width: 100%;"></audio>
+    </div> -->
 
-    <!-- 기본 메타데이터 섹션 -->
-    <div class="metadata-section">
-      <h3>📋 기본 정보</h3>
-      <div class="metadata-grid">
-        {% for field_name, field_value in metadata_fields.items %}
-            {% if field_value %}
-                <div class="metadata-item">
-                    <strong>{{ field_name|title }}:</strong> {{ field_value }}
-                </div>
-            {% endif %}
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- 카테고리별 데이터 섹션 -->
-    {% if has_category_data %}
-    <div class="category-data-section">
-      <h3>🏷️ {{ category_name }} 전용 정보</h3>
-      <div class="category-data-grid">
-        {% for field_key, field_value in category_data_display.items %}
-            {% if field_value %}
-                <div class="category-data-item">
-                    <strong>{{ field_key }}:</strong> {{ field_value }}
-                </div>
-            {% endif %}
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- 카테고리별 특화 정보 -->
-    {% if audio.category_specific_data %}
-    <div class="category-info-section">
-      <div class="category-info-header">
-        <h3>🏷️ {{ audio.get_category_display }} 특화 정보</h3>
-        <span class="category-badge category-{{ audio.category }}">{{ audio.get_category_display }}</span>
-      </div>
-      
-      {% if audio.category == 'child' %}
-        <div class="category-fields-grid">
-          <div class="category-field-item">
-            <div class="label">📍 장소</div>
-            <div class="value">{{ audio.category_specific_data.place|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🌍 지역</div>
-            <div class="value">{{ audio.category_specific_data.region|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🗣️ 발음 문제</div>
-            <div class="value">{{ audio.category_specific_data.pronunciation_problem|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">⭐ 주관적 평가</div>
-            <div class="value">{{ audio.category_specific_data.subjective_rating|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">📝 문장 번호</div>
-            <div class="value">{{ audio.category_specific_data.sentence_index|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">💬 문장 내용</div>
-            <div class="value">{{ audio.category_specific_data.sentence_text|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">📋 과제 유형</div>
-            <div class="value">{{ audio.category_specific_data.task_type|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">📅 녹음 날짜</div>
-            <div class="value">{{ audio.category_specific_data.recording_date|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">⏰ 업로드 시간</div>
-            <div class="value">{{ audio.category_specific_data.upload_timestamp|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">💾 로컬 저장</div>
-            <div class="value">{{ audio.category_specific_data.local_saved|default:"입력되지 않음" }}</div>
-          </div>
-        </div>
-      {% elif audio.category == 'senior' %}
-        <div class="category-fields-grid">
-          <div class="category-field-item">
-            <div class="label">🎓 교육 수준</div>
-            <div class="value">{{ audio.category_specific_data.education|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🗣️ 목소리 문제</div>
-            <div class="value">{{ audio.category_specific_data.has_voice_problem|default:"입력되지 않음" }}</div>
-          </div>
-        </div>
-      {% elif audio.category == 'auditory' %}
-        <div class="category-fields-grid">
-          <div class="category-field-item">
-            <div class="label">🎓 교육 수준</div>
-            <div class="value">{{ audio.category_specific_data.education|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">👂 청력 수준</div>
-            <div class="value">{{ audio.category_specific_data.hearing_level|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">⏰ 난청 지속 기간</div>
-            <div class="value">{{ audio.category_specific_data.hearing_loss_duration|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🦻 보청기 사용</div>
-            <div class="value">{{ audio.category_specific_data.has_hearing_aid|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🧠 인지 수준</div>
-            <div class="value">{{ audio.category_specific_data.cognitive_level|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🌍 지역</div>
-            <div class="value">{{ audio.category_specific_data.region|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🗣️ 목소리 문제</div>
-            <div class="value">{{ audio.category_specific_data.has_voice_problem|default:"입력되지 않음" }}</div>
-          </div>
-        </div>
-      {% elif audio.category == 'atypical' %}
-        <div class="category-fields-grid">
-          <div class="category-field-item">
-            <div class="label">🏥 장애 유형</div>
-            <div class="value">{{ audio.category_specific_data.disorder_type|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">📊 중증도</div>
-            <div class="value">{{ audio.category_specific_data.severity_level|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🏥 치료 이력</div>
-            <div class="value">{{ audio.category_specific_data.therapy_history|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🏥 의학적 진단</div>
-            <div class="value">{{ audio.category_specific_data.medical_diagnosis|default:"입력되지 않음" }}</div>
-          </div>
-        </div>
-      {% elif audio.category == 'normal' %}
-        <div class="category-fields-grid">
-          <div class="category-field-item">
-            <div class="label">🎓 교육 수준</div>
-            <div class="value">{{ audio.category_specific_data.education_level|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">💼 직업</div>
-            <div class="value">{{ audio.category_specific_data.occupation|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🗺️ 방언 지역</div>
-            <div class="value">{{ audio.category_specific_data.dialect_region|default:"입력되지 않음" }}</div>
-          </div>
-          <div class="category-field-item">
-            <div class="label">🏠 녹음 환경</div>
-            <div class="value">{{ audio.category_specific_data.recording_environment|default:"입력되지 않음" }}</div>
-          </div>
-        </div>
-      {% endif %}
-    </div>
-    {% else %}
+        <!-- 전사 내용 (읽기 전용) -->
     <div class="section">
-      <h3>🏷️ {{ audio.get_category_display }} 특화 정보</h3>
-      <p style="color: #666; font-style: italic; text-align: center; padding: 20px;">
-        이 카테고리에 대한 특화 정보가 아직 입력되지 않았습니다.
-      </p>
-    </div>
-    {% endif %}
-
-    <!-- SNR 분석 정보 -->
-    <div class="section">
-      <h3>📊 SNR (Signal-to-Noise Ratio) 분석</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <h3>📈 평균 SNR</h3>
-          <p>{{ audio.snr_mean|default:"<span class='empty-value'>분석되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>🔝 최대 SNR</h3>
-          <p>{{ audio.snr_max|default:"<span class='empty-value'>분석되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>🔻 최소 SNR</h3>
-          <p>{{ audio.snr_min|default:"<span class='empty-value'>분석되지 않음</span>"|safe }}</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 전사 내용 (읽기 전용) -->
-    <div class="section">
-      <h3>📝 자동 전사 내용</h3>
+      <h3>📝 전사 내용</h3>
       <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 15px;">
-        {% if audio.transcription %}
+        {% if audio.manual_transcript %}
           <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
-            {{ audio.transcription }}
+            {{ audio.manual_transcript }}
+            {% if audio.manual_transcript != audio.transcript %}
+              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; font-size: 12px; color: #666;">
+                <i class="fas fa-edit"></i> 수동 편집됨 (원본: {{ audio.transcript|truncatewords:10 }})
+              </div>
+            {% endif %}
+          </div>
+        {% elif audio.transcript %}
+          <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
+            {{ audio.transcript }}
           </div>
         {% else %}
           <div style="display: flex; align-items: center; justify-content: center; min-height: 80px; font-style: italic; color: #666;">
@@ -907,8 +711,13 @@
         <form method="POST" action="{% url 'update_transcription' audio.id %}">
           {% csrf_token %}
           <div class="form-group">
-            <label for="transcription">전사 내용</label>
-            <textarea name="transcription" id="transcription" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 120px;">{{ audio.transcription|default_if_none:"" }}</textarea>
+            <label for="manual_transcript">전사 내용 (수동 편집)</label>
+            <textarea name="manual_transcript" id="manual_transcript" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 120px;">{{ audio.manual_transcript|default:audio.transcript|default_if_none:"" }}</textarea>
+            {% if audio.transcript %}
+              <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                <i class="fas fa-info-circle"></i> 원본 자동 전사: {{ audio.transcript|truncatewords:20 }}
+              </small>
+            {% endif %}
           </div>
           <button type="submit" class="btn btn-success">💾 전사 내용 저장</button>
         </form>
@@ -918,6 +727,13 @@
       <div id="metadata-tab" class="tab-content">
         <form method="POST" action="{% url 'update_audio_metadata' audio.id %}">
           {% csrf_token %}
+          <div class="form-row">
+            <div class="form-group">
+              <label for="identifier">식별자</label>
+              <input type="text" name="identifier" id="identifier" value="{{ audio.identifier|default_if_none:"" }}" placeholder="예: C12345" maxlength="6">
+            </div>
+          </div>
+          
           <div class="form-row">
             <div class="form-group">
               <label for="name">이름</label>
@@ -1005,6 +821,196 @@
         </form>
       </div>
     </div>
+
+    <!-- 시스템 정보 -->
+    <div class="section">
+      <h3>⚙️ 시스템 정보</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>🆔 파일 ID</h3>
+          <p>{{ audio.id }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>� 카테고리</h3>
+          <p><span class="category-badge category-{{ audio.category }}">{{ audio.get_category_display }}</span></p>
+        </div>
+        
+        <div class="info-item">
+          <h3>🚦 상태</h3>
+          <p>{{ audio.get_status_display }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>📱 데이터 소스</h3>
+          <p>{{ audio.get_data_source_display|default:"모바일 앱" }}</p>
+        </div>
+
+        <div class="info-item">
+          <h3>� 업로드 시간</h3>
+          <p>{{ audio.created_at|date:"Y-m-d H:i" }}</p>
+        </div>
+
+        <div class="info-item">
+          <h3>🔄 마지막 업데이트</h3>
+          <p>{{ audio.updated_at|date:"Y-m-d H:i" }}</p>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- 녹음 환경 정보 -->
+    <div class="section">
+      <h3>🎤 녹음 환경</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>📍 녹음 장소</h3>
+          <p>{{ audio.recording_location|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>🌍 지역</h3>
+          <p>{{ audio.region|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>� 소음 수준</h3>
+          <p>{{ audio.noise_level|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>📱 녹음 기기</h3>
+          <p>{{ audio.device_type|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>� 마이크 유무</h3>
+          <p>{{ audio.has_microphone|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>🏥 진단명</h3>
+          <p>{{ audio.diagnosis|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+
+        {% if audio.education_level %}
+        <div class="info-item">
+          <h3>🎓 교육 수준</h3>
+          <p>{{ audio.education_level }}</p>
+        </div>
+        {% endif %}
+
+        {% if audio.hearing_level %}
+        <div class="info-item">
+          <h3>👂 청력 수준</h3>
+          <p>{{ audio.hearing_level }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 카테고리별 상세 정보 -->
+    {% if audio.category_specific_data %}
+    <div class="section">
+      <h3>🏷️ {{ category_name }} 상세 정보</h3>
+      <div class="info-grid">
+        {% for key, value in audio.category_specific_data.items %}
+          {% if value and key != 'metadata_json' %}
+            <div class="info-item">
+              <h3>
+                {% if key == 'task_type' %}📋 과제 유형
+                {% elif key == 'sentence_text' %}💬 문장 내용
+                {% elif key == 'sentence_index' %}📝 문장 번호
+                {% elif key == 'place' %}� 장소
+                {% elif key == 'region' %}🌍 지역
+                {% elif key == 'pronunciation_problem' or key == 'pronunProblem' %}🗣️ 발음 문제
+                {% elif key == 'subjective_rating' %}⭐ 주관적 평가
+                {% elif key == 'recording_date' %}📅 녹음 날짜
+                {% elif key == 'upload_timestamp' %}⏰ 업로드 시간
+                {% elif key == 'local_saved' %}💾 로컬 저장
+                {% elif key == 'education' %}🎓 교육 수준
+                {% elif key == 'education_detail' %}📚 교육 상세
+                {% elif key == 'education_level' %}🎓 교육 수준
+                {% elif key == 'has_voice_problem' %}🗣️ 음성 문제 여부
+                {% elif key == 'voice_problem_severity' %}⚠️ 음성 문제 심각도
+                {% elif key == 'voice_problem_note' %}📝 음성 문제 메모
+                {% elif key == 'hearing_onset_type' %}🔔 청력 손실 발생 시기
+                {% elif key == 'hearing_degree' %}📊 청력 손실 정도
+                {% elif key == 'hearing_level' %}👂 청력 수준
+                {% elif key == 'hearing_loss_duration' %}⏰ 난청 지속 기간
+                {% elif key == 'has_hearing_aid' %}🦻 보청기 사용
+                {% elif key == 'hearing_aid_duration' %}⌚ 보청기 사용 기간
+                {% elif key == 'cognitive_level' %}🧠 인지 수준
+                {% elif key == 'disorder_type' %}🏥 장애 유형
+                {% elif key == 'severity_level' %}📊 중증도
+                {% elif key == 'therapy_history' %}🏥 치료 이력
+                {% elif key == 'medical_diagnosis' %}🏥 의학적 진단
+                {% elif key == 'occupation' %}💼 직업
+                {% elif key == 'dialect_region' %}🗺️ 방언 지역
+                {% elif key == 'recording_environment' %}🏠 녹음 환경
+                {% elif key == 'attempts' %}🎯 시도 정보
+                {% elif key == 'audio_filename' %}🎵 파일명
+                {% else %}📌 {{ key }}
+                {% endif %}
+              </h3>
+              <p>
+                {% if key == 'attempts' %}
+                  <pre style="white-space: pre-wrap; font-family: monospace; background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 0;">{{ value }}</pre>
+                {% else %}
+                  {{ value }}
+                {% endif %}
+              </p>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SNR 분석 정보 -->
+    {% if audio.snr_mean or audio.snr_max or audio.snr_min %}
+    <div class="section">
+      <h3>📊 SNR (Signal-to-Noise Ratio) 분석</h3>
+      <div class="info-grid">
+        {% if audio.snr_mean %}
+        <div class="info-item">
+          <h3>📈 평균 SNR</h3>
+          <p>{{ audio.snr_mean }} dB</p>
+        </div>
+        {% endif %}
+        
+        {% if audio.snr_max %}
+        <div class="info-item">
+          <h3>🔝 최대 SNR</h3>
+          <p>{{ audio.snr_max }} dB</p>
+        </div>
+        {% endif %}
+        
+        {% if audio.snr_min %}
+        <div class="info-item">
+          <h3>� 최소 SNR</h3>
+          <p>{{ audio.snr_min }} dB</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- React Native 메타데이터 정보 -->
+    <!-- <div class="section" id="react-native-metadata" style="background-color: #e8f5e8; border-left: 4px solid #28a745;">
+      <h3>📱 React Native 앱 메타데이터</h3>
+      <div id="metadata-display">
+        <div class="loading-spinner">
+          <div style="text-align: center;">
+            <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #28a745; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
+            메타데이터 로딩 중...
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+
 
     <div style="text-align: center; margin-top: 30px;">
       <a href="{% url 'audio_list' %}" class="btn btn-danger">❌ 닫기</a>
@@ -1343,8 +1349,8 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM loaded, initializing...');
       
-      // React Native 메타데이터 표시
-      displayReactNativeMetadata();
+      // React Native 메타데이터 표시 - 주석 처리됨
+      // displayReactNativeMetadata();
       
       // WaveSurfer 초기화
       initWaveSurfer();
@@ -1363,19 +1369,32 @@
       try {
         console.log('Initializing WaveSurfer...');
         
+        // WaveSurfer가 로드되었는지 확인
+        if (typeof WaveSurfer === 'undefined') {
+          console.error('WaveSurfer is not loaded!');
+          document.getElementById('waveform').innerHTML = '<div style="color: red; text-align: center; padding: 20px;">WaveSurfer 라이브러리 로드 실패</div>';
+          return;
+        }
+        
+        // WaveSurfer 버전 6 초기화
         wavesurfer = WaveSurfer.create({
-          container: '#waveform',
+          container: document.querySelector('#waveform'),
           waveColor: '#007bff',
           progressColor: '#28a745',
-          height: 120,
+          cursorColor: '#333',
           barWidth: 2,
-          barGap: 1,
+          barRadius: 3,
+          cursorWidth: 1,
+          height: 120,
+          barGap: 2,
           responsive: true,
           normalize: true
         });
 
         const audioUrl = '{{ audio.audio_file.url }}';
         console.log('Loading audio:', audioUrl);
+        
+        // load 메서드 호출
         wavesurfer.load(audioUrl);
 
         // 이벤트 리스너
@@ -1383,6 +1402,11 @@
           console.log('WaveSurfer ready');
           const totalTime = wavesurfer.getDuration();
           document.getElementById('totalTime').textContent = formatTime(totalTime);
+          // 로딩 메시지 숨기기
+          const loadingDiv = document.getElementById('waveform-loading');
+          if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+          }
         });
 
         wavesurfer.on('audioprocess', function() {
@@ -1391,6 +1415,7 @@
         });
 
         wavesurfer.on('finish', function() {
+          // 재생 완료 시 처리
           document.getElementById('playPauseBtn').textContent = '▶️ 재생';
         });
 
@@ -1399,7 +1424,7 @@
           document.getElementById('waveform').innerHTML = '<div style="color: red; text-align: center; padding: 20px;">오디오 로드 실패: ' + error + '</div>';
         });
 
-        // 버튼 이벤트
+        // 재생/일시정지 버튼 이벤트
         document.getElementById('playPauseBtn').addEventListener('click', function() {
           try {
             if (wavesurfer.isPlaying()) {
@@ -1414,6 +1439,7 @@
           }
         });
 
+        // 정지 버튼 이벤트
         document.getElementById('stopBtn').addEventListener('click', function() {
           try {
             wavesurfer.stop();
@@ -1699,5 +1725,195 @@
       }
     });
   </script>
+
+  <!-- 오디오 재업로드 모달 -->
+  <div id="reuploadModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; border-radius: 10px; width: 600px; max-width: 90%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #333;">🔄 오디오 파일 재업로드</h2>
+        <button onclick="document.getElementById('reuploadModal').style.display='none'" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #aaa;">&times;</button>
+      </div>
+      
+      <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ 보안 규칙</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #856404;">
+          <li>파일명이 정확히 일치해야 합니다: <strong style="color: #d39e00;">{{ audio.audio_file.name|default:"알 수 없음" }}</strong></li>
+          <li>실제 오디오 파일만 업로드 가능합니다 (WAV, MP3, OGG, FLAC 등)</li>
+          <li>원본 파일은 자동으로 백업됩니다</li>
+          <li>변경 이력이 기록됩니다</li>
+          <li>최대 파일 크기: 100MB</li>
+          <li>최대 길이: 10분</li>
+        </ul>
+      </div>
+      
+      <form id="reuploadForm" method="POST" action="{% url 'audio_reupload' audio.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+          <label for="audioFileInput" style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">
+            오디오 파일 선택:
+          </label>
+          <input type="file" id="audioFileInput" name="audio_file" accept="audio/*" required 
+                 style="width: 100%; padding: 10px; border: 2px dashed #007bff; border-radius: 5px; background-color: #f8f9fa;">
+          <small id="fileNameWarning" style="color: #dc3545; display: none; margin-top: 5px;"></small>
+        </div>
+        
+        <div id="fileValidation" style="display: none; margin-bottom: 20px; padding: 15px; border-radius: 5px;">
+          <!-- 파일 검증 결과 표시 -->
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" onclick="document.getElementById('reuploadModal').style.display='none'" class="btn btn-secondary">
+            취소
+          </button>
+          <button type="submit" id="reuploadSubmitBtn" class="btn btn-warning" disabled>
+            🔄 업로드
+          </button>
+        </div>
+      </form>
+      
+      <div id="reuploadProgress" style="display: none; margin-top: 20px;">
+        <div style="background-color: #e9ecef; border-radius: 5px; height: 30px; overflow: hidden;">
+          <div id="reuploadProgressBar" style="background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+            0%
+          </div>
+        </div>
+        <p id="reuploadStatus" style="text-align: center; margin-top: 10px; color: #666;"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 파일 선택 시 검증
+    document.getElementById('audioFileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const submitBtn = document.getElementById('reuploadSubmitBtn');
+      const fileNameWarning = document.getElementById('fileNameWarning');
+      const validationDiv = document.getElementById('fileValidation');
+      
+      if (!file) {
+        submitBtn.disabled = true;
+        return;
+      }
+      
+      // 파일명 확인
+      const originalFilename = "{{ audio.audio_file.name }}".split('/').pop().toLowerCase();
+      const uploadedFilename = file.name.toLowerCase();
+      
+      if (originalFilename !== uploadedFilename) {
+        fileNameWarning.textContent = `⚠️ 파일명이 일치하지 않습니다! 원본: "${originalFilename}", 업로드: "${uploadedFilename}"`;
+        fileNameWarning.style.display = 'block';
+        submitBtn.disabled = true;
+        validationDiv.style.display = 'none';
+        return;
+      } else {
+        fileNameWarning.style.display = 'none';
+      }
+      
+      // 파일 크기 확인
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      if (file.size > maxSize) {
+        validationDiv.innerHTML = '<div style="color: #dc3545;">❌ 파일이 너무 큽니다 (최대 100MB)</div>';
+        validationDiv.style.display = 'block';
+        validationDiv.style.backgroundColor = '#f8d7da';
+        validationDiv.style.border = '1px solid #dc3545';
+        submitBtn.disabled = true;
+        return;
+      }
+      
+      // MIME 타입 확인
+      const allowedTypes = ['audio/wav', 'audio/wave', 'audio/x-wav', 'audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/flac', 'audio/aac', 'audio/m4a'];
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(wav|mp3|ogg|flac|aac|m4a)$/i)) {
+        validationDiv.innerHTML = '<div style="color: #dc3545;">❌ 지원하지 않는 파일 형식입니다</div>';
+        validationDiv.style.display = 'block';
+        validationDiv.style.backgroundColor = '#f8d7da';
+        validationDiv.style.border = '1px solid #dc3545';
+        submitBtn.disabled = true;
+        return;
+      }
+      
+      // 검증 통과
+      validationDiv.innerHTML = `
+        <div style="color: #28a745;">✅ 파일 검증 통과</div>
+        <div style="margin-top: 10px; font-size: 14px; color: #666;">
+          <strong>파일명:</strong> ${file.name}<br>
+          <strong>크기:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+          <strong>타입:</strong> ${file.type || '알 수 없음'}
+        </div>
+      `;
+      validationDiv.style.display = 'block';
+      validationDiv.style.backgroundColor = '#d4edda';
+      validationDiv.style.border = '1px solid #28a745';
+      submitBtn.disabled = false;
+    });
+    
+    // 폼 제출 처리
+    document.getElementById('reuploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const progressDiv = document.getElementById('reuploadProgress');
+      const progressBar = document.getElementById('reuploadProgressBar');
+      const statusText = document.getElementById('reuploadStatus');
+      const submitBtn = document.getElementById('reuploadSubmitBtn');
+      
+      // 진행 상태 표시
+      progressDiv.style.display = 'block';
+      submitBtn.disabled = true;
+      statusText.textContent = '업로드 중...';
+      
+      // XMLHttpRequest로 진행 상황 표시
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = percentComplete + '%';
+          progressBar.textContent = percentComplete + '%';
+        }
+      });
+      
+      xhr.addEventListener('load', function() {
+        if (xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+          if (response.success) {
+            statusText.textContent = '✅ 업로드 성공!';
+            progressBar.style.backgroundColor = '#28a745';
+            
+            // 성공 메시지 표시
+            alert('파일이 성공적으로 교체되었습니다.\n\n' +
+                  '백업 파일: ' + response.backup_path + '\n' +
+                  '이전 해시: ' + response.old_hash.substring(0, 16) + '...\n' +
+                  '새 해시: ' + response.new_hash.substring(0, 16) + '...');
+            
+            // 페이지 새로고침
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            statusText.textContent = '❌ ' + response.error;
+            progressBar.style.backgroundColor = '#dc3545';
+            submitBtn.disabled = false;
+          }
+        } else {
+          const response = JSON.parse(xhr.responseText);
+          statusText.textContent = '❌ ' + (response.error || '업로드 실패');
+          progressBar.style.backgroundColor = '#dc3545';
+          submitBtn.disabled = false;
+        }
+      });
+      
+      xhr.addEventListener('error', function() {
+        statusText.textContent = '❌ 네트워크 오류가 발생했습니다';
+        progressBar.style.backgroundColor = '#dc3545';
+        submitBtn.disabled = false;
+      });
+      
+      xhr.open('POST', this.action);
+      xhr.setRequestHeader('X-CSRFToken', formData.get('csrfmiddlewaretoken'));
+      xhr.send(formData);
+    });
+  </script>
 </body>
 </html>
+

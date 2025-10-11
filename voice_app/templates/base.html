@@ -42,15 +42,15 @@
                                 <li><a class="dropdown-item" href="/accounts/password_change/">비밀번호 변경</a></li>
                                 <li><a class="dropdown-item" href="/admin/">관리자</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">로그아웃</a></li>
+                                <li><a class="dropdown-item" href="/accounts/logout/">로그아웃</a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">로그인</a>
+                            <a class="nav-link" href="{% url 'accounts:login' %}">로그인</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+                            <a class="nav-link" href="/accounts/signup/">회원가입</a>
                         </li>
                     {% endif %}
                 </ul>

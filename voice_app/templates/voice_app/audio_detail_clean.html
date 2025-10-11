@@ -325,11 +325,18 @@
 
     <!-- 전사 내용 (읽기 전용) -->
     <div class="section">
-      <h3>📝 자동 전사 내용</h3>
+      <h3>📝 전사 내용</h3>
       <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 15px;">
-        {% if audio.transcription %}
+        {% if audio.manual_transcript %}
           <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
-            {{ audio.transcription }}
+            {{ audio.manual_transcript }}
+            {% if audio.manual_transcript != audio.transcript %}
+              <div style="margin-top: 10px; font-size: 12px; color: #666;"><i class="fas fa-edit"></i> 수동 편집됨</div>
+            {% endif %}
+          </div>
+        {% elif audio.transcript %}
+          <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
+            {{ audio.transcript }}
           </div>
         {% else %}
           <div style="display: flex; align-items: center; justify-content: center; min-height: 80px; font-style: italic; color: #666;">
@@ -402,7 +409,7 @@
       <form method="POST" action="{% url 'update_transcription' audio.id %}">
         {% csrf_token %}
         <div class="form-group">
-          <textarea name="transcription" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 100px;">{{ audio.transcription|default_if_none:"" }}</textarea>
+          <textarea name="manual_transcript" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 100px;">{{ audio.manual_transcript|default:audio.transcript|default_if_none:"" }}</textarea>
         </div>
         <button type="submit" class="btn btn-success">💾 수정 내용 저장</button>
       </form>

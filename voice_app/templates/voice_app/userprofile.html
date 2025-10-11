@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block title %}사용자 프로필 - 위치 정보 대시보드{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-map-marked-alt me-2"></i>위치 정보 대시보드</h2>
+            <p class="text-muted mb-0"><small>데이터 전송 위치 및 사이트 접근 IP 위치를 시각화합니다</small></p>
+        </div>
+        <div>
+            <a href="{% url 'index' %}" class="btn btn-outline-primary">
+                <i class="fas fa-home me-1"></i>홈으로
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-chart-bar me-1"></i>대시보드
+            </a>
+        </div>
+    </div>
+
+    <!-- 주요 통계 카드 -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card text-white bg-success stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h3 class="card-title mb-1">{{ total_uploads|default:0 }}</h3>
+                            <p class="card-text mb-0">총 데이터 전송 횟수</p>
+                            <small class="text-white-50">앱에서 업로드된 녹음 파일</small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-upload fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-3">
+            <div class="card text-white bg-info stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h3 class="card-title mb-1">{{ total_access|default:0 }}</h3>
+                            <p class="card-text mb-0">총 사이트 접근 횟수</p>
+                            <small class="text-white-50">IP 기반 접근 로그</small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-globe fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 두 개의 Google Maps -->
+    <div class="row">
+        <!-- 왼쪽: 데이터 전송 위치 -->
+        <div class="col-lg-6 mb-4">
+            <div class="card map-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>앱 데이터 전송 위치
+                    </h5>
+                    <small>React Native 앱에서 서버로 전송한 위치별 빈도수</small>
+                </div>
+                <div class="card-body p-0">
+                    <div id="uploadMap" style="height: 600px;"></div>
+                </div>
+                <div class="card-footer">
+                    <h6 class="mb-3">지역별 상세 통계</h6>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>순위</th>
+                                    <th>지역</th>
+                                    <th class="text-end">전송 횟수</th>
+                                    <th class="text-end">비율</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in upload_location_data %}
+                                <tr>
+                                    <td class="fw-bold">{{ forloop.counter }}</td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt text-success me-1"></i>
+                                        {{ item.region }}
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-success">{{ item.count }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% widthratio item.count total_uploads 100 %}%
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        데이터가 없습니다
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽: IP 접근 위치 -->
+        <div class="col-lg-6 mb-4">
+            <div class="card map-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-globe me-2"></i>사이트 접근 IP 위치
+                    </h5>
+                    <small>웹 사이트에 접근한 IP 주소의 위치별 빈도수</small>
+                </div>
+                <div class="card-body p-0">
+                    <div id="ipMap" style="height: 600px;"></div>
+                </div>
+                <div class="card-footer">
+                    <h6 class="mb-3">도시별 상세 통계</h6>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>순위</th>
+                                    <th>도시</th>
+                                    <th class="text-end">접근 횟수</th>
+                                    <th class="text-end">비율</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ip_location_data %}
+                                <tr>
+                                    <td class="fw-bold">{{ forloop.counter }}</td>
+                                    <td>
+                                        <i class="fas fa-map-pin text-info me-1"></i>
+                                        {{ item.city }}
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-info">{{ item.count }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% widthratio item.count total_access 100 %}%
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        데이터가 없습니다
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet.js CSS (오픈소스 무료 지도 라이브러리) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Leaflet.js JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- JSON 데이터 -->
+{{ upload_location_data|json_script:"upload-location-data" }}
+{{ ip_location_data|json_script:"ip-location-data" }}
+
+<script>
+// 데이터 파싱
+const uploadLocationData = JSON.parse(document.getElementById('upload-location-data').textContent);
+const ipLocationData = JSON.parse(document.getElementById('ip-location-data').textContent);
+
+let uploadMap, ipMap;
+
+// 페이지 로드 후 지도 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    initMaps();
+});
+
+function initMaps() {
+    // 한국 중심 좌표
+    const koreaCenter = [36.5, 127.5]; // [위도, 경도]
+    
+    // ========== 업로드 위치 지도 초기화 ==========
+    uploadMap = L.map('uploadMap').setView(koreaCenter, 7);
+    
+    // OpenStreetMap 타일 레이어 추가 (무료!)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+    }).addTo(uploadMap);
+    
+    // 업로드 위치 마커 추가
+    uploadLocationData.forEach(location => {
+        // 빈도수에 따른 마커 크기 조정
+        const baseSize = 10;
+        const scaleFactor = Math.min(location.count / 10, 5);
+        const radius = baseSize + scaleFactor * 5;
+        
+        // 원형 마커 생성 (초록색)
+        const circle = L.circleMarker([location.lat, location.lng], {
+            radius: radius,
+            fillColor: '#28a745',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.7
+        }).addTo(uploadMap);
+        
+        // 팝업 추가
+        const popupContent = `
+            <div style="padding: 5px; min-width: 200px;">
+                <h6 class="mb-2" style="color: #28a745;">
+                    <i class="fas fa-map-marker-alt"></i> ${location.region}
+                </h6>
+                <p class="mb-1" style="margin: 0;"><strong>전송 횟수:</strong> ${location.count}회</p>
+                <p class="mb-0 text-muted" style="font-size: 0.85em; margin: 0;">
+                    좌표: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}
+                </p>
+            </div>
+        `;
+        
+        circle.bindPopup(popupContent);
+        
+        // 마우스 오버 시 툴팁 표시
+        circle.bindTooltip(`${location.region}: ${location.count}회`, {
+            permanent: false,
+            direction: 'top'
+        });
+    });
+    
+    // ========== IP 접근 위치 지도 초기화 ==========
+    ipMap = L.map('ipMap').setView(koreaCenter, 7);
+    
+    // OpenStreetMap 타일 레이어 추가
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+    }).addTo(ipMap);
+    
+    // IP 접근 위치 마커 추가
+    ipLocationData.forEach(location => {
+        // 빈도수에 따른 마커 크기 조정
+        const baseSize = 10;
+        const scaleFactor = Math.min(location.count / 20, 5);
+        const radius = baseSize + scaleFactor * 5;
+        
+        // 원형 마커 생성 (파란색)
+        const circle = L.circleMarker([location.lat, location.lng], {
+            radius: radius,
+            fillColor: '#17a2b8',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.7
+        }).addTo(ipMap);
+        
+        // 팝업 추가
+        const popupContent = `
+            <div style="padding: 5px; min-width: 200px;">
+                <h6 class="mb-2" style="color: #17a2b8;">
+                    <i class="fas fa-map-pin"></i> ${location.city}
+                </h6>
+                <p class="mb-1" style="margin: 0;"><strong>접근 횟수:</strong> ${location.count}회</p>
+                <p class="mb-0 text-muted" style="font-size: 0.85em; margin: 0;">
+                    좌표: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}
+                </p>
+            </div>
+        `;
+        
+        circle.bindPopup(popupContent);
+        
+        // 마우스 오버 시 툴팁 표시
+        circle.bindTooltip(`${location.city}: ${location.count}회`, {
+            permanent: false,
+            direction: 'top'
+        });
+    });
+}
+</script>
+
+<style>
+.stats-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.stats-card .card-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.stats-card .card-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.map-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.map-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.map-card .card-header {
+    font-weight: 600;
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+.map-card .card-footer {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.table td {
+    font-size: 0.9rem;
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#uploadMap, #ipMap {
+    border-radius: 0;
+}
+
+@media (max-width: 992px) {
+    #uploadMap, #ipMap {
+        height: 400px !important;
+    }
+    
+    .stats-card .card-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 10px;
+    }
+    
+    .stats-card .card-title {
+        font-size: 1.5rem;
+    }
+    
+    #uploadMap, #ipMap {
+        height: 350px !important;
+    }
+}
+</style>
+
+{% endblock %}

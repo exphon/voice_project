@@ -97,9 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ko-kr"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
@@ -110,6 +110,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # collectstatic 출력 디렉토리
+
+# 추가 정적 파일 디렉토리
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # 프로젝트 레벨 static 폴더 (있는 경우)
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -117,12 +123,12 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# ✅ 여기에 추가하세요
+# ✅ 미디어 파일 (사용자 업로드)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# 새로운 assets 설정 추가
+# ✅ Assets 파일 (오디오 문제 파일 등)
 ASSETS_URL = '/assets/'
 ASSETS_ROOT = BASE_DIR / 'assets'
 
@@ -155,18 +161,27 @@ WHISPERX_CONFIG = {
 # 파일 업로드 설정 (WhisperX용)
 MAX_AUDIO_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 ALLOWED_AUDIO_FORMATS = ['.wav', '.mp3', '.m4a', '.flac', '.mp4', '.webm', '.ogg']
+ALLOWED_METADATA_FORMATS = ['.json']  # 메타데이터 파일 형식
+ALLOWED_FILE_FORMATS = ALLOWED_AUDIO_FORMATS + ALLOWED_METADATA_FORMATS  # 전체 허용 파일 형식
 
 # CORS 설정 (API 사용을 위해)
-CORS_ALLOW_ALL_ORIGINS = True  # 개발용
+CORS_ALLOW_ALL_ORIGINS = True  # 개발용 - 모든 origin 허용
 CORS_ALLOW_CREDENTIALS = True  # 인증 정보 허용
 CORS_ALLOWED_ORIGINS = [
+    # 웹 개발 서버
     "http://localhost:3000",
     "http://127.0.0.1:3000", 
     "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "http://localhost:8081",      # Expo 개발 서버
-    "http://127.0.0.1:8081",      # Expo 개발 서버
-    "http://10.52.193.109:8081",  # React Native 앱 요청 추가
+    
+    # React Native / Expo 개발 서버
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "http://10.52.193.109:8081",  # 특정 네트워크 IP
+    
+    # 서버 외부 접근 (필요 시 추가)
+    "http://210.125.93.241:8081",
+    "http://tyoon.net:8081",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -204,3 +219,7 @@ CSRF_EXEMPT_URLS = [
     r'^/api/.*upload/$',
 ]
 
+# 로그인 관련 설정
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

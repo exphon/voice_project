@@ -23,6 +23,8 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),  # accounts 앱 URL 추가
 ]
 
-# 미디어 파일 URL 패턴 추가
+# 미디어 파일 URL 패턴 추가 (개발 환경)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Assets 파일 URL 패턴 추가 (오디오 문제 파일 등)
+    urlpatterns += static(settings.ASSETS_URL, document_root=settings.ASSETS_ROOT)

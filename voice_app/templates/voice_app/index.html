@@ -35,15 +35,15 @@
                                 <li><a class="dropdown-item" href="/admin/">관리자</a></li>
                                 <li><a class="dropdown-item" href="/accounts/password_change/">비밀번호 변경</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">로그아웃</a></li>
+                                <li><a class="dropdown-item" href="/accounts/logout/">로그아웃</a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">로그인</a>
+                            <a class="nav-link" href="{% url 'accounts:login' %}">로그인</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:signup' %}">회원가입</a>
+                            <a class="nav-link" href="/accounts/signup/">회원가입</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -58,10 +58,10 @@
             <p class="lead text-muted">음성 데이터를 효율적으로 관리하고 분석하는 시스템입니다.</p>
         </div>
 
-        <!-- Main Cards - 1행 2열 배치 -->
+        <!-- Main Cards - 1행 4열 배치 -->
         <div class="row g-4 mb-4 justify-content-center">
             <!-- Card 1: 아동 발화 -->
-            <div class="col-lg-6 col-md-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100 shadow-sm border-0 category-card">
                     <div class="card-body text-center p-4">
                         <div class="icon-wrapper mb-3">
@@ -74,7 +74,7 @@
                                 <i class="fas fa-eye me-2"></i>데이터 보기
                             </a>
                         {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                            <a href="/accounts/login/" class="btn btn-outline-primary btn-lg rounded-pill px-4">
                                 <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
                             </a>
                         {% endif %}
@@ -84,7 +84,7 @@
 
             <!-- Card 2: 음성 장애 발화 (숨김 처리) -->
             <!--
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100 shadow-sm border-0 category-card">
                     <div class="card-body text-center p-4">
                         <div class="icon-wrapper mb-3">
@@ -97,7 +97,7 @@
                                 <i class="fas fa-eye me-2"></i>데이터 보기
                             </a>
                         {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-outline-warning btn-lg rounded-pill px-4">
+                            <a href="/accounts/login/" class="btn btn-outline-warning btn-lg rounded-pill px-4">
                                 <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
                             </a>
                         {% endif %}
@@ -106,9 +106,8 @@
             </div>
             -->
 
-            <!-- Card 3: 청각 장애 발화 (숨김 처리) -->
-            <!--
-            <div class="col-lg-4 col-md-6">
+            <!-- Card 2: 청각 장애 발화 -->
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100 shadow-sm border-0 category-card">
                     <div class="card-body text-center p-4">
                         <div class="icon-wrapper mb-3">
@@ -121,30 +120,30 @@
                                 <i class="fas fa-eye me-2"></i>데이터 보기
                             </a>
                         {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-outline-success btn-lg rounded-pill px-4">
+                            <a href="/accounts/login/" class="btn btn-outline-success btn-lg rounded-pill px-4">
                                 <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
                             </a>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            -->
             
-            <!-- Card 2: 노인 발화 -->
-            <div class="col-lg-6 col-md-6">
+            
+            <!-- Card 3: 장노년층 발화 -->
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100 shadow-sm border-0 category-card">
                     <div class="card-body text-center p-4">
                         <div class="icon-wrapper mb-3">
                             <i class="fas fa-user-clock text-info fs-1"></i>
                         </div>
-                        <h5 class="card-title text-info fw-bold mb-3">노인 발화</h5>
-                        <p class="card-text text-muted mb-4">노인의 발화 데이터를 관리합니다.</p>
+                        <h5 class="card-title text-info fw-bold mb-3">장노년층 발화</h5>
+                        <p class="card-text text-muted mb-4">장노년층의 발화 데이터를 관리합니다.</p>
                         {% if user.is_authenticated %}
                             <a href="/voice/senior/list/" class="btn btn-info btn-lg rounded-pill px-4">
                                 <i class="fas fa-eye me-2"></i>데이터 보기
                             </a>
                         {% else %}
-                            <a href="{% url 'login' %}" class="btn btn-outline-info btn-lg rounded-pill px-4">
+                            <a href="/accounts/login/" class="btn btn-outline-info btn-lg rounded-pill px-4">
                                 <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
                             </a>
                         {% endif %}
@@ -152,38 +151,21 @@
                 </div>
             </div>
 
-            <!-- Card 3: 데이터 대시보드 (숨김 처리) -->
-            <!--
-            <div class="col-lg-4 col-md-6">
-                {% if user.is_authenticated %}
-                <div class="card h-100 shadow-sm border-0 category-card dashboard-card">
-                    <div class="card-body text-center p-4">
-                        <div class="icon-wrapper mb-3">
-                            <i class="fas fa-chart-line text-dark fs-1"></i>
-                        </div>
-                        <h5 class="card-title text-dark fw-bold mb-3">데이터 대시보드</h5>
-                        <p class="card-text text-muted mb-4">녹음된 파일과 메타 정보를 시각화하여 확인할 수 있습니다.</p>
-                        <a href="/voice/dashboard/" class="btn btn-purple btn-lg rounded-pill px-4">
-                            <i class="fas fa-chart-bar me-2"></i>대시보드 보기
-                        </a>
-                    </div>
-                </div>
-                {% else %}
+            <!-- Card 4: 통계 대시보드 -->
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100 shadow-sm border-0 category-card">
                     <div class="card-body text-center p-4">
                         <div class="icon-wrapper mb-3">
-                            <i class="fas fa-lock text-muted fs-1"></i>
+                            <i class="fas fa-chart-bar text-purple fs-1"></i>
                         </div>
-                        <h5 class="card-title text-muted fw-bold mb-3">로그인 필요</h5>
-                        <p class="card-text text-muted mb-4">대시보드를 보려면 로그인이 필요합니다.</p>
-                        <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
-                            <i class="fas fa-sign-in-alt me-2"></i>로그인
+                        <h5 class="card-title text-purple fw-bold mb-3">통계 대시보드</h5>
+                        <p class="card-text text-muted mb-4">데이터 통계와 분석 정보를 확인할 수 있습니다.</p>
+                        <a href="{% url 'dashboard' %}" class="btn btn-purple btn-lg rounded-pill px-4">
+                            <i class="fas fa-chart-line me-2"></i>대시보드
                         </a>
                     </div>
                 </div>
-                {% endif %}
             </div>
-            -->
         </div>
 
         <!-- Features Section -->
@@ -245,8 +227,47 @@
             </div>
         </div>
 
+        <!-- Quick Links Section -->
+        <div class="row mt-5 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body py-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="text-white fw-bold mb-2">
+                                    <i class="fas fa-chart-line me-2"></i>고급 분석 도구
+                                </h4>
+                                <p class="text-white-50 mb-md-0">
+                                    데이터 통계, 위치 정보, 화자 분석 등 다양한 대시보드를 제공합니다.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg me-2 mb-2">
+                                    <i class="fas fa-chart-bar me-2"></i>통계 대시보드
+                                </a>
+                                <a href="{% url 'userprofile' %}" class="btn btn-outline-light btn-lg mb-2">
+                                    <i class="fas fa-map-marked-alt me-2"></i>위치 정보
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="mt-5 py-4 text-center text-muted border-top">
+            <div class="mb-3">
+                <a href="{% url 'dashboard' %}" class="text-decoration-none me-3">
+                    <i class="fas fa-chart-bar me-1"></i>대시보드
+                </a>
+                <a href="{% url 'userprofile' %}" class="text-decoration-none me-3">
+                    <i class="fas fa-map-marked-alt me-1"></i>위치 정보
+                </a>
+                <a href="{% url 'audio_list' %}" class="text-decoration-none">
+                    <i class="fas fa-list me-1"></i>전체 목록
+                </a>
+            </div>
             <p class="mb-0">developed and maintained by <a href="https://tyoon.net" target="_blank" class="text-primary text-decoration-none fw-bold">윤태진</a></p>
         </footer>
     </div>
@@ -279,6 +300,10 @@
         }
         
         /* 보라색 버튼 스타일 추가 */
+        .text-purple {
+            color: #6f42c1 !important;
+        }
+        
         .btn-purple {
             background-color: #6f42c1;
             border-color: #6f42c1;
@@ -381,7 +406,7 @@
                         <i class="fas fa-eye me-2"></i>데이터 보기
                     </a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                    <a href="/accounts/login/" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
                         <i class="fas fa-sign-in-alt me-2"></i>로그인 후 이용
                     </a>
                 {% endif %}

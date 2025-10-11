@@ -1,220 +1,585 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ category_name }} - 특수화자 음성 관리 시스템</title>
+  <!-- Bootstrap CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 40px;
+    }
 
-{% block title %}{{ category_name }} 음성 데이터 - 음성 관리 시스템{% endblock %}
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-list me-2"></i>{{ category_name }} 음성 데이터 목록</h2>
-    <div>
-        <a href="/api/list/" class="btn btn-outline-primary me-2">전체 보기</a>
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                카테고리 선택
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/voice/child/list/">아동 말과제</a></li>
-                <li><a class="dropdown-item" href="/voice/senior/list/">중장년 말과제</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: 0;
+    }
 
-<style>
-.sortable-header {
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    color: white !important;
-}
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
 
-.sortable-header:hover {
-    background-color: #1e3a8a !important;
-    color: white !important;
-}
+    h1 {
+      margin: 0;
+      margin-right: 10px;
+      flex-shrink: 1;
+    }
 
-.sortable-header:active {
-    color: white !important;
-}
-
-.sortable-header:focus {
-    color: white !important;
-}
-
-.sort-arrow {
-    margin-left: 5px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.sort-arrow::after {
-    content: "⇅";
-    color: #aaa;
-}
-
-.sort-arrow.asc::after {
-    content: "▲";
-    color: #fff;
-}
-
-.sort-arrow.desc::after {
-    content: "▼";
-    color: #fff;
-}
-</style>
-
-{% if audios %}
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th class="sortable-header" onclick="sortTable('id')">
-                        ID
-                        <span class="sort-arrow {% if current_sort == 'id' %}asc{% elif current_sort == '-id' %}desc{% endif %}"></span>
-                    </th>
-                    <th>파일명</th>
-                    <th class="sortable-header" onclick="sortTable('category')">
-                        카테고리
-                        <span class="sort-arrow {% if current_sort == 'category' %}asc{% elif current_sort == '-category' %}desc{% endif %}"></span>
-                    </th>
-                    <th class="sortable-header" onclick="sortTable('gender')">
-                        성별
-                        <span class="sort-arrow {% if current_sort == 'gender' %}asc{% elif current_sort == '-gender' %}desc{% endif %}"></span>
-                    </th>
-                    <th class="sortable-header" onclick="sortTable('age')">
-                        나이
-                        <span class="sort-arrow {% if current_sort == 'age' %}asc{% elif current_sort == '-age' %}desc{% endif %}"></span>
-                    </th>
-                    <th>전사 텍스트</th>
-                    <th class="sortable-header" onclick="sortTable('status')">
-                        상태
-                        <span class="sort-arrow {% if current_sort == 'status' %}asc{% elif current_sort == '-status' %}desc{% endif %}"></span>
-                    </th>
-                    <th class="sortable-header" onclick="sortTable('created_at')">
-                        생성일
-                        <span class="sort-arrow {% if current_sort == 'created_at' %}asc{% elif current_sort == '-created_at' %}desc{% endif %}"></span>
-                    </th>
-                    <th>작업</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for audio in audios %}
-                <tr>
-                    <td>{{ audio.id }}</td>
-                    <td>
-                        <i class="fas fa-file-audio text-primary me-1"></i>
-                        <a href="{{ audio.audio_file.url }}" target="_blank" class="text-decoration-none">
-                            {{ audio.audio_file.name|slice:"6:" }}
-                        </a>
-                    </td>
-                    <td>
-                        <span class="badge 
-                            {% if audio.category == 'child' %}bg-primary
-                            {% elif audio.category == 'senior' %}bg-success
-                            {% elif audio.category == 'atypical' %}bg-warning
-                            {% else %}bg-secondary{% endif %}">
-                            {{ audio.get_category_display }}
-                        </span>
-                    </td>
-                    <td>{{ audio.gender|default:'-' }}</td>
-                    <td>{{ audio.age|default:'-' }}</td>
-                    <td>
-                        {% if audio.transcription %}
-                            <div class="text-truncate" style="max-width: 200px;" title="{{ audio.transcription }}">
-                                {{ audio.transcription }}
-                            </div>
-                        {% else %}
-                            <span class="text-muted">전사 대기</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if audio.status == 'completed' %}
-                            <span class="badge bg-success">{{ audio.get_status_display }}</span>
-                        {% elif audio.status == 'processing' %}
-                            <span class="badge bg-warning">{{ audio.get_status_display }}</span>
-                        {% elif audio.status == 'failed' %}
-                            <span class="badge bg-danger">{{ audio.get_status_display }}</span>
-                        {% else %}
-                            <span class="badge bg-secondary">{{ audio.get_status_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
-                            <a href="/api/transcribe/{{ audio.id }}/" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-microphone"></i>
-                            </a>
-                            <a href="{% url 'audio_detail' audio.id %}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- 페이지네이션 -->
-    {% if page_obj.has_other_pages %}
-        <nav aria-label="페이지 내비게이션">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% if current_sort %}&sort={{ current_sort }}{% endif %}">처음</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">이전</a>
-                    </li>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ num }}</span>
-                        </li>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">다음</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">마지막</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
-    {% endif %}
-{% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-        <h4 class="text-muted">{{ category_name }} 카테고리에 데이터가 없습니다</h4>
-        <p class="text-muted">음성 파일을 업로드해보세요.</p>
-    </div>
-{% endif %}
-
-<script>
-function sortTable(field) {
-    const currentSort = '{{ current_sort }}';
-    let newSort = field;
-    
-    // 현재 정렬이 같은 필드의 오름차순이면 내림차순으로 변경
-    if (currentSort === field) {
-        newSort = '-' + field;
+    .home-button {
+      color: #0d6efd !important;
+      border: 1px solid #0d6efd;
+      background-color: transparent;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 8px;
+      text-decoration: none !important;
+      transition: all 0.3s ease;
+      display: flex !important;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      min-width: fit-content;
     }
     
-    // 현재 URL에 정렬 매개변수 추가
-    const url = new URL(window.location);
-    url.searchParams.set('sort', newSort);
-    url.searchParams.delete('page'); // 페이지는 1페이지로 리셋
+    .home-button:hover {
+      color: white !important;
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      text-decoration: none !important;
+      transform: translateY(-1px);
+    }
     
-    window.location.href = url.toString();
-}
-</script>
+    .logout-button {
+      background-color: #444;
+      color: white !important;
+      padding: 8px 16px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none !important;
+      transition: background-color 0.3s ease;
+      display: flex !important;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      min-width: fit-content;
+    }
 
-{% endblock %}
+    .logout-button:hover {
+      background-color: #222;
+      color: white !important;
+      text-decoration: none !important;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      vertical-align: top;
+    }
+
+    table thead {
+      background-color: #f2f2f2;
+    }
+
+    .pagination {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .pagination a {
+      margin: 0 10px;
+      text-decoration: none;
+    }
+
+    .btn-edit {
+      background-color: #6c757d;
+      color: white;
+      text-decoration: none;
+      border: 1px solid #6c757d;
+      padding: 5px 10px;
+      border-radius: 4px;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .btn-edit:hover {
+      background-color: #5a6268;
+      border-color: #5a6268;
+      color: white;
+      text-decoration: none;
+    }
+
+    .sortable-header {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      color: #333 !important;
+    }
+
+    .sortable-header:hover {
+      background-color: #1e3a8a !important;
+      color: white !important;
+    }
+
+    .sort-arrow {
+      margin-left: 5px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .sort-arrow::after {
+      content: "⇅";
+      color: #aaa;
+    }
+
+    .sort-arrow.asc::after {
+      content: "▲";
+      color: #333;
+    }
+
+    .sort-arrow.desc::after {
+      content: "▼";
+      color: #333;
+    }
+
+    .audio-cell {
+      min-width: 200px;
+      max-width: 250px;
+    }
+    
+    .custom-audio-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .play-button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    .play-button:hover {
+      background-color: #0056b3;
+    }
+    
+    .audio-info {
+      flex: 1;
+      font-size: 12px;
+      color: #6c757d;
+    }
+
+    audio::-webkit-media-controls-panel {
+      display: none !important;
+    }
+  </style>
+
+  <script>
+    let currentAudio = null;
+    let currentButton = null;
+
+    function toggleAudio(button, audioUrl, index) {
+        const audio = document.getElementById(`audio-${index}`);
+        const icon = document.getElementById(`icon-${index}`);
+        
+        if (currentAudio && currentAudio !== audio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            resetButton(getCurrentAudioIndex());
+        }
+        
+        if (audio.paused) {
+            audio.src = audioUrl;
+            audio.play().then(() => {
+                icon.className = 'fas fa-pause';
+                button.disabled = false;
+                currentAudio = audio;
+                currentButton = button;
+            }).catch((error) => {
+                console.error('오디오 재생 실패:', error);
+                alert('오디오 파일을 재생할 수 없습니다.');
+            });
+        } else {
+            audio.pause();
+            audio.currentTime = 0;
+            resetButton(index);
+        }
+    }
+    
+    function resetButton(index) {
+        const icon = document.getElementById(`icon-${index}`);
+        const button = icon.parentElement;
+        
+        if (icon) {
+            icon.className = 'fas fa-play';
+        }
+        if (button) {
+            button.disabled = false;
+        }
+        
+        if (currentAudio) {
+            currentAudio = null;
+            currentButton = null;
+        }
+    }
+    
+    function getCurrentAudioIndex() {
+        if (currentAudio) {
+            const id = currentAudio.id;
+            return parseInt(id.split('-')[1]);
+        }
+        return -1;
+    }
+
+    function formatDuration(seconds) {
+        if (!seconds || seconds === 0) return '0:00';
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    function loadAudioDuration(index) {
+        const audio = document.getElementById(`audio-${index}`);
+        const durationElement = document.getElementById(`duration-${index}`);
+        
+        if (audio && durationElement) {
+            const updateDuration = () => {
+                if (audio.duration && !isNaN(audio.duration)) {
+                    durationElement.textContent = formatDuration(audio.duration);
+                }
+            };
+
+            if (audio.duration && !isNaN(audio.duration)) {
+                updateDuration();
+            } else {
+                audio.addEventListener('loadedmetadata', updateDuration);
+                audio.addEventListener('durationchange', updateDuration);
+            }
+        }
+    }
+
+    window.addEventListener('load', function() {
+        const audioElements = document.querySelectorAll('audio[id^="audio-"]');
+        audioElements.forEach((audio, index) => {
+            const actualIndex = audio.id.split('-')[1];
+            loadAudioDuration(actualIndex);
+        });
+    });
+    
+    window.addEventListener('beforeunload', function() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+    });
+    
+    function sortTable(field) {
+        const currentSort = '{{ current_sort }}';
+        const currentIdentifier = '{{ current_identifier }}';
+        let newSort = field;
+        
+        if (currentSort === field) {
+            newSort = '-' + field;
+        }
+        
+        const url = new URL(window.location);
+        url.searchParams.set('sort', newSort);
+        url.searchParams.delete('page');
+        
+        // identifier 필터 유지
+        if (currentIdentifier && currentIdentifier !== 'None') {
+            url.searchParams.set('identifier', currentIdentifier);
+        }
+        
+        window.location.href = url.toString();
+    }
+  </script>
+</head>
+<body>
+  <!-- 헤더 섹션 -->
+  <div class="header-section">
+    <div class="header-left">
+      <h1>📂 {{ category_name }} 음성 데이터 목록</h1>
+      
+      <!-- 카테고리 선택 드롭다운 -->
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+          카테고리 선택
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="{% url 'audio_list' %}">전체 보기</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="/voice/child/list/">아동</a></li>
+          <li><a class="dropdown-item" href="/voice/senior/list/">노인</a></li>
+          <li><a class="dropdown-item" href="/voice/atypical/list/">음성 장애</a></li>
+          <li><a class="dropdown-item" href="/voice/auditory/list/">청각 장애</a></li>
+          <li><a class="dropdown-item" href="/voice/normal/list/">일반</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <a href="/" class="home-button">
+        <i class="fas fa-home"></i>홈
+      </a>
+      
+      <a href="/accounts/logout/" class="logout-button">
+        <i class="fas fa-sign-out-alt"></i>로그아웃
+      </a>
+    </div>
+  </div>
+
+  <!-- 필터 상태 표시 -->
+  {% if current_identifier %}
+  <div style="margin: 20px 0; padding: 15px; background-color: #e3f2fd; border-left: 4px solid #003366; border-radius: 4px;">
+    <strong style="color: #003366;">
+      <i class="fas fa-filter"></i> 필터링 중:
+    </strong>
+    <span style="font-weight: bold; color: #003366;">고유 ID = {{ current_identifier }}</span>
+    <a href="?category={{ category }}" style="margin-left: 15px; color: #d32f2f; text-decoration: none;">
+      <i class="fas fa-times-circle"></i> 필터 해제
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- 파일 목록 테이블 -->
+  <table>
+    <thead>
+      <tr>
+        <th class="sortable-header" onclick="sortTable('id')">
+          번호
+          <span class="sort-arrow {% if current_sort == 'id' %}asc{% elif current_sort == '-id' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('identifier')">
+          고유 ID
+          <span class="sort-arrow {% if current_sort == 'identifier' %}asc{% elif current_sort == '-identifier' %}desc{% endif %}"></span>
+        </th>
+        <th>음성 파일</th>
+        <th class="sortable-header" onclick="sortTable('name')">
+          이름
+          <span class="sort-arrow {% if current_sort == 'name' %}asc{% elif current_sort == '-name' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('gender')">
+          성별
+          <span class="sort-arrow {% if current_sort == 'gender' %}asc{% elif current_sort == '-gender' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('age')">
+          나이
+          <span class="sort-arrow {% if current_sort == 'age' %}asc{% elif current_sort == '-age' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('task_type')">
+          과제 유형
+          <span class="sort-arrow {% if current_sort == 'task_type' %}asc{% elif current_sort == '-task_type' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('category')">
+          카테고리
+          <span class="sort-arrow {% if current_sort == 'category' %}asc{% elif current_sort == '-category' %}desc{% endif %}"></span>
+        </th>
+        <th>전사 텍스트</th>
+        <th class="sortable-header" onclick="sortTable('status')">
+          상태 / 다시 전사
+          <span class="sort-arrow {% if current_sort == 'status' %}asc{% elif current_sort == '-status' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('created_at')">
+          업로드 시간
+          <span class="sort-arrow {% if current_sort == 'created_at' %}asc{% elif current_sort == '-created_at' %}desc{% endif %}"></span>
+        </th>
+        <th>작업</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for audio in audios %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>
+          {% if audio.identifier %}
+            <a href="?identifier={{ audio.identifier }}" style="font-weight: bold; color: #003366; text-decoration: none; cursor: pointer;">
+              {{ audio.identifier }}
+            </a>
+          {% else %}
+            <span class="text-muted">N/A</span>
+          {% endif %}
+        </td>
+        <td class="audio-cell">
+          <div class="custom-audio-player">
+            <button class="play-button" onclick="toggleAudio(this, '{{ audio.audio_file.url|escapejs }}', '{{ forloop.counter0 }}')">
+              <i class="fas fa-play" id="icon-{{ forloop.counter0 }}"></i>
+            </button>
+            <div class="audio-info">
+              {% if audio.duration %}
+                <div>재생시간: {{ audio.duration|floatformat:1 }}초</div>
+              {% else %}
+                <div>재생시간: <span id="duration-{{ forloop.counter0 }}">로딩중...</span></div>
+              {% endif %}
+            </div>
+            <audio id="audio-{{ forloop.counter0 }}" preload="metadata" onended="resetButton('{{ forloop.counter0 }}')">
+              <source src="{{ audio.audio_file.url }}" type="audio/mpeg">
+              <source src="{{ audio.audio_file.url }}" type="audio/wav">
+              <source src="{{ audio.audio_file.url }}" type="audio/ogg">
+              브라우저가 오디오를 지원하지 않습니다.
+            </audio>
+          </div>
+        </td>
+        <td>
+          {% if audio.name %}
+            <span title="장소: {{ audio.recording_location|default:'미입력' }}, 기기: {{ audio.device_type|default:'미입력' }}">
+              {{ audio.name }}
+            </span>
+          {% else %}
+            <span style="color: #999; font-style: italic;" title="장소: {{ audio.recording_location|default:'미입력' }}, 기기: {{ audio.device_type|default:'미입력' }}">
+              미입력
+            </span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.gender %}
+            {{ audio.gender }}
+          {% else %}
+            <span style="color: #999; font-style: italic;">미입력</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.age %}
+            {{ audio.age }}
+          {% else %}
+            <span style="color: #999; font-style: italic;">미입력</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.category_specific_data.task_type %}
+            {{ audio.category_specific_data.task_type }}
+          {% else %}
+            <span style="color: #999; font-style: italic;">미입력</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.category == 'child' %}
+            <span class="badge bg-primary">아동</span>
+          {% elif audio.category == 'senior' %}
+            <span class="badge bg-info">노인</span>
+          {% elif audio.category == 'atypical' %}
+            <span class="badge bg-warning">음성 장애</span>
+          {% elif audio.category == 'auditory' %}
+            <span class="badge bg-success">청각 장애</span>
+          {% elif audio.category == 'normal' %}
+            <span class="badge bg-secondary">일반</span>
+          {% else %}
+            <span class="badge bg-light text-dark">{{ audio.category }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if audio.manual_transcript %}
+            <div style="max-width: 300px; word-wrap: break-word;">
+              {{ audio.manual_transcript }}
+              {% if audio.manual_transcript != audio.transcript %}
+                <span style="color: #666; font-size: 11px;"><i class="fas fa-edit"></i></span>
+              {% endif %}
+            </div>
+          {% elif audio.transcript %}
+            <div style="max-width: 300px; word-wrap: break-word;">
+              {{ audio.transcript }}
+            </div>
+          {% else %}
+            <span style="color: #999; font-style: italic;">전사 대기</span>
+          {% endif %}
+        </td>
+        <td>
+          <div><strong>상태:</strong> {{ audio.get_status_display }}</div>
+
+          {% if audio.status != 'processing' %}
+            <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" 
+                  style="margin-top: 5px;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-transcribe" style="font-size: 12px; padding: 5px 10px; background-color: green;">
+                🧠 다시 전사
+              </button>
+            </form>
+          {% else %}
+            <span style="font-size: 12px; color: gray;">⏳ 처리 중...</span>
+          {% endif %}
+        </td>
+        <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <a href="{% url 'audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
+            <i class="fas fa-edit"></i>
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- 페이지네이션 -->
+  <div class="pagination">
+    <span style="margin-right: 10px;">페이지:</span>
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_identifier %}&identifier={{ current_identifier }}{% endif %}">⬅ 이전</a>
+    {% endif %}
+
+    <span>
+      페이지 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_identifier %}&identifier={{ current_identifier }}{% endif %}">다음 ➡</a>
+    {% endif %}
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

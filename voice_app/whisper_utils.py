@@ -1,12 +1,20 @@
 # voice_app/whisper_utils.py
 
 import whisper
-import whisperx
 import time
 import os
 import gc
 import torch
 import json
+
+# whisperx는 선택적 의존성
+try:
+    import whisperx
+    WHISPERX_AVAILABLE = True
+    print("[WhisperX] WhisperX module available")
+except ImportError:
+    WHISPERX_AVAILABLE = False
+    print("[WhisperX] WhisperX module not available, using basic Whisper only")
 
 # 💡 전역에서 한 번만 모델 로딩 (성능 최적화)
 try:
@@ -17,7 +25,7 @@ except Exception as e:
     model = None
     print(f"[Whisper Error] Failed to load model: {e}")
 
-# WhisperX 모델 전역 변수 (lazy loading)
+# WhisperX 모델 전역 변수 (lazy loading) - whisperx 사용 시에만 필요
 whisperx_model = None
 whisperx_model_a = None
 whisperx_metadata = None
@@ -26,6 +34,10 @@ diarize_model = None
 def get_whisperx_model():
     """WhisperX 모델을 lazy loading으로 가져옴"""
     global whisperx_model, whisperx_model_a, whisperx_metadata, diarize_model
+    
+    if not WHISPERX_AVAILABLE:
+        print("[WhisperX Error] WhisperX is not installed")
+        return None, None, None
     
     if whisperx_model is None:
         try:
@@ -94,6 +106,15 @@ def transcribe_and_align_whisperx(audio_path):
             'error': str or None
         }
     """
+    if not WHISPERX_AVAILABLE:
+        return {
+            'transcription': '',
+            'segments': [],
+            'word_segments': [],
+            'success': False,
+            'error': 'WhisperX is not installed. Please install it with: pip install whisperx'
+        }
+    
     try:
         if not os.path.exists(audio_path):
             return {

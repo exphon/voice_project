@@ -489,6 +489,7 @@
     
     function sortTable(field) {
         const currentSort = '{{ current_sort }}';
+        const currentIdentifier = '{{ current_identifier }}';
         let newSort = field;
         
         if (currentSort === field) {
@@ -498,6 +499,11 @@
         const url = new URL(window.location);
         url.searchParams.set('sort', newSort);
         url.searchParams.delete('page');
+        
+        // identifier 필터 유지
+        if (currentIdentifier && currentIdentifier !== 'None') {
+            url.searchParams.set('identifier', currentIdentifier);
+        }
         
         window.location.href = url.toString();
     }
@@ -540,11 +546,24 @@
       </a>
       
       <!-- 로그아웃 버튼 -->
-      <a href="{% url 'logout' %}" class="logout-button">
+      <a href="/accounts/logout/" class="logout-button">
         <i class="fas fa-sign-out-alt"></i>로그아웃
       </a>
     </div>
   </div>
+
+  <!-- 필터 상태 표시 -->
+  {% if current_identifier %}
+  <div style="margin: 20px 0; padding: 15px; background-color: #e3f2fd; border-left: 4px solid #003366; border-radius: 4px;">
+    <strong style="color: #003366;">
+      <i class="fas fa-filter"></i> 필터링 중:
+    </strong>
+    <span style="font-weight: bold; color: #003366;">고유 ID = {{ current_identifier }}</span>
+    <a href="{% url 'audio_list' %}" style="margin-left: 15px; color: #d32f2f; text-decoration: none;">
+      <i class="fas fa-times-circle"></i> 필터 해제
+    </a>
+  </div>
+  {% endif %}
 
   <!-- 버튼 행 -->
   <div class="button-row">
@@ -579,6 +598,10 @@
           번호
           <span class="sort-arrow {% if current_sort == 'id' %}asc{% elif current_sort == '-id' %}desc{% endif %}"></span>
         </th>
+        <th class="sortable-header" onclick="sortTable('identifier')">
+          고유 ID
+          <span class="sort-arrow {% if current_sort == 'identifier' %}asc{% elif current_sort == '-identifier' %}desc{% endif %}"></span>
+        </th>
         <th>음성 파일</th>
         <th class="sortable-header" onclick="sortTable('name')">
           이름
@@ -591,6 +614,10 @@
         <th class="sortable-header" onclick="sortTable('age')">
           나이
           <span class="sort-arrow {% if current_sort == 'age' %}asc{% elif current_sort == '-age' %}desc{% endif %}"></span>
+        </th>
+        <th class="sortable-header" onclick="sortTable('task_type')">
+          과제 유형
+          <span class="sort-arrow {% if current_sort == 'task_type' %}asc{% elif current_sort == '-task_type' %}desc{% endif %}"></span>
         </th>
         <th class="sortable-header" onclick="sortTable('category')">
           카테고리
@@ -605,10 +632,6 @@
           업로드 시간
           <span class="sort-arrow {% if current_sort == 'created_at' %}asc{% elif current_sort == '-created_at' %}desc{% endif %}"></span>
         </th>
-        <th class="sortable-header" onclick="sortTable('snr_mean')">
-          SNR Mean
-          <span class="sort-arrow {% if current_sort == 'snr_mean' %}asc{% elif current_sort == '-snr_mean' %}desc{% endif %}"></span>
-        </th>
         <th>작업</th>
       </tr>
     </thead>
@@ -616,6 +639,15 @@
       {% for audio in audios %}
       <tr>
         <td>{{ forloop.counter }}</td>
+        <td>
+          {% if audio.identifier %}
+            <a href="?identifier={{ audio.identifier }}" style="font-weight: bold; color: #003366; text-decoration: none; cursor: pointer;">
+              {{ audio.identifier }}
+            </a>
+          {% else %}
+            <span class="text-muted">N/A</span>
+          {% endif %}
+        </td>
         <td class="audio-cell">
           <div class="custom-audio-player">
             <button class="play-button" onclick="toggleAudio(this, '{{ audio.audio_file.url|escapejs }}', '{{ forloop.counter0 }}')">
@@ -662,6 +694,13 @@
           {% endif %}
         </td>
         <td>
+          {% if audio.category_specific_data.task_type %}
+            {{ audio.category_specific_data.task_type }}
+          {% else %}
+            <span style="color: #999; font-style: italic;">미입력</span>
+          {% endif %}
+        </td>
+        <td>
           {% if audio.category == 'child' %}
             <span class="badge bg-primary">아동</span>
           {% elif audio.category == 'senior' %}
@@ -679,7 +718,7 @@
         <td>
           <form method="POST" action="{% url 'update_transcription' audio.id %}" onsubmit="return stayHere();">
             {% csrf_token %}
-            <textarea name="transcription" rows="2">{{ audio.transcription|default_if_none:"" }}</textarea>
+            <textarea name="manual_transcript" rows="2">{{ audio.manual_transcript|default:audio.transcript|default_if_none:"" }}</textarea>
             <button type="submit" class="btn btn-save">💾 저장</button>
           </form>
         </td>
@@ -699,7 +738,6 @@
           {% endif %}
         </td>
         <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
-        <td>{{ audio.snr_mean|default_if_none:"N/A" }}</td>
         <td>
           <a href="{% url 'audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
             <i class="fas fa-edit"></i>
@@ -714,7 +752,7 @@
   <div class="pagination">
     <span style="margin-right: 10px;">페이지:</span>
     {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">⬅ 이전</a>
+      <a href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_identifier %}&identifier={{ current_identifier }}{% endif %}">⬅ 이전</a>
     {% endif %}
 
     <span>
@@ -722,7 +760,7 @@
     </span>
 
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">다음 ➡</a>
+      <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_identifier %}&identifier={{ current_identifier }}{% endif %}">다음 ➡</a>
     {% endif %}
   </div>
 

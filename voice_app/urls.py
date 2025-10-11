@@ -29,7 +29,8 @@ urlpatterns = [
     
     # 누락된 API 엔드포인트들 추가
     path('child/info/', views.api_child_info, name='api_child_info'),
-    path('child/participant/<str:identifier>/', api_participant_metadata, name='api_participant_metadata'),
+    path('participant/<str:identifier>/', api_participant_metadata, name='api_participant_metadata'),  # 범용 (모든 카테고리)
+    path('child/participant/<str:identifier>/', api_participant_metadata, name='api_participant_metadata_child'),  # 하위 호환성
     path('status/', views.api_status, name='api_status'),
     path('config/', views.api_config, name='api_config'),
     path('test-upload/', views.test_file_upload, name='api_test_upload'),  # React Native 테스트용

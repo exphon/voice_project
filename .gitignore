@@ -65,6 +65,10 @@ change_admin_password.py
 make_admin_superuser.py
 set_user_permissions.py
 
+# Documentation (docs folder)
+docs/
+docs/*.md
+
 # IDE
 .vscode/
 .idea/

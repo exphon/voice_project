@@ -1,8 +1,59 @@
-# React Native 앱에서 참가자 정보 가져오기 가이드
-
-## � 중요 업데이트
+# ## 🔔 중요 업데이트
 
 **✅ 2025-10-11 업데이트:**
+- **카테고리별 엔드포인트 추가**: `/api/{category}/participant/{id}/` 형식 지원
+- **ID 접두사 검증**: 각 카테고리별 ID 형식 자동 검증
+  - `child`: C로 시작 (예: C27508)
+  - `senior`: S로 시작 (예: S12345)
+  - `auditory`: A로 시작 (예: A46670)
+  - `atypical`: A로 시작 (예: A99999)
+- **범용 엔드포인트**: `/api/participant/{id}/` (카테고리 제약 없음)
+- **하위 호환성 유지**: 기존 URL 계속 사용 가능
+
+---tive 앱에서 참가자 정보 가져오기 가이드### 4. 검색 기능
+
+```javascript
+const searchParticipant = async (searchId) => {
+  try {
+    const result = await getParticipantInfo(searchId);
+    console.log('검색 결과:', result);
+    return result;
+  } catch (error) {
+    console.log('참가자를 찾을 수 없습니다.');
+    return null;
+  }
+};
+```
+
+### 5. 카테고리 자동 감지 및 적절한 엔드포인트 선택
+
+```javascript
+const getParticipantSmart = async (identifier) => {
+  // ID 접두사로 카테고리 자동 감지
+  const prefix = identifier.charAt(0).toUpperCase();
+  const categoryMap = {
+    'C': 'child',
+    'S': 'senior',
+    'A': identifier.length > 1 && identifier.charAt(1) >= '4' ? 'auditory' : 'atypical'
+  };
+  
+  const category = categoryMap[prefix];
+  
+  if (category) {
+    // 카테고리별 검증 URL 사용
+    const url = `http://210.125.93.241:8010/api/${category}/participant/${identifier}/`;
+    const response = await axios.get(url);
+    return response.data;
+  } else {
+    // 범용 URL 사용
+    const url = `http://210.125.93.241:8010/api/participant/${identifier}/`;
+    const response = await axios.get(url);
+    return response.data;
+  }
+};
+```
+
+### 6. 녹음 파일 재생**✅ 2025-10-11 업데이트:**
 - **모든 카테고리 지원**: `/api/participant/{id}/` 엔드포인트 추가
 - **카테고리 제약 없음**: child, auditory, senior, atypical, normal 모두 조회 가능
 - **하위 호환성 유지**: 기존 `/api/child/participant/{id}/` 계속 사용 가능
@@ -281,11 +332,89 @@ export default ParticipantProfile;
 
 ## 🎯 실제 사용 시나리오
 
-### 1. 앱 시작 시 참가자 목록 로드
+### 1. 카테고리별 참가자 조회 (ID 검증 포함)
+
+```javascript
+// 안전한 방법: 카테고리별 엔드포인트 사용 (ID 자동 검증)
+const getChildParticipant = async (childId) => {
+  try {
+    // child는 반드시 C로 시작해야 함
+    const response = await axios.get(
+      `http://210.125.93.241:8010/api/child/participant/${childId}/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Child participant error:', error.response?.data?.error);
+    throw error;
+  }
+};
+
+const getAuditoryParticipant = async (auditoryId) => {
+  try {
+    // auditory는 반드시 A로 시작해야 함
+    const response = await axios.get(
+      `http://210.125.93.241:8010/api/auditory/participant/${auditoryId}/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Auditory participant error:', error.response?.data?.error);
+    throw error;
+  }
+};
+
+const getSeniorParticipant = async (seniorId) => {
+  try {
+    // senior는 반드시 S로 시작해야 함
+    const response = await axios.get(
+      `http://210.125.93.241:8010/api/senior/participant/${seniorId}/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Senior participant error:', error.response?.data?.error);
+    throw error;
+  }
+};
+
+// 사용 예시
+try {
+  const child = await getChildParticipant('C27508');   // ✅ 성공
+  const auditory = await getAuditoryParticipant('A46670');  // ✅ 성공
+  const senior = await getSeniorParticipant('S12345');  // ✅ 성공
+  
+  // 잘못된 ID 사용 시 에러 발생
+  const wrong = await getChildParticipant('A46670');  // ❌ 에러: child는 C로 시작해야 함
+} catch (error) {
+  console.error(error);
+}
+```
+
+### 2. 범용 엔드포인트 사용 (검증 없음)
+
+```javascript
+// 유연한 방법: 모든 카테고리 지원 (ID 검증 없음)
+const getParticipantByIdOnly = async (identifier) => {
+  try {
+    const response = await axios.get(
+      `http://210.125.93.241:8010/api/participant/${identifier}/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Participant error:', error.response?.data?.error);
+    throw error;
+  }
+};
+
+// 어떤 ID든 사용 가능
+const participant1 = await getParticipantByIdOnly('C27508');  // child
+const participant2 = await getParticipantByIdOnly('A46670');  // auditory
+const participant3 = await getParticipantByIdOnly('S12345');  // senior
+```
+
+### 3. 앱 시작 시 참가자 목록 로드
 
 ```javascript
 // API에서 모든 참가자 조회 (참가자 ID 목록 필요)
-const participantIds = ['C27508', 'C27509', 'C27510'];
+const participantIds = ['C27508', 'C27509', 'A46670', 'S12345'];
 
 const loadAllParticipants = async () => {
   const participants = await Promise.all(
@@ -295,7 +424,7 @@ const loadAllParticipants = async () => {
 };
 ```
 
-### 2. 검색 기능
+### 4. 검색 기능
 
 ```javascript
 const searchParticipant = async (searchId) => {
@@ -653,26 +782,53 @@ export default App;
 
 ## 🌐 API 엔드포인트 정리
 
-| 메서드 | URL | 설명 |
-|--------|-----|------|
-| GET | `/api/participant/{identifier}/` | 특정 참가자 정보 조회 (모든 카테고리) |
-| GET | `/api/child/participant/{identifier}/` | 특정 참가자 정보 조회 (하위 호환성, child 전용) |
+### 참가자 정보 조회 API
 
-**예시:**
+| 메서드 | URL | 설명 | ID 검증 |
+|--------|-----|------|---------|
+| GET | `/api/participant/{identifier}/` | 모든 카테고리 참가자 조회 | ❌ 없음 |
+| GET | `/api/child/participant/{identifier}/` | 아동 참가자 조회 | ✅ C로 시작 |
+| GET | `/api/senior/participant/{identifier}/` | 노인 참가자 조회 | ✅ S로 시작 |
+| GET | `/api/auditory/participant/{identifier}/` | 청각장애 참가자 조회 | ✅ A로 시작 |
+| GET | `/api/atypical/participant/{identifier}/` | 음성장애 참가자 조회 | ✅ A로 시작 |
+| GET | `/api/normal/participant/{identifier}/` | 일반 참가자 조회 | ❌ 없음 |
+
+### 사용 예시
+
+```bash
+# 1. 범용 URL (권장 - ID 검증 없음)
+http://210.125.93.241:8010/api/participant/C27508/   # child
+http://210.125.93.241:8010/api/participant/A46670/   # auditory
+http://210.125.93.241:8010/api/participant/S12345/   # senior
+
+# 2. 카테고리별 URL (ID 검증 포함 - 더 안전)
+http://210.125.93.241:8010/api/child/participant/C27508/      # ✅ 성공
+http://210.125.93.241:8010/api/auditory/participant/A46670/   # ✅ 성공
+http://210.125.93.241:8010/api/senior/participant/S12345/     # ✅ 성공
+
+# 3. 잘못된 ID 접두사 (에러 반환)
+http://210.125.93.241:8010/api/child/participant/A46670/      # ❌ 에러: child는 C로 시작해야 함
+http://210.125.93.241:8010/api/auditory/participant/C27508/   # ❌ 에러: auditory는 A로 시작해야 함
 ```
-# 범용 (권장) - 모든 카테고리 지원
-http://210.125.93.241:8010/api/participant/C27508/  # child
-http://210.125.93.241:8010/api/participant/A46670/  # auditory
-http://210.125.93.241:8010/api/participant/S12345/  # senior
 
-# 하위 호환성 (child만)
-http://210.125.93.241:8010/api/child/participant/C27508/
+### 에러 응답 예시
+
+```json
+{
+  "success": false,
+  "error": "child 카테고리의 ID는 C로 시작해야 합니다. 입력된 ID: A46670"
+}
 ```
 
-**참가자 ID 형식:**
-- `C#####`: Child (아동)
-- `A#####`: Auditory (청각 장애)
-- `S#####`: Senior (노인)
+### 참가자 ID 형식
+
+| 카테고리 | 접두사 | 예시 | 설명 |
+|---------|-------|------|------|
+| **child** | C | C27508 | 아동 |
+| **senior** | S | S12345 | 노인 |
+| **auditory** | A | A46670 | 청각 장애 |
+| **atypical** | A | A99999 | 음성 장애 |
+| **normal** | 없음 | N12345 | 일반 |
 
 ---
 

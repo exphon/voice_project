@@ -3041,6 +3041,7 @@ def api_participant_metadata(request, identifier):
         # 기본 메타데이터
         metadata = {
             'identifier': identifier,
+            'name': latest_record.name,
             'category': latest_record.category,
             'gender': latest_record.gender,
             'age': latest_record.age,

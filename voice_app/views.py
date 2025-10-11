@@ -3026,6 +3026,18 @@ def api_participant_metadata(request, identifier):
         # 가장 최근 레코드에서 메타데이터 추출
         latest_record = audio_records.first()
         
+        # 생년월일 조합 (birth_year, birth_month, birth_day를 사용)
+        birth_date_str = None
+        if latest_record.birth_year and latest_record.birth_month and latest_record.birth_day:
+            try:
+                year = int(latest_record.birth_year) if latest_record.birth_year else 0
+                month = int(latest_record.birth_month) if latest_record.birth_month else 0
+                day = int(latest_record.birth_day) if latest_record.birth_day else 0
+                if year > 0 and month > 0 and day > 0:
+                    birth_date_str = f"{year:04d}-{month:02d}-{day:02d}"
+            except (ValueError, TypeError):
+                birth_date_str = None
+        
         # 기본 메타데이터
         metadata = {
             'identifier': identifier,
@@ -3033,7 +3045,10 @@ def api_participant_metadata(request, identifier):
             'gender': latest_record.gender,
             'age': latest_record.age,
             'age_in_months': latest_record.age_in_months,
-            'birth_date': latest_record.birth_date.isoformat() if latest_record.birth_date else None,
+            'birth_year': latest_record.birth_year,
+            'birth_month': latest_record.birth_month,
+            'birth_day': latest_record.birth_day,
+            'birth_date': birth_date_str,
             'total_recordings': audio_records.count(),
             'latest_recording_date': latest_record.created_at.isoformat(),
         }

@@ -287,13 +287,13 @@ voice_project/
 
 자세한 문서는 다음 가이드를 참조하세요:
 
-- [API 자산 가이드](API_ASSETS_GUIDE.md)
-- [오디오 재업로드 가이드](AUDIO_REUPLOAD_GUIDE.md)
-- [성별 번역 가이드](GENDER_TRANSLATION_GUIDE.md)
-- [메타데이터 필드 매핑](METADATA_FIELDS_MAPPING.md)
-- [전사 필드 업데이트 가이드](TRANSCRIPT_FIELD_UPDATE_GUIDE.md)
-- [Whisper 테스트 가이드](WHISPER_TEST_GUIDE.md)
-- [Whisper 전사 검토](WHISPER_TRANSCRIPTION_REVIEW.md)
+- [API 자산 가이드](docs/API_ASSETS_GUIDE.md)
+- [오디오 재업로드 가이드](docs/AUDIO_REUPLOAD_GUIDE.md)
+- [성별 번역 가이드](docs/GENDER_TRANSLATION_GUIDE.md)
+- [메타데이터 필드 매핑](docs/METADATA_FIELDS_MAPPING.md)
+- [전사 필드 업데이트 가이드](docs/TRANSCRIPT_FIELD_UPDATE_GUIDE.md)
+- [Whisper 테스트 가이드](docs/WHISPER_TEST_GUIDE.md)
+- [Whisper 전사 검토](docs/WHISPER_TRANSCRIPTION_REVIEW.md)
 
 ## 🔧 주요 기술 스택
 

@@ -70,8 +70,6 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-        
-        <div class="col-lg-3 col-md-6 mb-3">
             <div class="card text-white bg-info stats-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
@@ -200,18 +198,39 @@
             </div>
         </div>
 
-        <!-- 노인 (Senior) 화자 통계 -->
+        <!-- 성인 (Senior) 화자 통계 -->
         <div class="col-lg-4 mb-4">
             <div class="card border-success category-card">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-user-elderly me-2"></i>노인 화자</h5>
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>성인 화자</h5>
                 </div>
                 <div class="card-body">
-                    {% if senior_cognitive_stats %}
-                    <h6 class="mb-3">인지 저하 여부 (화자 수)</h6>
-                    <canvas id="seniorCognitiveChart"></canvas>
+                    {% if senior_education_stats %}
+                    <h6 class="mb-3">교육 년수 분포 (화자 수)</h6>
+                    <canvas id="seniorEducationChart"></canvas>
                     {% else %}
-                    <p class="text-muted text-center py-3">인지 저하 데이터 없음</p>
+                    <p class="text-muted text-center py-3">교육 년수 데이터 없음</p>
+                    {% endif %}
+                    
+                    {% if senior_task_stats %}
+                    <div class="mt-4">
+                        <h6 class="mb-2">과제 유형 (화자 수)</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for task in senior_task_stats %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                <small>{{ task.task }}</small>
+                                <span class="badge bg-success rounded-pill">{{ task.count }}명</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% if senior_cognitive_stats %}
+                    <div class="mt-4">
+                        <h6 class="mb-3">인지 저하 여부 (화자 수)</h6>
+                        <canvas id="seniorCognitiveChart"></canvas>
+                    </div>
                     {% endif %}
                     
                     {% if senior_job_stats %}
@@ -364,6 +383,7 @@
 {{ recordings_per_speaker|json_script:"recordings-per-speaker" }}
 {{ child_device_stats|json_script:"child-device-stats" }}
 {{ senior_cognitive_stats|json_script:"senior-cognitive-stats" }}
+{{ senior_education_stats|json_script:"senior-education-stats" }}
 {{ auditory_hearing_aid_stats|json_script:"auditory-hearing-aid-stats" }}
 
 <!-- 파일 기반 데이터 -->
@@ -382,6 +402,7 @@ const ageGroupSpeakerStats = JSON.parse(document.getElementById('age-group-speak
 const recordingsPerSpeaker = JSON.parse(document.getElementById('recordings-per-speaker').textContent);
 const childDeviceStats = JSON.parse(document.getElementById('child-device-stats').textContent);
 const seniorCognitiveStats = JSON.parse(document.getElementById('senior-cognitive-stats').textContent);
+const seniorEducationStats = JSON.parse(document.getElementById('senior-education-stats').textContent);
 const auditoryHearingAidStats = JSON.parse(document.getElementById('auditory-hearing-aid-stats').textContent);
 
 const monthlyStats = JSON.parse(document.getElementById('monthly-stats').textContent);
@@ -404,7 +425,7 @@ const commonOptions = {
 
 // 카테고리별 화자 수
 const categoryLabels = categorySpeakerStats.map(s => {
-    const map = {child: '아동', senior: '노인', auditory: '청각 장애', atypical: '음성 장애'};
+    const map = {child: '아동', senior: '성인', auditory: '청각 장애', atypical: '음성 장애'};
     return map[s.category] || s.category;
 });
 
@@ -422,17 +443,48 @@ new Chart(document.getElementById('categorySpeakerChart'), {
 
 // 성별 화자 수
 if (genderSpeakerStats.length > 0) {
-    const genderLabels = genderSpeakerStats.map(s => s.gender === 'male' ? '남성' : '여성');
+    // 성별별 색상 매핑
+    const genderColors = {
+        '남성': '#007bff',
+        '여성': '#e83e8c',
+        '미상': '#6c757d'
+    };
+    
     new Chart(document.getElementById('genderSpeakerChart'), {
         type: 'pie',
         data: {
-            labels: genderLabels,
+            labels: genderSpeakerStats.map(s => s.gender),
             datasets: [{
                 data: genderSpeakerStats.map(s => s.count),
-                backgroundColor: ['#007bff', '#e83e8c']
+                backgroundColor: genderSpeakerStats.map(s => genderColors[s.gender] || '#6c757d'),
+                borderWidth: 2,
+                borderColor: '#fff'
             }]
         },
-        options: commonOptions
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value}명 (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 
@@ -529,7 +581,31 @@ if (ageGroupSpeakerStats.length > 0) {
     });
 }
 
-// 노인 인지 저하 화자 수
+// 성인 교육 년수 분포
+if (seniorEducationStats.length > 0) {
+    new Chart(document.getElementById('seniorEducationChart'), {
+        type: 'bar',
+        data: {
+            labels: seniorEducationStats.map(s => s.education),
+            datasets: [{
+                label: '화자 수',
+                data: seniorEducationStats.map(s => s.count),
+                backgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5,
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+}
+
+// 성인 인지 저하 화자 수
 if (seniorCognitiveStats.length > 0) {
     new Chart(document.getElementById('seniorCognitiveChart'), {
         type: 'doughnut',

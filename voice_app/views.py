@@ -513,6 +513,9 @@ class AudioUploadView(APIView):
             
             metadata_from_file = None
             metadata_filename = None
+            metadata_original_filename = None
+            metadata_bytes = None
+            metadata_parsed = None
 
             # JSON 파일 업로드 처리
             if metadata_file:
@@ -522,6 +525,11 @@ class AudioUploadView(APIView):
                     if metadata_text:
                         metadata_from_file = metadata_text
                         metadata_filename = metadata_file.name
+                        metadata_original_filename = metadata_file.name
+                        try:
+                            metadata_parsed = json.loads(metadata_text)
+                        except Exception:
+                            metadata_parsed = None
                         if not metadata_json:
                             metadata_json = metadata_from_file
                         print(f"[DEBUG] Metadata JSON file received: {metadata_filename}, size: {len(metadata_bytes)} bytes")
@@ -558,7 +566,7 @@ class AudioUploadView(APIView):
                         device = device or metainfo.get('device')
                         mic = mic or metainfo.get('mic')
                     
-                    # metainfo_senior에서 정보 추출 (노인 카테고리)
+                    # metainfo_senior에서 정보 추출 (성인 카테고리)
                     if 'metainfo_senior' in metadata:
                         metainfo = metadata['metainfo_senior']
                         name = name or metainfo.get('name')
@@ -591,6 +599,7 @@ class AudioUploadView(APIView):
                     
                     print(f"[DEBUG] After metadata extraction - name: {name}, gender: {gender}, task_type: {task_type}")
                     print(f"[DEBUG] Region: {region}, Device: {device}, Age: {age}")
+                    metadata_parsed = metadata
                     
                 except json.JSONDecodeError as e:
                     print(f"[DEBUG] Failed to parse metadata_json as JSON: {e}")
@@ -601,6 +610,7 @@ class AudioUploadView(APIView):
                             decoded_str = decoded_bytes.decode('utf-8')
                             metadata = json.loads(decoded_str)
                             print(f"[DEBUG] Successfully decoded Base64 metadata: {metadata}")
+                            metadata_parsed = metadata
                     except Exception as e2:
                         print(f"[DEBUG] Base64 decode also failed: {e2}")
                 except Exception as e:
@@ -683,6 +693,11 @@ class AudioUploadView(APIView):
             wav_path = os.path.join(settings.MEDIA_ROOT, category_folder, wav_filename)
             
             print(f"[DEBUG] Target WAV file: {wav_path}")
+
+            # 메타데이터 저장 파일명 (오디오와 동일 basename)
+            metadata_storage_filename = f"{saved_unique_id}.json"
+            metadata_storage_path = os.path.join(category_folder, metadata_storage_filename)
+            metadata_relative_path = None
 
             # 변환 실행
             print(f"[DEBUG] Input file extension: {ext}")
@@ -900,6 +915,58 @@ class AudioUploadView(APIView):
                 if age_in_months:
                     category_data['age_in_months'] = age_in_months
             
+            # 클라이언트 메타데이터 구조화 및 저장
+            client_metadata_payload = metadata_parsed if metadata_parsed is not None else None
+            raw_metadata_payload = None
+            if client_metadata_payload is None:
+                if isinstance(metadata_json, (dict, list)):
+                    client_metadata_payload = metadata_json
+                elif metadata_from_file:
+                    raw_metadata_payload = metadata_from_file
+                elif metadata_json:
+                    raw_metadata_payload = str(metadata_json)
+
+                if client_metadata_payload is None and raw_metadata_payload:
+                    try:
+                        client_metadata_payload = json.loads(raw_metadata_payload)
+                    except Exception:
+                        client_metadata_payload = None
+
+            try:
+                os.makedirs(os.path.join(settings.MEDIA_ROOT, category_folder), exist_ok=True)
+                if default_storage.exists(metadata_storage_path):
+                    default_storage.delete(metadata_storage_path)
+
+                combined_metadata = {
+                    'audio': {
+                        'id': audio_record.id,
+                        'category': audio_record.category,
+                        'identifier': audio_record.identifier,
+                        'audio_file': audio_record.audio_file.name,
+                        'audio_file_url': audio_record.audio_file.url,
+                        'created_at': audio_record.created_at.isoformat() if audio_record.created_at else None,
+                        'status': audio_record.status,
+                    },
+                    'category_data': category_data,
+                }
+
+                if client_metadata_payload is not None:
+                    combined_metadata['client_metadata'] = client_metadata_payload
+                if raw_metadata_payload and client_metadata_payload is None:
+                    combined_metadata['client_metadata_raw'] = raw_metadata_payload
+                if metadata_original_filename:
+                    combined_metadata['metadata_original_filename'] = metadata_original_filename
+
+                with default_storage.open(metadata_storage_path, 'w') as metadata_fp:
+                    metadata_fp.write(json.dumps(combined_metadata, ensure_ascii=False, indent=2))
+
+                metadata_relative_path = metadata_storage_path
+                metadata_filename = metadata_storage_filename
+                print(f"[DEBUG] Saved enriched metadata JSON file with audio info: {metadata_relative_path}")
+            except Exception as e:
+                print(f"[DEBUG] Failed to save enriched metadata JSON file: {e}")
+                metadata_relative_path = None
+
             # 메타데이터 JSON 저장
             if metadata_json:
                 if isinstance(metadata_json, (dict, list)):
@@ -911,6 +978,8 @@ class AudioUploadView(APIView):
                     category_data['metadata_json'] = str(metadata_json)
             if metadata_filename:
                 category_data['metadata_filename'] = metadata_filename
+            if metadata_relative_path:
+                category_data['metadata_path'] = metadata_relative_path
                 
             if category_data:
                 audio_record.set_category_data(**category_data)
@@ -1180,7 +1249,7 @@ def category_audio_list(request, category):
     # 카테고리 이름을 한글로 변환
     category_names = {
         'child': '아동',
-        'senior': '노인', 
+        'senior': '성인', 
         'atypical': '음성 장애',
         'auditory': '청각 장애',  # 이 줄이 추가되어야 함
         'normal': '일반'
@@ -1567,7 +1636,7 @@ def audio_detail(request, audio_id):
     # 카테고리 한글명 매핑
     category_names = {
         'child': '아동',
-        'senior': '노인',
+        'senior': '성인',
         'atypical': '음성 장애',
         'auditory': '청각 장애',
         'normal': '일반'
@@ -1611,10 +1680,41 @@ def audio_detail(request, audio_id):
     
     # 생년월일 조합
     birth_date = None
+    
+    # 1. 데이터베이스 필드에서 생년월일 조합
     if audio.birth_year and audio.birth_month and audio.birth_day:
         birth_date = f"{audio.birth_year}-{audio.birth_month.zfill(2)}-{audio.birth_day.zfill(2)}"
-    elif metainfo_child.get('birthDate'):
-        birth_date = metainfo_child.get('birthDate')
+    
+    # 2. metainfo_child에서 birthDate 또는 birth_date 추출
+    elif metainfo_child.get('birthDate') or metainfo_child.get('birth_date'):
+        birth_date = metainfo_child.get('birthDate') or metainfo_child.get('birth_date')
+    
+    # 3. metainfo_child에서 birthYear, birthMonth, birthDay 조합
+    elif metainfo_child.get('birthYear') and metainfo_child.get('birthMonth') and metainfo_child.get('birthDay'):
+        birth_year = metainfo_child.get('birthYear')
+        birth_month = metainfo_child.get('birthMonth').zfill(2)
+        birth_day = metainfo_child.get('birthDay').zfill(2)
+        birth_date = f"{birth_year}-{birth_month}-{birth_day}"
+    
+    # 4. metainfo_senior에서 birth_date 추출
+    elif metainfo_senior.get('birth_date'):
+        birth_date = metainfo_senior.get('birth_date')
+    
+    # 5. metainfo_senior에서 birthYear, birthMonth, birthDay 조합
+    elif metainfo_senior.get('birthYear') and metainfo_senior.get('birthMonth') and metainfo_senior.get('birthDay'):
+        birth_year = metainfo_senior.get('birthYear')
+        birth_month = metainfo_senior.get('birthMonth').zfill(2)
+        birth_day = metainfo_senior.get('birthDay').zfill(2)
+        birth_date = f"{birth_year}-{birth_month}-{birth_day}"
+    
+    # 월령(age_in_months) 추출 (아동 카테고리용)
+    age_in_months = None
+    if audio.age_in_months:
+        age_in_months = audio.age_in_months
+    elif metainfo_child.get('ageInMonths'):
+        age_in_months = metainfo_child.get('ageInMonths')
+    elif metainfo_child.get('age_in_months'):
+        age_in_months = metainfo_child.get('age_in_months')
     
     # JSON 데이터를 문자열로 변환
     category_data_json = json.dumps(audio.category_specific_data or {})
@@ -1675,7 +1775,7 @@ def audio_detail(request, audio_id):
             'name': metainfo_senior.get('name') or audio.name or '',
             'gender': metainfo_senior.get('gender') or audio.gender or '',
             'age': metainfo_senior.get('age') or audio.age or '',
-            'birth_date': metainfo_senior.get('birthDate') or birth_date or '',
+            'birth_date': birth_date or '',  # 이미 위에서 조합된 birth_date 사용
             'recording_location': metainfo_senior.get('recordingLocation') or audio.recording_location or '',
             'region': metainfo_senior.get('region') or '',
             'noise_level': metainfo_senior.get('noiseLevel') or metainfo_senior.get('noise') or audio.noise_level or '',
@@ -1748,6 +1848,7 @@ def audio_detail(request, audio_id):
         'user': request.user,  # user 컨텍스트 추가
         'category_name': category_names.get(audio.category, audio.category),
         'birth_date': birth_date,
+        'age_in_months': age_in_months,  # 월령 정보 추가
         'category_data_json': category_data_json,
         'alignment_data_json': alignment_data_json,
         'category_schema': category_schema.get(audio.category, {}),
@@ -1987,10 +2088,30 @@ def whisperx_transcribe_simple(request):
 def dashboard(request):
     """데이터 대시보드 페이지 - Identifier 기반 화자 그룹핑 통계 (로그인 불필요)"""
     from django.db.models import Count, Avg, Max, Min, Q, F
+    from django.db import connection
     import json
     from collections import defaultdict
     from datetime import datetime, timedelta
     from django.utils import timezone
+    
+    # SQLite 데이터베이스 연결을 새로 고침
+    # 기존 연결을 닫고 다시 연결하여 최신 데이터를 로드
+    connection.close()
+    connection.connect()
+    
+    # 성별 정규화 함수
+    def normalize_gender(gender):
+        """다양한 형식의 성별 데이터를 통일된 형식으로 변환"""
+        if not gender:
+            return None
+        gender_lower = gender.lower().strip()
+        if gender_lower in ['남', '남자', 'male', 'm']:
+            return '남성'
+        elif gender_lower in ['여', '여자', 'female', 'f']:
+            return '여성'
+        elif gender_lower in ['unknown', '미상', '불명']:
+            return '미상'
+        return gender  # 그 외의 경우 원본 반환
     
     # === 전체 통계 ===
     total_files = AudioRecord.objects.count()
@@ -2011,10 +2132,13 @@ def dashboard(request):
         
         if first_record:
             category = first_record.category
+            # 성별 정규화
+            normalized_gender = normalize_gender(first_record.gender)
+            
             speaker_info[identifier] = {
                 'identifier': identifier,
                 'category': category,
-                'gender': first_record.gender,
+                'gender': normalized_gender,
                 'region': first_record.region,
                 'education_level': first_record.education_level,
                 'hearing_level': first_record.hearing_level,
@@ -2032,6 +2156,9 @@ def dashboard(request):
                 # 연령은 metadata에 있음
                 age = first_record.get_category_data('age')
                 speaker_info[identifier]['age'] = age
+                # 실제 데이터에 있는 필드 사용
+                speaker_info[identifier]['education'] = first_record.get_category_data('education')
+                speaker_info[identifier]['task_type'] = first_record.get_category_data('task_type')
                 speaker_info[identifier]['cognitive_decline'] = first_record.get_category_data('cognitive_decline')
                 speaker_info[identifier]['job'] = first_record.get_category_data('job')
             
@@ -2142,12 +2269,23 @@ def dashboard(request):
     senior_speakers = [info for info in speaker_info.values() if info['category'] == 'senior']
     senior_cognitive_stats = defaultdict(int)
     senior_job_stats = defaultdict(int)
+    senior_education_stats = defaultdict(int)
+    senior_task_stats = defaultdict(int)
     
     for speaker in senior_speakers:
+        # 인지 저하 통계 (있는 경우에만)
         if speaker.get('cognitive_decline'):
             senior_cognitive_stats[speaker['cognitive_decline']] += 1
+        # 직업 통계 (있는 경우에만)
         if speaker.get('job'):
             senior_job_stats[speaker['job']] += 1
+        # 교육 년수 통계 (실제 데이터에 있음)
+        if speaker.get('education'):
+            education = speaker['education']
+            senior_education_stats[f"{education}년"] += 1
+        # 과제 유형 통계 (실제 데이터에 있음)
+        if speaker.get('task_type'):
+            senior_task_stats[speaker['task_type']] += 1
     
     # Auditory 화자 통계
     auditory_speakers = [info for info in speaker_info.values() if info['category'] == 'auditory']
@@ -2165,6 +2303,8 @@ def dashboard(request):
     child_task_stats_list = sorted([{'task': k, 'count': v} for k, v in child_task_stats.items()], key=lambda x: x['count'], reverse=True)
     senior_cognitive_stats_list = [{'status': k, 'count': v} for k, v in senior_cognitive_stats.items()]
     senior_job_stats_list = sorted([{'job': k, 'count': v} for k, v in senior_job_stats.items()], key=lambda x: x['count'], reverse=True)[:10]
+    senior_education_stats_list = sorted([{'education': k, 'count': v} for k, v in senior_education_stats.items()], key=lambda x: x['education'])
+    senior_task_stats_list = sorted([{'task': k, 'count': v} for k, v in senior_task_stats.items()], key=lambda x: x['count'], reverse=True)
     auditory_hearing_aid_stats_list = [{'status': k, 'count': v} for k, v in auditory_hearing_aid_stats.items()]
     auditory_language_stats_list = sorted([{'language': k, 'count': v} for k, v in auditory_language_stats.items()], key=lambda x: x['count'], reverse=True)
     
@@ -2218,6 +2358,8 @@ def dashboard(request):
         'child_task_stats': child_task_stats_list,
         'senior_cognitive_stats': senior_cognitive_stats_list,
         'senior_job_stats': senior_job_stats_list,
+        'senior_education_stats': senior_education_stats_list,
+        'senior_task_stats': senior_task_stats_list,
         'auditory_hearing_aid_stats': auditory_hearing_aid_stats_list,
         'auditory_language_stats': auditory_language_stats_list,
         
@@ -2768,7 +2910,13 @@ def api_assets_files(request, category, folder):
 def userprofile(request):
     """사용자 프로필 페이지 - 데이터 전송 위치 및 IP 접근 위치 시각화"""
     from django.db.models import Count
+    from django.db import connection
     from collections import defaultdict
+    
+    # SQLite 데이터베이스 연결을 새로 고침
+    # 기존 연결을 닫고 다시 연결하여 최신 데이터를 로드
+    connection.close()
+    connection.connect()
     
     # === 데이터 전송 위치 통계 (category_specific_data의 region 기반) ===
     # 지역별 업로드 횟수 집계
@@ -2988,7 +3136,7 @@ def identifier_audio_list(request, identifier):
     # 카테고리 이름 변환
     category_names = {
         'child': '아동',
-        'senior': '노인', 
+        'senior': '성인', 
         'atypical': '음성 장애',
         'auditory': '청각 장애',
         'normal': '일반'

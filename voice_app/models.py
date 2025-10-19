@@ -16,7 +16,7 @@ class AudioRecord(models.Model):
 
     CATEGORY_CHOICES = [
         ('child', '아동'),
-        ('senior', '노인'),
+        ('senior', '성인'),
         ('atypical', '음성 장애'),
         ('auditory', '청각 장애'),
         ('normal', '일반'),
@@ -157,7 +157,7 @@ class AudioRecord(models.Model):
     def set_senior_data(self, education=None, education_years=None, final_education=None,
                        education_detail=None, has_voice_problem=None, cognitive_decline=None,
                        subjective_score=None, subjective_note=None, job=None, **kwargs):
-        """노인 특화 데이터 설정"""
+        """성인 특화 데이터 설정"""
         senior_data = {}
         if education is not None:
             senior_data['education'] = education  # 무학, 초등학교, 중학교, 고등학교, 대학교, 대학원

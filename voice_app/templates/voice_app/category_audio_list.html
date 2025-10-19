@@ -363,11 +363,9 @@
         <ul class="dropdown-menu">
           <li><a class="dropdown-item" href="{% url 'audio_list' %}">전체 보기</a></li>
           <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="/voice/child/list/">아동</a></li>
-          <li><a class="dropdown-item" href="/voice/senior/list/">노인</a></li>
-          <li><a class="dropdown-item" href="/voice/atypical/list/">음성 장애</a></li>
-          <li><a class="dropdown-item" href="/voice/auditory/list/">청각 장애</a></li>
-          <li><a class="dropdown-item" href="/voice/normal/list/">일반</a></li>
+          <li><a class="dropdown-item" href="/voice/child/list/">아동 말과제</a></li>
+          <li><a class="dropdown-item" href="/voice/senior/list/">장노년 말과제</a></li>
+          <li><a class="dropdown-item" href="/voice/auditory/list/">청각 말과제</a></li>
         </ul>
       </div>
     </div>
@@ -510,7 +508,7 @@
           {% if audio.category == 'child' %}
             <span class="badge bg-primary">아동</span>
           {% elif audio.category == 'senior' %}
-            <span class="badge bg-info">노인</span>
+            <span class="badge bg-info">성인</span>
           {% elif audio.category == 'atypical' %}
             <span class="badge bg-warning">음성 장애</span>
           {% elif audio.category == 'auditory' %}

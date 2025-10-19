@@ -525,7 +525,10 @@
             <i class="fas fa-child me-2"></i>아동 말과제
           </a></li>
           <li><a class="dropdown-item" href="/voice/senior/list/">
-            <i class="fas fa-user-clock me-2"></i>중장년 말과제
+            <i class="fas fa-user-clock me-2"></i>장노년 말과제
+          </a></li>
+          <li><a class="dropdown-item" href="/voice/auditory/list/">
+            <i class="fas fa-ear-deaf me-2"></i>청각 말과제
           </a></li>
         </ul>
       </div>
@@ -578,6 +581,7 @@
       </button>
     </form>
 
+    <!-- 전체 삭제 버튼 - 주석 처리됨 (2025-10-12)
     <form method="POST" action="{% url 'delete_all_audios' %}">
       {% csrf_token %}
       <button 
@@ -588,6 +592,7 @@
         ⚠️ 전체 삭제
       </button>
     </form>
+    -->
   </div>
 
   <!-- 파일 목록 테이블 -->
@@ -704,7 +709,7 @@
           {% if audio.category == 'child' %}
             <span class="badge bg-primary">아동</span>
           {% elif audio.category == 'senior' %}
-            <span class="badge bg-info">노인</span>
+            <span class="badge bg-info">성인</span>
           {% elif audio.category == 'atypical' %}
             <span class="badge bg-warning">음성 장애</span>
           {% elif audio.category == 'auditory' %}

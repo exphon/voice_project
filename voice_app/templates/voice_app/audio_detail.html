@@ -72,9 +72,22 @@
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
       margin-bottom: 30px;
+    }
+    
+    /* 반응형 디자인 */
+    @media (max-width: 1200px) {
+      .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .info-item {
@@ -529,10 +542,10 @@
         </div>
         {% endif %}
 
-        {% if audio.age_in_months %}
+        {% if age_in_months %}
         <div class="info-item">
           <h3>👶 월령</h3>
-          <p>{{ audio.age_in_months }}개월</p>
+          <p>{{ age_in_months }}개월</p>
         </div>
         {% endif %}
       </div>

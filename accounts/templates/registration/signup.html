@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}회원가입 - DJ Voice Manage{% endblock %}
+
+{% block extra_css %}
+<style>
+    .signup-container {
+        max-width: 500px;
+        margin: 60px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .signup-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .signup-header h2 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .signup-header p {
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #444;
+        font-weight: 600;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+    
+    .help-text {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+        line-height: 1.4;
+    }
+    
+    .help-text ul {
+        margin: 5px 0 0 20px;
+        padding: 0;
+    }
+    
+    .help-text li {
+        margin: 3px 0;
+    }
+    
+    .btn-signup {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-top: 10px;
+    }
+    
+    .btn-signup:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .form-footer {
+        margin-top: 25px;
+        text-align: center;
+        padding-top: 25px;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .form-footer a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .errorlist {
+        list-style: none;
+        padding: 8px 12px;
+        margin: 5px 0 0 0;
+        background: #ffebee;
+        color: #c62828;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    
+    .permission-notice {
+        background: #e3f2fd;
+        border-left: 4px solid #2196F3;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #1565c0;
+    }
+    
+    .permission-notice strong {
+        display: block;
+        margin-bottom: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signup-container">
+    <div class="signup-header">
+        <h2>🎙️ 회원가입</h2>
+        <p>DJ Voice Manage에 오신 것을 환영합니다</p>
+    </div>
+    
+    <div class="permission-notice">
+        <strong>📌 권한 안내</strong>
+        신규 가입 시 <strong>조회 권한</strong>이 부여됩니다.<br>
+        데이터 수정 권한이 필요한 경우 관리자에게 문의하세요.
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+            {{ form.username }}
+            {% if form.username.help_text %}
+                <div class="help-text">{{ form.username.help_text|safe }}</div>
+            {% endif %}
+            {{ form.username.errors }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+            {{ form.email }}
+            {{ form.email.errors }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            {{ form.first_name.errors }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+            {{ form.password1 }}
+            {% if form.password1.help_text %}
+                <div class="help-text">{{ form.password1.help_text|safe }}</div>
+            {% endif %}
+            {{ form.password1.errors }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+            {{ form.password2 }}
+            {% if form.password2.help_text %}
+                <div class="help-text">{{ form.password2.help_text|safe }}</div>
+            {% endif %}
+            {{ form.password2.errors }}
+        </div>
+        
+        <button type="submit" class="btn-signup">가입하기</button>
+    </form>
+    
+    <div class="form-footer">
+        <p>이미 계정이 있으신가요? <a href="{% url 'accounts:login' %}">로그인</a></p>
+    </div>
+</div>
+{% endblock %}

@@ -45,6 +45,13 @@ debug_server.log
 django_server.log
 mobile_debug.log
 server.log
+server_production.log
+server_dev.log
+
+# Server management
+*.pid
+server_production.pid
+server_dev.pid
 
 # Redis
 dump.rdb

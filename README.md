@@ -403,15 +403,7 @@ voice_project/
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
-## 👥 개발팀
 
-- **Project Owner**: exphon
-- **Contributors**: [기여자 목록](https://github.com/exphon/voice_project/graphs/contributors)
-
-## 📞 문의
-
-- **GitHub Issues**: [이슈 생성](https://github.com/exphon/voice_project/issues)
-- **Email**: your-email@example.com
 
 ## 🙏 감사의 말
 
@@ -422,6 +414,6 @@ voice_project/
 
 ---
 
-**Made with ❤️ by exphon**
+
 
 *Last Updated: 2025-01-27*

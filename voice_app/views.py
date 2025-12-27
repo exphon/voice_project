@@ -26,6 +26,7 @@ import subprocess
 import whisper
 import json
 import base64
+from urllib.parse import unquote
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
@@ -2181,6 +2182,24 @@ def api_audio_detail(request, audio_id):
 def audio_detail(request, audio_id):
     """개별 오디오 파일의 상세 정보를 표시하는 뷰"""
     audio = get_object_or_404(AudioRecord, id=audio_id)
+
+    next_param = request.GET.get('next', '')
+    focus_param = request.GET.get('focus', '')
+
+    next_url = unquote(next_param) if next_param else ''
+    if not next_url.startswith('/') or next_url.startswith('//'):
+        next_url = ''
+    elif not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = ''
+
+    focus_id = focus_param if str(focus_param).isdigit() else ''
+    return_url = ''
+    if next_url:
+        return_url = f"{next_url}#row-{focus_id}" if focus_id else next_url
     
     # 카테고리 한글명 매핑
     category_names = {
@@ -2423,6 +2442,9 @@ def audio_detail(request, audio_id):
         'metainfo_child': metainfo_child,
         'task_info': task_info,
         'upload_info': upload_info,
+
+        # 목록 복귀용
+        'return_url': return_url,
     }
 
     # 자동 전사(Whisper) 표시용: diarization 라벨/프롬프트 유출 제거

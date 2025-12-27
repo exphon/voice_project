@@ -463,7 +463,7 @@
 <body>
   
   <div class="container">
-    <a href="{% url 'voice_app:audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
+    <a href="{% if return_url %}{{ return_url }}{% else %}{% url 'voice_app:audio_list' %}{% endif %}" class="back-button">← 목록으로 돌아가기</a>
     
     <h1>🎵 오디오 파일 상세 정보</h1>
 
@@ -1108,7 +1108,7 @@
 
 
     <div style="text-align: center; margin-top: 30px;">
-      <a href="{% url 'voice_app:audio_list' %}" class="btn btn-danger"><span class="me-1" aria-hidden="true">×</span>닫기</a>
+      <a href="{% if return_url %}{{ return_url }}{% else %}{% url 'voice_app:audio_list' %}{% endif %}" class="btn btn-danger"><span class="me-1" aria-hidden="true">×</span>닫기</a>
     </div>
   </div>
 

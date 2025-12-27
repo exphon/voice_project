@@ -88,6 +88,11 @@ docs/*.md
 *.swp
 *.swo
 
+# Env files
+.env
+.env.*
+!.env.example
+
 # OS
 .DS_Store
 Thumbs.db

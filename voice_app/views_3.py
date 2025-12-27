@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from .models import AudioRecord
 from pydub import AudioSegment
 
-whisper_model = whisper.load_model("medium")  # 'base', 'small', 'medium', 'large' 중 선택
+whisper_model = whisper.load_model("large-v3")
 
 # ffmpeg 경로 명시
 AudioSegment.converter = "/opt/homebrew/bin/ffmpeg"  # 사용 환경에 맞게 조정
@@ -30,7 +30,13 @@ def is_audio_silent(wav_path, threshold_dbfs=-40.0):
     return audio.dBFS < threshold_dbfs
 
 def transcribe_audio_whisper(wav_path):
-    result = whisper_model.transcribe(wav_path, language='ko')  # 한글 강제 설정
+    result = whisper_model.transcribe(
+        wav_path,
+        language='ko',
+        task='transcribe',
+        temperature=0.0,
+        initial_prompt='다음은 한국어 음성의 전사입니다. 가능한 한 정확히, 반드시 한국어로만 전사하세요.',
+    )
     return result['text']
 
 class AudioUploadView(APIView):
@@ -97,6 +103,6 @@ def delete_all_audios(request):
             if os.path.exists(file_path):
                 os.remove(file_path)
             record.delete()
-        return redirect('audio-list')  # ⭐ 이거 반드시 리턴해야 해요
+        return redirect('voice_app:audio_list')  # ⭐ 이거 반드시 리턴해야 해요
     else:
-        return redirect('audio-list')  # ⭐ GET 요청이 오더라도 안전하게 리턴
+        return redirect('voice_app:audio_list')  # ⭐ GET 요청이 오더라도 안전하게 리턴

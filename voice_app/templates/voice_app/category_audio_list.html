@@ -16,9 +16,16 @@
 
     .header-section {
       display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .header-row {
+      display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
       flex-wrap: wrap;
       gap: 10px;
     }
@@ -39,9 +46,40 @@
       flex-shrink: 0;
     }
 
+    .header-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-start;
+      min-width: 280px;
+    }
+
+    /* 헤더 검색 폼이 '카테고리 선택', '홈' 버튼과 같은 높이/정렬이 되도록 통일 */
+    .header-search form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin: 0;
+    }
+
+    .header-search .form-control,
+    .header-search .form-select,
+    .header-search .btn {
+      height: 38px;
+      font-size: 14px;
+    }
+
+    .header-search .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
     h1 {
       margin: 0;
-      margin-right: 10px;
       flex-shrink: 1;
     }
 
@@ -106,6 +144,25 @@
       border-radius: 5px;
       color: white;
       cursor: pointer;
+    }
+
+    .btn-transcribe {
+      background-color: green;
+    }
+
+    .btn-save {
+      background-color: dodgerblue;
+      padding: 6px 12px;
+      font-size: 12px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      resize: vertical;
     }
 
     table {
@@ -187,6 +244,29 @@
     .audio-cell {
       min-width: 200px;
       max-width: 250px;
+    }
+
+    /* 컬럼 너비 조정: 화자 넓게, 업로드 시간 좁게 */
+    #speaker-count-header,
+    td.speaker-count-cell {
+      min-width: 90px;
+      width: 90px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    th.created-at-col,
+    td.created-at-col {
+      width: 120px;
+      max-width: 120px;
+      white-space: normal;
+      line-height: 1.15;
+    }
+
+    td.created-at-col .date-part,
+    td.created-at-col .time-part {
+      display: inline-block;
+      white-space: nowrap;
     }
     
     .custom-audio-player {
@@ -326,10 +406,13 @@
             currentAudio = null;
         }
     });
+
+    function stayHere() {
+      return true;
+    }
     
     function sortTable(field) {
         const currentSort = '{{ current_sort }}';
-        const currentIdentifier = '{{ current_identifier }}';
         let newSort = field;
         
         if (currentSort === field) {
@@ -339,12 +422,7 @@
         const url = new URL(window.location);
         url.searchParams.set('sort', newSort);
         url.searchParams.delete('page');
-        
-        // identifier 필터 유지
-        if (currentIdentifier && currentIdentifier !== 'None') {
-            url.searchParams.set('identifier', currentIdentifier);
-        }
-        
+
         window.location.href = url.toString();
     }
   </script>
@@ -352,43 +430,99 @@
 <body>
   <!-- 헤더 섹션 -->
   <div class="header-section">
-    <div class="header-left">
+    <div>
       <h1>📂 {{ category_name }} 음성 데이터 목록</h1>
-      
-      <!-- 카테고리 선택 드롭다운 -->
-      <div class="btn-group" role="group">
-        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-          카테고리 선택
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="{% url 'audio_list' %}">전체 보기</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="/voice/child/list/">아동 말과제</a></li>
-          <li><a class="dropdown-item" href="/voice/senior/list/">장노년 말과제</a></li>
-          <li><a class="dropdown-item" href="/voice/auditory/list/">청각 말과제</a></li>
-        </ul>
-      </div>
     </div>
 
-    <div class="header-right">
-      <a href="/" class="home-button">
-        <i class="fas fa-home"></i>홈
-      </a>
-      
-      <a href="/accounts/logout/" class="logout-button">
-        <i class="fas fa-sign-out-alt"></i>로그아웃
-      </a>
+    <div class="header-row">
+      <div class="header-left">
+        <form method="POST" action="{% url 'voice_app:transcribe_unprocessed_category' category=category %}" style="margin: 0;">
+          {% csrf_token %}
+          <button 
+            type="submit"
+            class="btn btn-transcribe"
+            onclick="return confirm('전사되지 않은 {{ category_name }} 파일을 Whisper로 전사하시겠습니까?');"
+          >
+            🧠 Whisper 전사 실행
+          </button>
+        </form>
+
+        <!-- 카테고리 선택 드롭다운 -->
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+            카테고리 선택
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'voice_app:audio_list' %}">전체 보기</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/voice/child/list/">아동 말과제</a></li>
+            <li><a class="dropdown-item" href="/voice/senior/list/">장노년 말과제</a></li>
+            <li><a class="dropdown-item" href="/voice/auditory/list/">청각 말과제</a></li>
+          </ul>
+        </div>
+
+        <!-- 검색 폼: '카테고리 선택' 바로 옆 -->
+        <div class="header-search">
+          <form method="GET" action="">
+            {% if current_sort %}
+              <input type="hidden" name="sort" value="{{ current_sort|urlencode }}">
+            {% endif %}
+            {% if current_identifier %}
+              <input type="hidden" name="identifier" value="{{ current_identifier|urlencode }}">
+            {% endif %}
+
+            <input type="text" name="name" value="{{ current_name|default:'' }}" placeholder="이름 검색" class="form-control" style="width: 160px;">
+            <input type="text" name="age" value="{{ current_age|default:'' }}" placeholder="나이(정확히)" class="form-control" style="width: 120px;">
+
+            <select name="task_type" class="form-select" style="width: 180px;">
+              <option value="">과제 유형 선택</option>
+              {% for tt in task_type_options %}
+                <option value="{{ tt }}" {% if current_task_type == tt %}selected{% endif %}>{{ tt }}</option>
+              {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search me-1"></i>검색
+            </button>
+
+            <a href="{% url 'voice_app:category_audio_list' category=category %}" class="btn btn-outline-secondary">
+              초기화
+            </a>
+          </form>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a href="/" class="home-button">
+          <i class="fas fa-home"></i>홈
+        </a>
+        
+        <a href="/accounts/logout/" class="logout-button">
+          <i class="fas fa-sign-out-alt"></i>로그아웃
+        </a>
+      </div>
     </div>
   </div>
 
   <!-- 필터 상태 표시 -->
-  {% if current_identifier %}
+  {% if current_identifier or current_name or current_age or current_task_type %}
   <div style="margin: 20px 0; padding: 15px; background-color: #e3f2fd; border-left: 4px solid #003366; border-radius: 4px;">
     <strong style="color: #003366;">
       <i class="fas fa-filter"></i> 필터링 중:
     </strong>
-    <span style="font-weight: bold; color: #003366;">고유 ID = {{ current_identifier }}</span>
-    <a href="?category={{ category }}" style="margin-left: 15px; color: #d32f2f; text-decoration: none;">
+    {% if current_identifier %}
+      <span style="font-weight: bold; color: #003366;">고유 ID = {{ current_identifier }}</span>
+    {% endif %}
+    {% if current_name %}
+      <span style="margin-left: 10px; font-weight: bold; color: #003366;">이름 포함 = {{ current_name }}</span>
+    {% endif %}
+    {% if current_age %}
+      <span style="margin-left: 10px; font-weight: bold; color: #003366;">나이 = {{ current_age }}</span>
+    {% endif %}
+    {% if current_task_type %}
+      <span style="margin-left: 10px; font-weight: bold; color: #003366;">과제 유형 = {{ current_task_type }}</span>
+    {% endif %}
+    <a href="{% url 'voice_app:category_audio_list' category=category %}" style="margin-left: 15px; color: #d32f2f; text-decoration: none;">
       <i class="fas fa-times-circle"></i> 필터 해제
     </a>
   </div>
@@ -401,6 +535,11 @@
         <th class="sortable-header" onclick="sortTable('id')">
           번호
           <span class="sort-arrow {% if current_sort == 'id' %}asc{% elif current_sort == '-id' %}desc{% endif %}"></span>
+        </th>
+        <th id="speaker-count-header" class="sortable-header" onclick="sortTable('speaker')" title="identifier + 이름 + 성별 + 나이가 같으면 동일 화자로 계산 (필터/정렬된 전체 결과 기준)">
+          화자
+          <span class="sort-arrow {% if current_sort == 'speaker' %}asc{% elif current_sort == '-speaker' %}desc{% endif %}"></span>
+          <br>(총 {{ speaker_total }}명)
         </th>
         <th class="sortable-header" onclick="sortTable('identifier')">
           고유 ID
@@ -427,12 +566,8 @@
           카테고리
           <span class="sort-arrow {% if current_sort == 'category' %}asc{% elif current_sort == '-category' %}desc{% endif %}"></span>
         </th>
-        <th>전사 텍스트</th>
-        <th class="sortable-header" onclick="sortTable('status')">
-          상태 / 다시 전사
-          <span class="sort-arrow {% if current_sort == 'status' %}asc{% elif current_sort == '-status' %}desc{% endif %}"></span>
-        </th>
-        <th class="sortable-header" onclick="sortTable('created_at')">
+        <th>인식 결과 (편집 가능)</th>
+        <th class="sortable-header created-at-col" onclick="sortTable('created_at')">
           업로드 시간
           <span class="sort-arrow {% if current_sort == 'created_at' %}asc{% elif current_sort == '-created_at' %}desc{% endif %}"></span>
         </th>
@@ -443,6 +578,7 @@
       {% for audio in audios %}
       <tr>
         <td>{{ forloop.counter }}</td>
+        <td class="speaker-count-cell">{{ audio.speaker_index }}</td>
         <td>
           {% if audio.identifier %}
             <a href="?identifier={{ audio.identifier }}" style="font-weight: bold; color: #003366; text-decoration: none; cursor: pointer;">
@@ -520,39 +656,18 @@
           {% endif %}
         </td>
         <td>
-          {% if audio.manual_transcript %}
-            <div style="max-width: 300px; word-wrap: break-word;">
-              {{ audio.manual_transcript }}
-              {% if audio.manual_transcript != audio.transcript %}
-                <span style="color: #666; font-size: 11px;"><i class="fas fa-edit"></i></span>
-              {% endif %}
-            </div>
-          {% elif audio.transcript %}
-            <div style="max-width: 300px; word-wrap: break-word;">
-              {{ audio.transcript }}
-            </div>
-          {% else %}
-            <span style="color: #999; font-style: italic;">전사 대기</span>
-          {% endif %}
+          <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}" onsubmit="return stayHere();">
+            {% csrf_token %}
+            <textarea name="manual_transcript" rows="2">{{ audio.manual_transcript_display|default:audio.transcript_display|default_if_none:"" }}</textarea>
+            <button type="submit" class="btn btn-save">💾 저장</button>
+          </form>
+        </td>
+        <td class="created-at-col">
+          <span class="date-part">{{ audio.created_at|date:"Y-m-d" }}</span><br>
+          <span class="time-part">{{ audio.created_at|date:"H:i" }}</span>
         </td>
         <td>
-          <div><strong>상태:</strong> {{ audio.get_status_display }}</div>
-
-          {% if audio.status != 'processing' %}
-            <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" 
-                  style="margin-top: 5px;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-transcribe" style="font-size: 12px; padding: 5px 10px; background-color: green;">
-                🧠 다시 전사
-              </button>
-            </form>
-          {% else %}
-            <span style="font-size: 12px; color: gray;">⏳ 처리 중...</span>
-          {% endif %}
-        </td>
-        <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
-        <td>
-          <a href="{% url 'audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
+          <a href="{% url 'voice_app:audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
             <i class="fas fa-edit"></i>
           </a>
         </td>
@@ -563,18 +678,36 @@
 
   <!-- 페이지네이션 -->
   <div class="pagination">
-    <span style="margin-right: 10px;">페이지:</span>
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_identifier %}&identifier={{ current_identifier }}{% endif %}">⬅ 이전</a>
-    {% endif %}
+    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center;">
+      <!-- 처음/이전 -->
+      {% if page_obj.has_previous %}
+        <a href="?page=1{% if query_string %}&{{ query_string }}{% endif %}" title="처음">⏮</a>
+        <a href="?page={{ prev_jump_page }}{% if query_string %}&{{ query_string }}{% endif %}" title="이전">◀</a>
+      {% else %}
+        <span style="color: #bbb;">⏮</span>
+        <span style="color: #bbb;">◀</span>
+      {% endif %}
 
-    <span>
-      페이지 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-    </span>
+      <!-- 페이지 번호 10개 -->
+      {% for p in page_numbers %}
+        {% if p == page_obj.number %}
+          <span style="display:inline-block; min-width: 34px; padding: 6px 10px; border: 1px solid #0d6efd; border-radius: 6px; background:#0d6efd; color:#fff; font-weight: 600;">{{ p }}</span>
+        {% else %}
+          <a href="?page={{ p }}{% if query_string %}&{{ query_string }}{% endif %}" style="display:inline-block; min-width: 34px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
 
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_identifier %}&identifier={{ current_identifier }}{% endif %}">다음 ➡</a>
-    {% endif %}
+      <!-- 다음/끝 -->
+      {% if page_obj.has_next %}
+        <a href="?page={{ next_jump_page }}{% if query_string %}&{{ query_string }}{% endif %}" title="다음">▶</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}" title="끝">⏭</a>
+      {% else %}
+        <span style="color: #bbb;">▶</span>
+        <span style="color: #bbb;">⏭</span>
+      {% endif %}
+
+      <span style="margin-left: 6px; color: #666;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    </div>
   </div>
 
   <!-- Bootstrap JS -->

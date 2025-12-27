@@ -112,7 +112,7 @@
                     </div>
                     <h5 class="card-title text-purple fw-bold mb-3">통계 대시보드</h5>
                     <p class="card-text text-muted mb-4">데이터 통계와 분석 정보를 확인할 수 있습니다.</p>
-                    <a href="{% url 'dashboard' %}" class="btn btn-purple btn-lg rounded-pill px-4">
+                    <a href="{% url 'voice_app:dashboard' %}" class="btn btn-purple btn-lg rounded-pill px-4">
                         <i class="fas fa-chart-line me-2"></i>대시보드
                     </a>
                 </div>
@@ -194,10 +194,10 @@
                             </p>
                         </div>
                         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg me-2 mb-2">
+                            <a href="{% url 'voice_app:dashboard' %}" class="btn btn-light btn-lg me-2 mb-2">
                                 <i class="fas fa-chart-bar me-2"></i>통계 대시보드
                             </a>
-                            <a href="{% url 'userprofile' %}" class="btn btn-outline-light btn-lg mb-2">
+                            <a href="{% url 'voice_app:userprofile' %}" class="btn btn-outline-light btn-lg mb-2">
                                 <i class="fas fa-map-marked-alt me-2"></i>위치 정보
                             </a>
                         </div>
@@ -210,13 +210,13 @@
     <!-- Footer -->
     <footer class="mt-5 py-4 text-center text-muted border-top">
         <div class="mb-3">
-            <a href="{% url 'dashboard' %}" class="text-decoration-none me-3">
+            <a href="{% url 'voice_app:dashboard' %}" class="text-decoration-none me-3">
                 <i class="fas fa-chart-bar me-1"></i>대시보드
             </a>
-            <a href="{% url 'userprofile' %}" class="text-decoration-none me-3">
+            <a href="{% url 'voice_app:userprofile' %}" class="text-decoration-none me-3">
                 <i class="fas fa-map-marked-alt me-1"></i>위치 정보
             </a>
-            <a href="{% url 'audio_list' %}" class="text-decoration-none">
+            <a href="{% url 'voice_app:audio_list' %}" class="text-decoration-none">
                 <i class="fas fa-list me-1"></i>전체 목록
             </a>
         </div>

@@ -236,7 +236,7 @@
 </head>
 <body>
   <div class="container">
-    <a href="{% url 'audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
+    <a href="{% url 'voice_app:audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
     
     <h1>🎵 오디오 파일 상세 정보</h1>
 
@@ -266,67 +266,10 @@
       </div>
     </div>
 
-    <!-- 기본 오디오 파일 섹션 -->
-    <div class="section">
-      <h3>🎧 오디오 파일 (기본 컨트롤)</h3>
-      <audio controls src="{{ audio.audio_file.url }}" style="width: 100%;"></audio>
-      
-      <div style="margin-top: 15px;">
-        <a href="{{ audio.audio_file.url }}" download class="btn btn-primary">💾 다운로드</a>
-        
-        <!-- Whisper 전사 버튼과 상태 표시 -->
-        {% if audio.status == 'processing' %}
-          <button class="btn btn-warning" disabled>
-            <span class="spinner-border spinner-border-sm" role="status"></span>
-            🧠 전사 진행 중...
-          </button>
-        {% else %}
-          <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
-          </form>
-        {% endif %}
-        
-        <!-- 전사 상태 표시 -->
-        {% if audio.status == 'completed' %}
-          <span class="badge bg-success">✅ 전사 완료</span>
-        {% elif audio.status == 'processing' %}
-          <span class="badge bg-warning">⏳ 전사 진행 중</span>
-        {% elif audio.status == 'failed' %}
-          <span class="badge bg-danger">❌ 전사 실패</span>
-        {% else %}
-          <span class="badge bg-secondary">⏸️ 전사 대기</span>
-        {% endif %}
-      </div>
-    </div>
-
-    <!-- 기본 정보 -->
-    <div class="info-grid">
-      <div class="info-item">
-        <h3>📊 카테고리</h3>
-        <p>{{ category_name }}</p>
-      </div>
-      
-      <div class="info-item">
-        <h3>📅 업로드 시간</h3>
-        <p>{{ audio.created_at|date:"Y-m-d H:i" }}</p>
-      </div>
-      
-      <div class="info-item">
-        <h3>🚦 상태</h3>
-        <p>{{ audio.get_status_display }}</p>
-      </div>
-      
-      <div class="info-item">
-        <h3>🆔 파일 ID</h3>
-        <p>{{ audio.id }}</p>
-      </div>
-    </div>
-
     <!-- 전사 내용 (읽기 전용) -->
     <div class="section">
       <h3>📝 전사 내용</h3>
-      <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 15px;">
+      <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 15px; margin-bottom: 15px;">
         {% if audio.manual_transcript %}
           <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
             {{ audio.manual_transcript }}
@@ -342,6 +285,34 @@
           <div style="display: flex; align-items: center; justify-content: center; min-height: 80px; font-style: italic; color: #666;">
             아직 전사된 내용이 없습니다. Whisper 전사 버튼을 눌러 자동 전사를 시작하거나 아래에서 직접 입력해주세요.
           </div>
+        {% endif %}
+      </div>
+      
+      <!-- Whisper 전사 버튼과 상태 표시 -->
+      <div style="margin-top: 15px;">
+        <a href="{{ audio.audio_file.url }}" download class="btn btn-primary">💾 다운로드</a>
+        
+        {% if audio.status == 'processing' %}
+          <button class="btn btn-warning" disabled>
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            🧠 전사 진행 중...
+          </button>
+        {% else %}
+          <form method="POST" action="{% url 'voice_app:transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
+          </form>
+        {% endif %}
+        
+        <!-- 전사 상태 표시 -->
+        {% if audio.status == 'completed' %}
+          <span class="badge bg-success">✅ 전사 완료</span>
+        {% elif audio.status == 'processing' %}
+          <span class="badge bg-warning">⏳ 전사 진행 중</span>
+        {% elif audio.status == 'failed' %}
+          <span class="badge bg-danger">❌ 전사 실패</span>
+        {% else %}
+          <span class="badge bg-secondary">⏸️ 전사 대기</span>
         {% endif %}
       </div>
     </div>
@@ -373,7 +344,7 @@
               🎯 Alignment 진행 중...
             </button>
           {% else %}
-            <form method="POST" action="{% url 'whisperx_align_audio' audio.id %}" style="display: inline;" id="alignmentForm">
+            <form method="POST" action="{% url 'voice_app:whisperx_align_audio' audio.id %}" style="display: inline;" id="alignmentForm">
               {% csrf_token %}
               <button type="submit" class="btn btn-primary" id="alignmentBtn">🎯 WhisperX Alignment 시작</button>
             </form>
@@ -406,7 +377,7 @@
     <!-- 전사 수정 내용 -->
     <div class="section">
       <h3>✏️ 전사 수정 내용</h3>
-      <form method="POST" action="{% url 'update_transcription' audio.id %}">
+      <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}">
         {% csrf_token %}
         <div class="form-group">
           <textarea name="manual_transcript" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 100px;">{{ audio.manual_transcript|default:audio.transcript|default_if_none:"" }}</textarea>
@@ -418,7 +389,7 @@
     <!-- 메타 정보 편집 -->
     <div class="section">
       <h3>✏️ 메타 정보 편집</h3>
-      <form method="POST" action="{% url 'update_audio_metadata' audio.id %}">
+      <form method="POST" action="{% url 'voice_app:update_audio_metadata' audio.id %}">
         {% csrf_token %}
         <div class="form-row">
           <div class="form-group">
@@ -466,8 +437,31 @@
         </div>
         
         <button type="submit" class="btn btn-warning">📝 메타 정보 업데이트</button>
-        <a href="{% url 'audio_list' %}" class="btn btn-danger">❌ 취소</a>
+        <a href="{% url 'voice_app:audio_list' %}" class="btn btn-danger">❌ 취소</a>
       </form>
+    </div>
+
+    <!-- 기본 정보 -->
+    <div class="info-grid">
+      <div class="info-item">
+        <h3>📊 카테고리</h3>
+        <p>{{ category_name }}</p>
+      </div>
+      
+      <div class="info-item">
+        <h3>📅 업로드 시간</h3>
+        <p>{{ audio.created_at|date:"Y-m-d H:i" }}</p>
+      </div>
+      
+      <div class="info-item">
+        <h3>🚦 상태</h3>
+        <p>{{ audio.get_status_display }}</p>
+      </div>
+      
+      <div class="info-item">
+        <h3>🆔 파일 ID</h3>
+        <p>{{ audio.id }}</p>
+      </div>
     </div>
   </div>
 

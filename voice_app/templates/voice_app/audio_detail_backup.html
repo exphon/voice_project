@@ -393,7 +393,7 @@
 </head>
 <body>
   <div class="container">
-    <a href="{% url 'audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
+    <a href="{% url 'voice_app:audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
     
     <h1>🎵 오디오 파일 상세 정보</h1>
 
@@ -440,7 +440,7 @@
               🧠 전사 진행 중...
             </button>
           {% else %}
-            <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
+            <form method="POST" action="{% url 'voice_app:transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
               {% csrf_token %}
               <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
             </form>
@@ -526,7 +526,7 @@
     <!-- 전사 수정 내용 -->
     <div class="transcription-section">
       <h3>✏️ 전사 수정 내용</h3>
-      <form method="POST" action="{% url 'update_transcription' audio.id %}" class="transcription-form">
+      <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}" class="transcription-form">
         {% csrf_token %}
         <textarea name="transcription" placeholder="전사 내용을 수정하거나 직접 입력하세요...">{{ audio.transcription|default_if_none:"" }}</textarea>
         <div class="actions">
@@ -562,7 +562,7 @@
               🎯 Alignment 진행 중...
             </button>
           {% else %}
-            <form method="POST" action="{% url 'whisperx_align_audio' audio.id %}" style="display: inline;" id="alignmentForm">
+            <form method="POST" action="{% url 'voice_app:whisperx_align_audio' audio.id %}" style="display: inline;" id="alignmentForm">
               {% csrf_token %}
               <button type="submit" class="btn btn-primary" id="alignmentBtn">🎯 WhisperX Alignment 시작</button>
             </form>
@@ -595,7 +595,7 @@
     <!-- 메타 정보 편집 -->
     <div class="edit-form">
       <h3>✏️ 메타 정보 편집</h3>
-      <form method="POST" action="{% url 'update_audio_metadata' audio.id %}">
+      <form method="POST" action="{% url 'voice_app:update_audio_metadata' audio.id %}">
         {% csrf_token %}
         <div class="form-row">
           <div class="form-group">
@@ -644,7 +644,7 @@
         
         <div class="actions">
           <button type="submit" class="btn btn-warning">📝 메타 정보 업데이트</button>
-          <a href="{% url 'audio_list' %}" class="btn btn-danger">❌ 취소</a>
+          <a href="{% url 'voice_app:audio_list' %}" class="btn btn-danger">❌ 취소</a>
         </div>
       </form>
     </div>

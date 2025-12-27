@@ -21,6 +21,7 @@ class UploadBackgroundNoise(APIView):
 # views.py (업로드만 수행, Whisper 전사 제거)
 
 import os, uuid
+import logging
 import subprocess
 import whisper
 import json
@@ -42,6 +43,12 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import never_cache
+from django.utils import timezone
+from django.db.models import Q
+from django.utils.http import url_has_allowed_host_and_scheme
+
+logger = logging.getLogger(__name__)
 
 from .tasks import transcribe_audio_task
 from django.views.generic import View
@@ -52,7 +59,80 @@ from django.views.decorators.http import require_POST
 import json
 from .models import AudioRecord
 from pydub import AudioSegment  # 의존성 때문에 임시 주석
-from .whisper_utils import transcribe_audio, transcribe_and_align_whisperx, format_alignment_for_frontend  # whisperx 의존성 때문에 임시 주석
+from .whisper_utils import transcribe_audio, transcribe_and_align_whisperx, format_alignment_for_frontend, _scrub_prompt_leakage  # whisperx 의존성 때문에 임시 주석
+import re
+
+
+def _strip_speaker_prefixes(text: str) -> str:
+    """Remove leading speaker labels like "[아동] " from each line for display/API purposes."""
+    if not text:
+        return text
+    lines = str(text).splitlines()
+    cleaned = [re.sub(r"^\s*\[[^\]]+\]\s*", "", line) for line in lines]
+    return "\n".join(cleaned).strip()
+
+
+def _koreanize_common_english_tokens(text: str) -> str:
+    """Best-effort normalization for API/display: convert a small set of common English tokens to Hangul."""
+    if not text:
+        return text
+    out = str(text)
+    # 음역(들리는 대로) 우선: 번역(meaning) 금지
+    out = re.sub(r"\bgood\b", "굿", out, flags=re.IGNORECASE)
+    out = re.sub(r"\bokay\b", "오케이", out, flags=re.IGNORECASE)
+    out = re.sub(r"\bok\b", "오케이", out, flags=re.IGNORECASE)
+    return out
+
+
+def _clean_transcript_for_display(text: str) -> str:
+    """UI/API 표시용 전사 정리.
+
+    - Whisper initial_prompt 유출 문구 제거
+    - diarization 라벨([아동] 등) 제거
+    - 짧은 영어 토큰(OK 등) 음역 처리
+    """
+    out = _scrub_prompt_leakage(text or '')
+    out = _strip_speaker_prefixes(out)
+    out = _koreanize_common_english_tokens(out)
+    return (out or '').strip()
+
+
+def _normalize_speaker_key_part(value) -> str:
+    if value is None:
+        return ''
+    return str(value).strip().lower()
+
+
+def _speaker_key(identifier, name, gender, age):
+    return (
+        _normalize_speaker_key_part(identifier),
+        _normalize_speaker_key_part(name),
+        _normalize_speaker_key_part(gender),
+        _normalize_speaker_key_part(age),
+    )
+
+
+def _build_speaker_index_map(audio_list_qs):
+    """Build speaker index mapping in display order for full result set.
+
+    Speaker is defined by (identifier, name, gender, age).
+    Returns: (speaker_index_by_key, speaker_total)
+    """
+    speaker_index_by_key = {}
+    speaker_total = 0
+
+    if isinstance(audio_list_qs, list):
+        iterator = ((a.identifier, a.name, a.gender, a.age) for a in audio_list_qs)
+    else:
+        iterator = audio_list_qs.values_list('identifier', 'name', 'gender', 'age').iterator(chunk_size=2000)
+
+    for identifier, name, gender, age in iterator:
+        key = _speaker_key(identifier, name, gender, age)
+        if key not in speaker_index_by_key:
+            speaker_total += 1
+            speaker_index_by_key[key] = speaker_total
+
+    return speaker_index_by_key, speaker_total
 
 
 
@@ -667,13 +747,23 @@ class AudioUploadView(APIView):
             unique_id = uuid.uuid4().hex
             m4a_filename = f"{unique_id}.{ext}"
             
-            # 카테고리별 저장 경로 생성
-            category_folder = os.path.join('audio', category)
+            # identifier 기반 저장 경로 생성
+            # 구조: audio/{category}/{identifier}/{filename}
+            if identifier:
+                category_folder = os.path.join('audio', category, identifier)
+            else:
+                # identifier가 없으면 기존 방식 (하위 호환성)
+                category_folder = os.path.join('audio', category)
+            
             m4a_storage_path = os.path.join(category_folder, m4a_filename)
 
-            # 카테고리 폴더가 없으면 생성
+            # 카테고리(+identifier) 폴더가 없으면 생성
             category_media_folder = os.path.join(settings.MEDIA_ROOT, category_folder)
             os.makedirs(category_media_folder, exist_ok=True)
+            
+            print(f"[DEBUG] Storage path: {m4a_storage_path}")
+            if identifier:
+                print(f"[DEBUG] Using identifier-based folder: {identifier}")
 
             # m4a 파일 저장
             file_data = ContentFile(file.read())
@@ -1047,8 +1137,11 @@ def index(request):
     
     return render(request, 'index.html')
 
-def extract_metadata_to_fields(audio):
-    """React Native 메타데이터에서 기본 필드로 정보 추출"""
+def extract_metadata_to_fields(audio, *, persist: bool = False):
+    """React Native 메타데이터에서 기본 필드로 정보 추출
+
+    persist=True 인 경우, 비어 있던 필드가 채워졌을 때만 DB에 저장합니다.
+    """
     if not audio.category_specific_data or 'metadata_json' not in audio.category_specific_data:
         return
     
@@ -1063,12 +1156,10 @@ def extract_metadata_to_fields(audio):
 
         if isinstance(b64_data, (dict, list)):
             metadata = b64_data
-            print(f"[DEBUG] Direct dict/list metadata for audio {audio.id}")
         else:
             # 먼저 직접 JSON 파싱 시도 (Base64가 아닐 수도 있음)
             try:
                 metadata = json.loads(b64_data)
-                print(f"[DEBUG] Direct JSON parse successful for audio {audio.id}")
             except (json.JSONDecodeError, TypeError):
                 # JSON이 아니면 Base64 디코딩 시도
                 raw_str = str(b64_data)
@@ -1084,9 +1175,9 @@ def extract_metadata_to_fields(audio):
                     decoded_bytes = base64.b64decode(clean_b64, validate=False)
                     decoded_str = decoded_bytes.decode('utf-8', errors='ignore')
                     metadata = json.loads(decoded_str)
-                    print(f"[DEBUG] Base64 decode successful for audio {audio.id}")
                 except (base64.binascii.Error, binascii.Error, UnicodeDecodeError, json.JSONDecodeError) as e:
-                    print(f"[DEBUG] All decode methods failed for audio {audio.id}: {e}")
+                    # 리스트 화면 등에서 흔히 발생할 수 있는 실패 케이스라 기본은 조용히 처리
+                    logger.debug("Metadata decode failed for audio %s: %s", getattr(audio, 'id', None), e)
                     return
         
         # 메타데이터에서 기본 정보 추출
@@ -1098,33 +1189,72 @@ def extract_metadata_to_fields(audio):
             metadata.get('metainfo', {}),
         ]
 
+        fields_to_update = []
+
         for metainfo in metainfo_candidates:
             if not metainfo:
                 continue
             if not audio.name and metainfo.get('name'):
                 audio.name = metainfo.get('name')
+                fields_to_update.append('name')
             if not audio.gender and metainfo.get('gender'):
                 audio.gender = metainfo.get('gender')
+                fields_to_update.append('gender')
             if not audio.age and metainfo.get('age'):
                 audio.age = metainfo.get('age')
+                fields_to_update.append('age')
             if not audio.recording_location and metainfo.get('place'):
                 audio.recording_location = metainfo.get('place')
+                fields_to_update.append('recording_location')
             if not audio.noise_level and metainfo.get('noise'):
                 audio.noise_level = metainfo.get('noise')
+                fields_to_update.append('noise_level')
             if not audio.device_type and metainfo.get('device'):
                 audio.device_type = metainfo.get('device')
+                fields_to_update.append('device_type')
             if not audio.has_microphone and metainfo.get('mic'):
                 audio.has_microphone = metainfo.get('mic')
+                fields_to_update.append('has_microphone')
             if not audio.diagnosis and metainfo.get('diagnosis'):
                 audio.diagnosis = metainfo.get('diagnosis')
+                fields_to_update.append('diagnosis')
+
+        # 필요 시에만 저장 (리스트 뷰 등에서 대량 저장/락 방지)
+        if persist and fields_to_update:
+            # 중복 제거 (같은 필드가 여러 후보 metainfo에서 채워질 수 있음)
+            fields_to_update = sorted(set(fields_to_update))
+            try:
+                audio.save(update_fields=fields_to_update)
+            except Exception as e:
+                print(f"[DEBUG] Metadata persist save failed for audio {audio.id}: {e}")
             
     except Exception as e:
-        print(f"[DEBUG] Metadata extraction error for audio {audio.id}: {e}")
+        # 대량 렌더링 중 로그 폭주 방지: 디버그 레벨로만 기록
+        logger.debug("Metadata extraction error for audio %s: %s", getattr(audio, 'id', None), e)
 
 @login_required
+@never_cache
 def audio_list(request):
     # identifier 필터링 처리
     identifier_filter = request.GET.get('identifier', None)
+    name_filter = request.GET.get('name', None)
+    age_filter = request.GET.get('age', None)
+    task_type_filter = request.GET.get('task_type', None)
+
+    if name_filter is not None:
+        name_filter = str(name_filter).strip()
+        if not name_filter:
+            name_filter = None
+
+    if age_filter is not None:
+        age_filter = str(age_filter).strip()
+        if not age_filter:
+            age_filter = None
+
+    if task_type_filter is not None:
+        task_type_filter = str(task_type_filter).strip()
+        if not task_type_filter:
+            task_type_filter = None
     
     # 정렬 매개변수 처리
     sort_by = request.GET.get('sort', '-created_at')  # 기본값: 최신순
@@ -1135,6 +1265,7 @@ def audio_list(request):
         'name', '-name',
         'gender', '-gender',
         'age', '-age',
+        'speaker', '-speaker',  # identifier+name+gender+age 기반 화자 그룹 정렬 (Python에서 처리)
         'task_type', '-task_type',  # JSON 필드 내부 정렬 (Python에서 처리)
         'status', '-status',
         'category', '-category',
@@ -1150,39 +1281,153 @@ def audio_list(request):
     if sort_by not in valid_sort_fields:
         sort_by = '-created_at'
     
-    # identifier 필터링 적용
+    audio_list_qs = AudioRecord.objects.all()
+
+    # identifier 필터링 적용 (정확 일치)
     if identifier_filter:
-        audio_list_qs = AudioRecord.objects.filter(identifier=identifier_filter)
-    else:
-        audio_list_qs = AudioRecord.objects.all()
+        audio_list_qs = audio_list_qs.filter(identifier=identifier_filter)
+
+    # 이름/나이 필터링 적용
+    if name_filter:
+        audio_list_qs = audio_list_qs.filter(name__icontains=name_filter)
+
+    # 나이 정확 일치 (CharField)
+    if age_filter:
+        audio_list_qs = audio_list_qs.filter(age=age_filter)
+
+    # 과제 유형(task_type) 필터 (JSONField 내부 키)
+    if task_type_filter:
+        # SQLite/JSON1 지원 여부에 따라 JSONField icontains가 실패할 수 있어 폴백 제공
+        try:
+            audio_list_qs = audio_list_qs.filter(category_specific_data__task_type__icontains=task_type_filter)
+        except Exception:
+            needle = task_type_filter.lower()
+            audio_list_qs = [
+                audio
+                for audio in audio_list_qs
+                if needle in str((audio.category_specific_data or {}).get('task_type', '') or '').lower()
+            ]
     
-    # task_type 정렬은 Python에서 처리
-    if sort_by in ['task_type', '-task_type']:
+    # 정렬 처리: queryset이면 DB 정렬, list이면 Python 정렬
+    if sort_by in ['speaker', '-speaker']:
+        audio_list_qs = list(audio_list_qs)
+        reverse = sort_by.startswith('-')
+        # 동일 화자 내에서는 업로드 최신순이 되도록 (stable sort)
+        audio_list_qs.sort(key=lambda x: (x.created_at is None, x.created_at), reverse=True)
+        audio_list_qs.sort(key=lambda x: _speaker_key(x.identifier, x.name, x.gender, x.age), reverse=reverse)
+    elif sort_by in ['task_type', '-task_type']:
         audio_list_qs = list(audio_list_qs)
         reverse = sort_by.startswith('-')
         audio_list_qs.sort(
-            key=lambda x: x.category_specific_data.get('task_type', '') or '',
+            key=lambda x: str((x.category_specific_data or {}).get('task_type', '') or '').lower(),
             reverse=reverse
         )
     else:
-        audio_list_qs = audio_list_qs.order_by(sort_by)
+        if isinstance(audio_list_qs, list):
+            reverse = sort_by.startswith('-')
+            field = sort_by[1:] if reverse else sort_by
+
+            def _key(obj):
+                value = getattr(obj, field, None)
+                if isinstance(value, str):
+                    value = value.lower()
+                # None은 항상 뒤로 보내기
+                return (value is None, value)
+
+            audio_list_qs.sort(key=_key, reverse=reverse)
+        else:
+            audio_list_qs = audio_list_qs.order_by(sort_by)
+
+    # 전체(필터+정렬 결과 전체) 기준 화자 인덱스/총수 계산
+    speaker_index_by_key, speaker_total = _build_speaker_index_map(audio_list_qs)
     
-    # 각 오디오에 대해 React Native 메타데이터에서 기본 정보 추출
-    for audio in audio_list_qs:
-        extract_metadata_to_fields(audio)
-    
+    # 페이지네이션 전에 쿼리스트링을 만들어 템플릿에서 재사용
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+    query_string = query_params.urlencode()
+
+    # task_type 드롭다운 옵션 (DB에서 distinct 추출; 환경에 따라 실패 시 안전 폴백)
+    task_type_options = []
+    try:
+        raw_values = (
+            AudioRecord.objects
+            .values_list('category_specific_data__task_type', flat=True)
+            .distinct()
+        )
+        cleaned = []
+        for v in raw_values:
+            if v is None:
+                continue
+            s = str(v).strip()
+            if not s:
+                continue
+            cleaned.append(s)
+        task_type_options = sorted(set(cleaned))
+    except Exception:
+        # 폴백: 현재 필터링된 목록에서라도 추출 (완전하진 않지만 UI는 유지)
+        try:
+            source = audio_list_qs if isinstance(audio_list_qs, list) else list(audio_list_qs[:500])
+            cleaned = []
+            for a in source:
+                s = str((a.category_specific_data or {}).get('task_type', '') or '').strip()
+                if s:
+                    cleaned.append(s)
+            task_type_options = sorted(set(cleaned))
+        except Exception:
+            task_type_options = []
+
     paginator = Paginator(audio_list_qs, 10)  # 한 페이지당 10개 항목
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # 페이지네이션: 현재 페이지 기준으로 10개 페이지 번호를 노출
+    total_pages = paginator.num_pages
+    current_page = page_obj.number
+    window = 10
+    start_page = max(1, current_page - (window // 2))
+    end_page = start_page + window - 1
+    if end_page > total_pages:
+        end_page = total_pages
+        start_page = max(1, end_page - window + 1)
+    page_numbers = range(start_page, end_page + 1)
+
+    # 내부 이전/다음(◀/▶): 10페이지씩 점프
+    jump = window
+    prev_jump_page = max(1, current_page - jump)
+    next_jump_page = min(total_pages, current_page + jump)
+
+    # 현재 페이지에 화자 번호 주입 (템플릿 표시용)
+    for audio in page_obj.object_list:
+        audio.speaker_index = speaker_index_by_key.get(
+            _speaker_key(audio.identifier, audio.name, audio.gender, audio.age)
+        )
+
+    # 현재 페이지 항목만 메타데이터에서 기본 정보 추출 (표시용)
+    # persist=False: 리스트에서 대량 저장/락 방지
+    for audio in page_obj.object_list:
+        extract_metadata_to_fields(audio, persist=False)
+
+    # 전사 표시용 텍스트는 AudioRecord의 @property(transcript_display/manual_transcript_display)로 제공
+
     return render(request, 'voice_app/audio_list.html', {
         'page_obj': page_obj,
         'audios': page_obj.object_list,
+        'speaker_total': speaker_total,
         'current_sort': sort_by,
-        'current_identifier': identifier_filter
+        'current_identifier': identifier_filter,
+        'current_name': name_filter,
+        'current_age': age_filter,
+        'current_task_type': task_type_filter,
+        'query_string': query_string,
+        'task_type_options': task_type_options,
+        'page_numbers': page_numbers,
+        'prev_jump_page': prev_jump_page,
+        'next_jump_page': next_jump_page,
     })
 
+@never_cache
 def category_audio_list(request, category):
     """카테고리별 오디오 리스트를 반환하는 뷰"""
     valid_categories = ['child', 'senior', 'atypical', 'auditory', 'normal']
@@ -1191,10 +1436,28 @@ def category_audio_list(request, category):
         if (request.META.get('HTTP_ACCEPT', '').startswith('application/json') or 
             request.path.startswith('/api/')):
             return JsonResponse({'error': 'Invalid category'}, status=400)
-        return redirect('audio_list')
+        return redirect('voice_app:audio_list')
     
     # identifier 필터링 처리
     identifier_filter = request.GET.get('identifier', None)
+    name_filter = request.GET.get('name', None)
+    age_filter = request.GET.get('age', None)
+    task_type_filter = request.GET.get('task_type', None)
+
+    if name_filter is not None:
+        name_filter = str(name_filter).strip()
+        if not name_filter:
+            name_filter = None
+
+    if age_filter is not None:
+        age_filter = str(age_filter).strip()
+        if not age_filter:
+            age_filter = None
+
+    if task_type_filter is not None:
+        task_type_filter = str(task_type_filter).strip()
+        if not task_type_filter:
+            task_type_filter = None
     
     # 정렬 매개변수 처리
     sort_by = request.GET.get('sort', '-created_at')  # 기본값: 최신순
@@ -1205,6 +1468,7 @@ def category_audio_list(request, category):
         'name', '-name',
         'gender', '-gender',
         'age', '-age',
+        'speaker', '-speaker',  # identifier+name+gender+age 기반 화자 그룹 정렬 (Python에서 처리)
         'task_type', '-task_type',  # JSON 필드 내부 정렬
         'status', '-status',
         'category', '-category',
@@ -1220,31 +1484,131 @@ def category_audio_list(request, category):
     if sort_by not in valid_sort_fields:
         sort_by = '-created_at'
     
-    # identifier 필터링 적용
+    audio_list_qs = AudioRecord.objects.filter(category=category)
+
+    # identifier 필터링 적용 (정확 일치)
     if identifier_filter:
-        audio_list_qs = AudioRecord.objects.filter(category=category, identifier=identifier_filter)
-    else:
-        audio_list_qs = AudioRecord.objects.filter(category=category)
+        audio_list_qs = audio_list_qs.filter(identifier=identifier_filter)
+
+    # 이름/나이 필터링 적용
+    if name_filter:
+        audio_list_qs = audio_list_qs.filter(name__icontains=name_filter)
+
+    # 나이 정확 일치 (CharField)
+    if age_filter:
+        audio_list_qs = audio_list_qs.filter(age=age_filter)
+
+    # 과제 유형(task_type) 필터 (JSONField 내부 키)
+    if task_type_filter:
+        try:
+            audio_list_qs = audio_list_qs.filter(category_specific_data__task_type__icontains=task_type_filter)
+        except Exception:
+            needle = task_type_filter.lower()
+            audio_list_qs = [
+                audio
+                for audio in audio_list_qs
+                if needle in str((audio.category_specific_data or {}).get('task_type', '') or '').lower()
+            ]
     
-    # task_type 정렬은 Python에서 처리
-    if sort_by in ['task_type', '-task_type']:
+    # speaker/task_type 정렬은 Python에서 처리
+    if sort_by in ['speaker', '-speaker']:
+        audio_list_qs = list(audio_list_qs)
+        reverse = sort_by.startswith('-')
+        # 동일 화자 내에서는 업로드 최신순이 되도록 (stable sort)
+        audio_list_qs.sort(key=lambda x: (x.created_at is None, x.created_at), reverse=True)
+        audio_list_qs.sort(key=lambda x: _speaker_key(x.identifier, x.name, x.gender, x.age), reverse=reverse)
+    elif sort_by in ['task_type', '-task_type']:
         audio_list_qs = list(audio_list_qs)
         reverse = sort_by.startswith('-')
         audio_list_qs.sort(
-            key=lambda x: x.category_specific_data.get('task_type', '') or '',
+            key=lambda x: str((x.category_specific_data or {}).get('task_type', '') or '').lower(),
             reverse=reverse
         )
     else:
-        audio_list_qs = audio_list_qs.order_by(sort_by)
-    
-    # 각 오디오에 대해 React Native 메타데이터에서 기본 정보 추출
-    for audio in audio_list_qs:
-        extract_metadata_to_fields(audio)
+        if isinstance(audio_list_qs, list):
+            reverse = sort_by.startswith('-')
+            field = sort_by[1:] if reverse else sort_by
+
+            def _key(obj):
+                value = getattr(obj, field, None)
+                if isinstance(value, str):
+                    value = value.lower()
+                return (value is None, value)
+
+            audio_list_qs.sort(key=_key, reverse=reverse)
+        else:
+            audio_list_qs = audio_list_qs.order_by(sort_by)
+
+    # 전체(필터+정렬 결과 전체) 기준 화자 인덱스/총수 계산 (HTML 화면용)
+    speaker_index_by_key, speaker_total = _build_speaker_index_map(audio_list_qs)
+
+    # 페이지네이션 전에 쿼리스트링을 만들어 템플릿에서 재사용
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+    query_string = query_params.urlencode()
+
+    # task_type 드롭다운 옵션 (카테고리 내 distinct; 실패 시 안전 폴백)
+    task_type_options = []
+    try:
+        raw_values = (
+            AudioRecord.objects
+            .filter(category=category)
+            .values_list('category_specific_data__task_type', flat=True)
+            .distinct()
+        )
+        cleaned = []
+        for v in raw_values:
+            if v is None:
+                continue
+            s = str(v).strip()
+            if not s:
+                continue
+            cleaned.append(s)
+        task_type_options = sorted(set(cleaned))
+    except Exception:
+        try:
+            source = audio_list_qs if isinstance(audio_list_qs, list) else list(audio_list_qs[:500])
+            cleaned = []
+            for a in source:
+                s = str((a.category_specific_data or {}).get('task_type', '') or '').strip()
+                if s:
+                    cleaned.append(s)
+            task_type_options = sorted(set(cleaned))
+        except Exception:
+            task_type_options = []
     
     paginator = Paginator(audio_list_qs, 10)  # 한 페이지당 10개 항목
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # 페이지네이션: 현재 페이지 기준으로 10개 페이지 번호를 노출
+    total_pages = paginator.num_pages
+    current_page = page_obj.number
+    window = 10
+    start_page = max(1, current_page - (window // 2))
+    end_page = start_page + window - 1
+    if end_page > total_pages:
+        end_page = total_pages
+        start_page = max(1, end_page - window + 1)
+    page_numbers = range(start_page, end_page + 1)
+
+    # 내부 이전/다음(◀/▶): 10페이지씩 점프
+    jump = window
+    prev_jump_page = max(1, current_page - jump)
+    next_jump_page = min(total_pages, current_page + jump)
+
+    # 현재 페이지에 화자 번호 주입 (템플릿 표시용)
+    for audio in page_obj.object_list:
+        audio.speaker_index = speaker_index_by_key.get(
+            _speaker_key(audio.identifier, audio.name, audio.gender, audio.age)
+        )
+
+    # 현재 페이지 항목만 메타데이터에서 기본 정보 추출 (표시용)
+    # persist=False: 리스트에서 대량 저장/락 방지
+    for audio in page_obj.object_list:
+        extract_metadata_to_fields(audio, persist=False)
 
     # 카테고리 이름을 한글로 변환
     category_names = {
@@ -1288,8 +1652,17 @@ def category_audio_list(request, category):
         'audios': page_obj.object_list,
         'category': category,
         'category_name': category_names.get(category, category),
+        'speaker_total': speaker_total,
         'current_sort': sort_by,
-        'current_identifier': identifier_filter
+        'current_identifier': identifier_filter,
+        'current_name': name_filter,
+        'current_age': age_filter,
+        'current_task_type': task_type_filter,
+        'query_string': query_string,
+        'task_type_options': task_type_options,
+        'page_numbers': page_numbers,
+        'prev_jump_page': prev_jump_page,
+        'next_jump_page': next_jump_page,
     })
 
 
@@ -1307,36 +1680,208 @@ def delete_all_audios(request):
 
 @require_POST
 def update_transcription(request, audio_id):
-    """수동 전사 내용 업데이트 (manual_transcript 필드)"""
+    """수동 전사 내용 업데이트 (manual_transcript 필드 및 txt 파일 저장)"""
     audio = get_object_or_404(AudioRecord, id=audio_id)
     new_manual_transcript = request.POST.get('manual_transcript', '').strip()
 
     if new_manual_transcript:
         audio.manual_transcript = new_manual_transcript
-        audio.save()
+        # 정책: 수동 편집은 manual_transcript만 변경하며, Whisper 자동 전사(audio.transcript)는 절대 수정하지 않음
+        audio.save(update_fields=['manual_transcript', 'updated_at'])
+        
+        # txt 파일로도 저장
+        try:
+            # 오디오 파일 경로에서 basename 추출
+            audio_file_path = audio.audio_file.path
+            audio_basename = os.path.splitext(os.path.basename(audio_file_path))[0]
+            
+            # txt 파일 경로 생성 (오디오 파일과 같은 디렉토리)
+            audio_dir = os.path.dirname(audio_file_path)
+            txt_file_path = os.path.join(audio_dir, f"{audio_basename}.txt")
+            
+            # txt 파일 저장 (UTF-8 인코딩)
+            with open(txt_file_path, 'w', encoding='utf-8') as f:
+                f.write(new_manual_transcript)
+            
+            print(f"[Update Transcription] Saved txt file: {txt_file_path}")
+            messages.success(request, '전사 내용이 저장되었습니다.')
+            
+        except Exception as e:
+            print(f"[Update Transcription Error] Failed to save txt file: {e}")
+            messages.warning(request, f'전사 내용은 데이터베이스에 저장되었으나 txt 파일 저장 실패: {str(e)}')
+    else:
+        messages.warning(request, '전사 내용이 비어있습니다.')
 
-    return redirect('audio_list')  # 템플릿에서 정의한 목록 뷰 이름
+    referer = request.META.get('HTTP_REFERER')
+    if referer and url_has_allowed_host_and_scheme(
+        referer,
+        allowed_hosts={request.get_host()},
+        require_https=False,
+    ):
+        return redirect(referer)
+
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
+
+
+def update_memo(request, audio_id):
+    """전사 수정 중 메모 업데이트 (memo 필드 저장)"""
+    audio = get_object_or_404(AudioRecord, id=audio_id)
+
+    # POST가 아닌 요청으로 메모가 빈 값으로 덮어써지는 것을 방지
+    if request.method != 'POST':
+        return redirect('voice_app:audio_detail', audio_id=audio_id)
+
+    # 메모는 비어있어도(지우기) 저장 가능하며, 사용자가 입력한 내용을 그대로 저장
+    new_memo = request.POST.get('memo', '')
+    audio.memo = new_memo
+    audio.save(update_fields=['memo', 'updated_at'])
+    messages.success(request, '메모가 저장되었습니다.')
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
 
 @csrf_exempt
 def transcribe_unprocessed(request):
     if request.method == 'POST':
-        model = whisper.load_model("base")  # 필요 시 small, medium 등 조정
-
-        for record in AudioRecord.objects.filter(transcript__isnull=True):
+        # 정책: "전사 내용(manual_transcript)"과 "Whisper 자동 전사(transcript)"가 모두 비어있는 경우에만 일괄 전사 수행
+        empty_manual = Q(manual_transcript__isnull=True) | Q(manual_transcript='')
+        empty_auto = Q(transcript__isnull=True) | Q(transcript='')
+        for record in AudioRecord.objects.filter(empty_manual).filter(empty_auto):
             wav_path = os.path.join(settings.MEDIA_ROOT, str(record.audio_file))
             if os.path.exists(wav_path):
                 try:
-                    result = model.transcribe(wav_path, language='ko')
-                    record.transcript = result['text']
+                    # 5살 이하(또는 아동 카테고리) 혼합 발화 대응: diarization/VAD 우선
+                    is_young_child = False
+                    try:
+                        if record.age_in_months is not None and int(record.age_in_months) <= 60:
+                            is_young_child = True
+                    except Exception:
+                        pass
+                    try:
+                        if record.age and str(record.age).isdigit() and int(record.age) <= 5:
+                            is_young_child = True
+                    except Exception:
+                        pass
+                    if record.category == 'child' and (record.age_in_months is None and not (record.age and str(record.age).isdigit())):
+                        is_young_child = True
+
+                    if is_young_child:
+                        from .whisper_utils import transcribe_audio_mixed_child_adult
+                        out = transcribe_audio_mixed_child_adult(wav_path, prefer_diarization=True)
+                        text = out.get('text')
+                        diarization_payload = out.get('diarization')
+                        if diarization_payload and isinstance(diarization_payload, dict):
+                            record.diarization_data = diarization_payload
+                            record.diarization_status = diarization_payload.get('status', 'completed') if out.get('mode') == 'diarization' else 'unprocessed'
+                            record.num_speakers = diarization_payload.get('num_speakers')
+                    else:
+                        text = transcribe_audio(wav_path)
+                    record.transcript = text
                     # manual_transcript가 비어있으면 자동 전사 결과로 초기화
                     if not record.manual_transcript:
-                        record.manual_transcript = result['text']
+                        record.manual_transcript = text
                     record.save()
                 except Exception as e:
                     print(f"❌ 전사 실패 ({record.id}): {e}")
-        return redirect('audio-list')
-    else:
-        return redirect('audio-list')
+
+        referer = request.META.get('HTTP_REFERER')
+        if referer and url_has_allowed_host_and_scheme(
+            referer,
+            allowed_hosts={request.get_host()},
+            require_https=False,
+        ):
+            return redirect(referer)
+
+        # namespace 중복( api/ , voice/ 에서 같은 urls include ) 환경에서 reverse가 /api/로 떨어질 수 있어
+        # 기본 폴백은 HTML 화면인 /voice/ 경로로 사용
+        return redirect('/voice/list/')
+
+    referer = request.META.get('HTTP_REFERER')
+    if referer and url_has_allowed_host_and_scheme(
+        referer,
+        allowed_hosts={request.get_host()},
+        require_https=False,
+    ):
+        return redirect(referer)
+
+    return redirect('/voice/list/')
+
+
+@csrf_exempt
+def transcribe_unprocessed_category(request, category):
+    """카테고리별 미전사 오디오를 Whisper로 일괄 전사"""
+    valid_categories = ['child', 'senior', 'atypical', 'auditory', 'normal']
+    if category not in valid_categories:
+        return redirect('voice_app:audio_list')
+
+    if request.method == 'POST':
+        # 정책: manual_transcript와 transcript가 모두 비어있는 경우에만 일괄 전사
+        empty_manual = Q(manual_transcript__isnull=True) | Q(manual_transcript='')
+        empty_auto = Q(transcript__isnull=True) | Q(transcript='')
+
+        qs = (
+            AudioRecord.objects
+            .filter(category=category)
+            .filter(empty_manual)
+            .filter(empty_auto)
+        )
+
+        for record in qs:
+            wav_path = os.path.join(settings.MEDIA_ROOT, str(record.audio_file))
+            if os.path.exists(wav_path):
+                try:
+                    # 5살 이하(또는 아동 카테고리) 혼합 발화 대응: diarization/VAD 우선
+                    is_young_child = False
+                    try:
+                        if record.age_in_months is not None and int(record.age_in_months) <= 60:
+                            is_young_child = True
+                    except Exception:
+                        pass
+                    try:
+                        if record.age and str(record.age).isdigit() and int(record.age) <= 5:
+                            is_young_child = True
+                    except Exception:
+                        pass
+                    if record.category == 'child' and (record.age_in_months is None and not (record.age and str(record.age).isdigit())):
+                        is_young_child = True
+
+                    if is_young_child:
+                        from .whisper_utils import transcribe_audio_mixed_child_adult
+                        out = transcribe_audio_mixed_child_adult(wav_path, prefer_diarization=True)
+                        text = out.get('text')
+                        diarization_payload = out.get('diarization')
+                        if diarization_payload and isinstance(diarization_payload, dict):
+                            record.diarization_data = diarization_payload
+                            record.diarization_status = diarization_payload.get('status', 'completed') if out.get('mode') == 'diarization' else 'unprocessed'
+                            record.num_speakers = diarization_payload.get('num_speakers')
+                    else:
+                        text = transcribe_audio(wav_path)
+
+                    record.transcript = text
+                    if not record.manual_transcript:
+                        record.manual_transcript = text
+                    record.save()
+                except Exception as e:
+                    print(f"❌ 전사 실패 ({record.id}): {e}")
+
+        referer = request.META.get('HTTP_REFERER')
+        if referer and url_has_allowed_host_and_scheme(
+            referer,
+            allowed_hosts={request.get_host()},
+            require_https=False,
+        ):
+            return redirect(referer)
+
+        # reverse('voice_app:category_audio_list')가 /api/...로 떨어지면 JSON 화면이 보여 UX가 깨짐
+        return redirect(f'/voice/{category}/list/')
+
+    referer = request.META.get('HTTP_REFERER')
+    if referer and url_has_allowed_host_and_scheme(
+        referer,
+        allowed_hosts={request.get_host()},
+        require_https=False,
+    ):
+        return redirect(referer)
+
+    return redirect(f'/voice/{category}/list/')
 
 @csrf_exempt
 def transcribe_single_audio(request, audio_id):
@@ -1355,7 +1900,7 @@ def transcribe_single_audio(request, audio_id):
         if not os.path.exists(audio.audio_file.path):
             print(f"[Transcribe Error] Audio file not found: {audio.audio_file.path}")
             messages.error(request, '오디오 파일을 찾을 수 없습니다.')
-            return redirect('audio_detail', audio_id=audio_id)
+            return redirect('voice_app:audio_detail', audio_id=audio_id)
         
         # 상태 업데이트 및 작업 시작
         audio.status = 'processing'
@@ -1365,6 +1910,7 @@ def transcribe_single_audio(request, audio_id):
         try:
             # 직접 전사 실행 (동기 방식)
             print(f"[Transcribe] Calling transcribe_audio_task for ID: {audio_id}")
+            # 정책: 단일 전사 버튼은 manual_transcript가 비어있지 않다면 덮어쓰지 않음
             transcribe_audio_task(audio.id)
             print(f"[Transcribe] Transcription task completed for ID: {audio_id}")
             
@@ -1386,13 +1932,13 @@ def transcribe_single_audio(request, audio_id):
             messages.error(request, f'전사 중 오류가 발생했습니다: {str(e)}')
     
     # audio_detail 페이지로 리다이렉트
-    return redirect('audio_detail', audio_id=audio_id)
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
 
 @csrf_exempt
 def reset_processing_status(request):
     if request.method == 'POST':
         AudioRecord.objects.filter(status='processing').update(status='failed')
-        return redirect('audio_list')
+        return redirect('voice_app:audio_list')
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SimpleCategoryUploadView(View):
@@ -1564,15 +2110,18 @@ def api_audio_detail(request, audio_id):
         return Response({'error': '오디오 파일을 찾을 수 없습니다.'}, status=404)
     
     if request.method == 'GET':
+        auto_transcript_display = _clean_transcript_for_display(audio.transcript)
+        manual_transcript_display = _clean_transcript_for_display(audio.manual_transcript)
+        combined_transcript_display = manual_transcript_display or auto_transcript_display
         data = {
             'id': audio.id,
             'audio_file': audio.audio_file.url if audio.audio_file else None,
             'category': audio.category,
             'gender': audio.gender,
             'age': audio.age,
-            'transcript': audio.manual_transcript or audio.transcript,  # 수동 전사 우선
-            'auto_transcript': audio.transcript,  # 자동 전사 (원본)
-            'manual_transcript': audio.manual_transcript,  # 수동 전사
+            'transcript': combined_transcript_display,  # 수동 전사 우선 (표시용 정리 적용)
+            'auto_transcript': auto_transcript_display,  # 자동 전사 (표시용: 라벨 제거)
+            'manual_transcript': manual_transcript_display or audio.manual_transcript,  # 수동 전사(표시용)
             'status': audio.status,
             'snr_mean': audio.snr_mean,
             'snr_max': audio.snr_max,
@@ -1875,6 +2424,11 @@ def audio_detail(request, audio_id):
         'task_info': task_info,
         'upload_info': upload_info,
     }
+
+    # 자동 전사(Whisper) 표시용: diarization 라벨/프롬프트 유출 제거
+    context['auto_transcript_display'] = _clean_transcript_for_display(audio.transcript)
+    context['transcript_display'] = context['auto_transcript_display']
+    context['manual_transcript_display'] = _clean_transcript_for_display(audio.manual_transcript)
     
     return render(request, 'voice_app/audio_detail.html', context)
 
@@ -1923,7 +2477,7 @@ def update_audio_metadata(request, audio_id):
     
     audio.save()
     
-    return redirect('audio_detail', audio_id=audio_id)
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
 
 # WhisperX 관련 기능 추가 - 의존성 때문에 임시 주석
 # import whisperx
@@ -2086,7 +2640,12 @@ def whisperx_transcribe_simple(request):
 
 
 def dashboard(request):
-    """데이터 대시보드 페이지 - Identifier 기반 화자 그룹핑 통계 (로그인 불필요)"""
+    """데이터 대시보드 페이지 - Identifier 기반 화자 그룹핑 통계 (로그인 불필요)
+    
+    캐시 사용: 24시간마다 자동 갱신
+    수동 갱신: ?refresh=1 파라미터 사용
+    """
+    from django.core.cache import cache
     from django.db.models import Count, Avg, Max, Min, Q, F
     from django.db import connection
     import json
@@ -2094,8 +2653,26 @@ def dashboard(request):
     from datetime import datetime, timedelta
     from django.utils import timezone
     
+    # 캐시 키
+    CACHE_KEY = 'dashboard_statistics'
+    CACHE_TIMEOUT = 86400  # 24시간 (초 단위)
+    
+    # 수동 갱신 확인 (관리자만 가능)
+    force_refresh = request.GET.get('refresh') == '1' and (request.user.is_staff or request.user.is_superuser)
+    
+    # 캐시에서 데이터 가져오기
+    if not force_refresh:
+        cached_data = cache.get(CACHE_KEY)
+        if cached_data is not None:
+            # 캐시된 데이터에 마지막 업데이트 시간 추가
+            cached_data['cache_updated_at'] = cache.get(f'{CACHE_KEY}_updated_at', '알 수 없음')
+            cached_data['using_cache'] = True
+            return render(request, 'voice_app/dashboard.html', cached_data)
+    
+    # 캐시가 없거나 강제 갱신인 경우, 데이터 계산
+    print("[Dashboard] 통계 데이터 계산 중...")
+    
     # SQLite 데이터베이스 연결을 새로 고침
-    # 기존 연결을 닫고 다시 연결하여 최신 데이터를 로드
     connection.close()
     connection.connect()
     
@@ -2370,7 +2947,14 @@ def dashboard(request):
         'snr_stats': snr_stats,
         'monthly_stats': monthly_stats,
         'diagnosis_stats': diagnosis_stats,
+        'using_cache': False,  # 새로 계산한 데이터
+        'cache_updated_at': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
     }
+    
+    # 캐시에 저장 (24시간 유지)
+    cache.set(CACHE_KEY, context, CACHE_TIMEOUT)
+    cache.set(f'{CACHE_KEY}_updated_at', context['cache_updated_at'], CACHE_TIMEOUT)
+    print(f"[Dashboard] 통계 데이터 캐시 저장 완료 (24시간 유지)")
     
     return render(request, 'voice_app/dashboard.html', context)
 
@@ -2388,7 +2972,7 @@ def whisperx_align_audio(request, audio_id):
         
         if audio_record.alignment_status == 'processing':
             messages.warning(request, '이미 처리 중인 파일입니다.')
-            return redirect('audio_detail', audio_id=audio_id)
+            return redirect('voice_app:audio_detail', audio_id=audio_id)
         
         # 상태를 처리 중으로 변경
         audio_record.alignment_status = 'processing'
@@ -2439,7 +3023,7 @@ def whisperx_align_audio(request, audio_id):
             audio_record.alignment_status = 'failed'
             audio_record.save()
     
-    return redirect('audio_detail', audio_id=audio_id)
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
 
 
 @login_required
@@ -2489,6 +3073,238 @@ def get_alignment_status(request, audio_id):
     except Exception as e:
         return JsonResponse({
             'status': 'error',
+            'error': str(e)
+        })
+
+
+# ============================================================================
+# Speaker Diarization 관련 뷰 함수
+# ============================================================================
+
+@login_required
+def perform_diarization(request, audio_id):
+    """
+    화자 분리(Speaker Diarization) 수행
+    아동 데이터에서 선생님과 아동의 발화를 자동으로 분리
+    """
+    # 로그인 체크 (AJAX용)
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'success': False,
+            'error': '로그인이 필요합니다.'
+        }, status=401)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+    
+    try:
+        from .diarization_utils import SpeakerDiarizer, format_diarization_for_frontend
+        import os
+        
+        audio_record = get_object_or_404(AudioRecord, id=audio_id)
+        
+        # 이미 처리 중인 경우 체크
+        if audio_record.diarization_status == 'processing':
+            return JsonResponse({
+                'success': False,
+                'message': '이미 화자 분리가 진행 중입니다.'
+            })
+        
+        # 상태를 processing으로 변경
+        audio_record.diarization_status = 'processing'
+        audio_record.save()
+        
+        # 오디오 파일 경로
+        audio_file_path = audio_record.audio_file.path
+        
+        if not os.path.exists(audio_file_path):
+            audio_record.diarization_status = 'failed'
+            audio_record.save()
+            return JsonResponse({
+                'success': False,
+                'error': '오디오 파일을 찾을 수 없습니다.'
+            })
+        
+        # Diarizer 초기화 및 실행
+        diarizer = SpeakerDiarizer()
+        
+        # 화자 수 파라미터 (옵션)
+        num_speakers = request.POST.get('num_speakers')
+        if num_speakers:
+            num_speakers = int(num_speakers)
+        else:
+            num_speakers = None  # 자동 감지 (1-2명)
+        
+        # Diarization 수행
+        diarization_result = diarizer.perform_diarization(
+            audio_file_path,
+            num_speakers=num_speakers,
+            min_speakers=1,
+            max_speakers=2  # 아동 데이터는 주로 2명 (아동 + 선생님)
+        )
+        
+        if diarization_result['status'] == 'completed':
+            # 화자 레이블 자동 할당 (발화량 많은 순서로)
+            diarization_result = diarizer.assign_speaker_labels(diarization_result)
+            
+            # 데이터베이스에 저장
+            audio_record.diarization_data = diarization_result
+            audio_record.num_speakers = diarization_result['num_speakers']
+            audio_record.diarization_status = 'completed'
+            audio_record.save()
+            
+            messages.success(request, f'✅ 화자 분리 완료! {diarization_result["num_speakers"]}명의 화자가 감지되었습니다.')
+            
+            return JsonResponse({
+                'success': True,
+                'num_speakers': diarization_result['num_speakers'],
+                'speakers': diarization_result['speakers'],
+                'message': f'{diarization_result["num_speakers"]}명의 화자가 감지되었습니다.'
+            })
+        else:
+            audio_record.diarization_status = 'failed'
+            audio_record.save()
+            
+            return JsonResponse({
+                'success': False,
+                'error': diarization_result.get('error', '화자 분리에 실패했습니다.')
+            })
+    
+    except Exception as e:
+        logger.error(f"❌ 화자 분리 오류: {e}")
+        if 'audio_record' in locals():
+            audio_record.diarization_status = 'failed'
+            audio_record.save()
+        
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+def get_diarization_data(request, audio_id):
+    """
+    저장된 diarization 데이터 조회 (AJAX)
+    """
+    # 로그인 체크 (AJAX용)
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': '로그인이 필요합니다.'}, status=401)
+    
+    try:
+        from .diarization_utils import format_diarization_for_frontend
+        
+        audio_record = get_object_or_404(AudioRecord, id=audio_id)
+        
+        if not audio_record.diarization_data:
+            return JsonResponse({
+                'success': False,
+                'message': '화자 분리 데이터가 없습니다.'
+            })
+        
+        # 프론트엔드용으로 포맷팅
+        formatted_data = format_diarization_for_frontend(audio_record.diarization_data)
+        
+        return JsonResponse({
+            'success': True,
+            'data': formatted_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+def get_diarization_status(request, audio_id):
+    """
+    diarization 처리 상태를 확인하는 AJAX 엔드포인트
+    """
+    # 로그인 체크 (AJAX용)
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'error': '로그인이 필요합니다.'}, status=401)
+    
+    try:
+        audio_record = get_object_or_404(AudioRecord, id=audio_id)
+        
+        return JsonResponse({
+            'status': audio_record.diarization_status,
+            'num_speakers': audio_record.num_speakers,
+            'has_diarization_data': bool(audio_record.diarization_data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'error': str(e)
+        })
+
+
+def extract_speaker_audio(request, audio_id):
+    """
+    특정 화자의 발화만 추출하여 다운로드
+    """
+    # 로그인 체크 (AJAX용)
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': '로그인이 필요합니다.'}, status=401)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+    
+    try:
+        from .diarization_utils import SpeakerDiarizer
+        import tempfile
+        from django.http import FileResponse
+        
+        audio_record = get_object_or_404(AudioRecord, id=audio_id)
+        
+        if not audio_record.diarization_data:
+            return JsonResponse({
+                'success': False,
+                'error': '화자 분리 데이터가 없습니다. 먼저 화자 분리를 실행해주세요.'
+            })
+        
+        speaker = request.POST.get('speaker')
+        if not speaker:
+            return JsonResponse({
+                'success': False,
+                'error': '화자를 선택해주세요.'
+            })
+        
+        # 임시 파일 생성
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
+            output_path = tmp_file.name
+        
+        # 화자 오디오 추출
+        diarizer = SpeakerDiarizer()
+        success = diarizer.extract_speaker_audio(
+            audio_record.audio_file.path,
+            audio_record.diarization_data,
+            speaker,
+            output_path
+        )
+        
+        if success:
+            # 파일 다운로드 응답
+            response = FileResponse(
+                open(output_path, 'rb'),
+                content_type='audio/wav'
+            )
+            filename = f"{audio_record.identifier or audio_record.id}_{speaker}.wav"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            # 임시 파일은 다운로드 후 삭제 (cleanup은 OS에 맡김)
+            return response
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': '화자 오디오 추출에 실패했습니다.'
+            })
+    
+    except Exception as e:
+        logger.error(f"❌ 화자 오디오 추출 오류: {e}")
+        return JsonResponse({
+            'success': False,
             'error': str(e)
         })
 
@@ -2651,7 +3467,7 @@ def update_category_data(request, audio_id):
     except Exception as e:
         messages.error(request, f'❌ 카테고리 정보 업데이트 실패: {str(e)}')
     
-    return redirect('audio_detail', audio_id=audio_id)
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
 
 def update_audio_metadata(request, audio_id):
     """기본 메타데이터 업데이트"""
@@ -2695,7 +3511,7 @@ def update_audio_metadata(request, audio_id):
         except Exception as e:
             messages.error(request, f'❌ 메타데이터 업데이트 실패: {str(e)}')
     
-    return redirect('audio_detail', audio_id=audio_id)
+    return redirect('voice_app:audio_detail', audio_id=audio_id)
 
 # API 뷰들
 def alignment_status_api(request, audio_id):
@@ -2911,7 +3727,24 @@ def userprofile(request):
     """사용자 프로필 페이지 - 데이터 전송 위치 및 IP 접근 위치 시각화"""
     from django.db.models import Count
     from django.db import connection
+    from django.core.cache import cache
     from collections import defaultdict
+    
+    # 캐시 설정
+    CACHE_KEY = 'userprofile_statistics'
+    CACHE_TIMEOUT = 86400  # 24시간
+    
+    # 관리자가 강제 새로고침 요청한 경우
+    force_refresh = request.GET.get('refresh') == '1' and request.user.is_staff
+    
+    # 캐시에서 데이터 확인
+    if not force_refresh:
+        cached_data = cache.get(CACHE_KEY)
+        if cached_data:
+            print(f"[UserProfile] 캐시 데이터 사용 (업데이트: {cached_data.get('cache_updated_at')})")
+            return render(request, 'voice_app/userprofile.html', cached_data)
+    
+    print("[UserProfile] 캐시 미스 - 새로 통계 계산 시작...")
     
     # SQLite 데이터베이스 연결을 새로 고침
     # 기존 연결을 닫고 다시 연결하여 최신 데이터를 로드
@@ -3001,7 +3834,14 @@ def userprofile(request):
         'ip_location_data': ip_location_data,
         'total_uploads': sum([item['count'] for item in upload_location_data]),
         'total_access': sum([item['count'] for item in ip_location_data]),
+        'using_cache': False,  # 새로 계산한 데이터
+        'cache_updated_at': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
     }
+    
+    # 캐시에 저장 (24시간 유지)
+    cache.set(CACHE_KEY, context, CACHE_TIMEOUT)
+    cache.set(f'{CACHE_KEY}_updated_at', context['cache_updated_at'], CACHE_TIMEOUT)
+    print(f"[UserProfile] 통계 데이터 캐시 저장 완료 (24시간 유지)")
     
     return render(request, 'voice_app/userprofile.html', context)
 
@@ -3089,6 +3929,84 @@ def audio_download(request, audio_id):
 
 
 @login_required
+@require_POST
+def audio_delete(request, audio_id):
+    """Delete a single AudioRecord and its related media files.
+
+    - Deletes the FileField target via storage
+    - Best-effort deletes derived files with same basename (.wav/.txt)
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        try:
+            messages.error(request, '권한이 없습니다.')
+        except Exception:
+            pass
+        return redirect('voice_app:audio_list')
+
+    audio = get_object_or_404(AudioRecord, id=audio_id)
+
+    # Capture file references before DB delete
+    file_rel = None
+    file_abs = None
+    try:
+        if audio.audio_file:
+            file_rel = audio.audio_file.name
+            file_abs = getattr(audio.audio_file, 'path', None)
+    except Exception:
+        file_rel = None
+        file_abs = None
+
+    deleted_files = []
+    media_root = os.path.abspath(getattr(settings, 'MEDIA_ROOT', ''))
+
+    # 1) Delete the file referenced by FileField via storage
+    try:
+        if audio.audio_file:
+            audio.audio_file.delete(save=False)
+    except Exception as e:
+        logger.warning("[audio_delete] storage delete failed for audio %s: %s", audio_id, e)
+
+    # 2) Best-effort delete by absolute paths (and derived files)
+    candidate_paths = set()
+    if file_abs:
+        candidate_paths.add(file_abs)
+        root, _ext = os.path.splitext(file_abs)
+        candidate_paths.add(root + '.wav')
+        candidate_paths.add(root + '.txt')
+    if file_rel and media_root:
+        abs_from_rel = os.path.join(media_root, file_rel)
+        candidate_paths.add(abs_from_rel)
+        rel_root, _rel_ext = os.path.splitext(abs_from_rel)
+        candidate_paths.add(rel_root + '.wav')
+        candidate_paths.add(rel_root + '.txt')
+
+    for p in sorted(candidate_paths):
+        if not p:
+            continue
+        try:
+            ap = os.path.abspath(p)
+            # Safety: only delete inside MEDIA_ROOT
+            if media_root and not ap.startswith(media_root + os.sep):
+                continue
+            if os.path.isfile(ap):
+                os.remove(ap)
+                deleted_files.append(os.path.relpath(ap, media_root) if media_root else ap)
+        except Exception as e:
+            logger.warning("[audio_delete] file delete failed (%s) for audio %s: %s", p, audio_id, e)
+
+    # 3) Delete DB row
+    identifier = audio.identifier
+    audio.delete()
+
+    try:
+        messages.success(request, f'삭제 완료: 오디오 ID={audio_id}' + (f' (identifier={identifier})' if identifier else ''))
+    except Exception:
+        pass
+
+    return redirect('voice_app:audio_list')
+
+
+@login_required
 def identifier_audio_list(request, identifier):
     """특정 고유 ID를 가진 모든 오디오 레코드를 테이블로 표시"""
     
@@ -3126,6 +4044,28 @@ def identifier_audio_list(request, identifier):
     paginator = Paginator(audio_list_qs, 20)  # 한 페이지당 20개 항목
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # 페이지네이션 전에 쿼리스트링을 만들어 템플릿에서 재사용
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+    query_string = query_params.urlencode()
+
+    # 페이지네이션: 현재 페이지 기준으로 10개 페이지 번호를 노출
+    total_pages = paginator.num_pages
+    current_page = page_obj.number
+    window = 10
+    start_page = max(1, current_page - (window // 2))
+    end_page = start_page + window - 1
+    if end_page > total_pages:
+        end_page = total_pages
+        start_page = max(1, end_page - window + 1)
+    page_numbers = range(start_page, end_page + 1)
+
+    # 내부 이전/다음(◀/▶): 10페이지씩 점프
+    jump = window
+    prev_jump_page = max(1, current_page - jump)
+    next_jump_page = min(total_pages, current_page + jump)
     
     # 카테고리 통계 계산
     category_counts = {}
@@ -3150,6 +4090,10 @@ def identifier_audio_list(request, identifier):
         'category_counts': category_counts,
         'category_names': category_names,
         'current_sort': sort_by,
+        'query_string': query_string,
+        'page_numbers': page_numbers,
+        'prev_jump_page': prev_jump_page,
+        'next_jump_page': next_jump_page,
     }
     
     return render(request, 'voice_app/identifier_audio_list.html', context)

@@ -438,7 +438,7 @@
       <a href="javascript:history.back()" class="back-button">
         <i class="fas fa-arrow-left"></i> 뒤로가기
       </a>
-      <a href="{% url 'audio_list' %}" class="home-button">
+      <a href="{% url 'voice_app:audio_list' %}" class="home-button">
         <i class="fas fa-list"></i> 전체목록
       </a>
       <a href="/" class="home-button">
@@ -586,7 +586,7 @@
           <div><strong>상태:</strong> {{ audio.get_status_display }}</div>
 
           {% if audio.status != 'processing' %}
-            <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" 
+            <form method="POST" action="{% url 'voice_app:transcribe_single_audio' audio.id %}" 
                   style="margin-top: 5px;">
               {% csrf_token %}
               <button type="submit" class="btn btn-transcribe" style="font-size: 12px; padding: 5px 10px; background-color: green;">
@@ -599,7 +599,7 @@
         </td>
         <td>{{ audio.created_at|date:"Y-m-d H:i" }}</td>
         <td>
-          <a href="{% url 'audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
+          <a href="{% url 'voice_app:audio_detail' audio.id %}" class="btn-edit" title="상세 정보 편집">
             <i class="fas fa-edit"></i>
           </a>
         </td>
@@ -610,18 +610,36 @@
 
   <!-- 페이지네이션 -->
   <div class="pagination">
-    <span style="margin-right: 10px;">페이지:</span>
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">⬅ 이전</a>
-    {% endif %}
+    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center;">
+      <!-- 처음/이전 -->
+      {% if page_obj.has_previous %}
+        <a href="?page=1{% if query_string %}&{{ query_string }}{% endif %}" title="처음">⏮</a>
+        <a href="?page={{ prev_jump_page }}{% if query_string %}&{{ query_string }}{% endif %}" title="이전">◀</a>
+      {% else %}
+        <span style="color: #bbb;">⏮</span>
+        <span style="color: #bbb;">◀</span>
+      {% endif %}
 
-    <span>
-      페이지 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-    </span>
+      <!-- 페이지 번호 10개 -->
+      {% for p in page_numbers %}
+        {% if p == page_obj.number %}
+          <span style="display:inline-block; min-width: 34px; padding: 6px 10px; border: 1px solid #0d6efd; border-radius: 6px; background:#0d6efd; color:#fff; font-weight: 600;">{{ p }}</span>
+        {% else %}
+          <a href="?page={{ p }}{% if query_string %}&{{ query_string }}{% endif %}" style="display:inline-block; min-width: 34px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
 
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}">다음 ➡</a>
-    {% endif %}
+      <!-- 다음/끝 -->
+      {% if page_obj.has_next %}
+        <a href="?page={{ next_jump_page }}{% if query_string %}&{{ query_string }}{% endif %}" title="다음">▶</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}" title="끝">⏭</a>
+      {% else %}
+        <span style="color: #bbb;">▶</span>
+        <span style="color: #bbb;">⏭</span>
+      {% endif %}
+
+      <span style="margin-left: 6px; color: #666;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    </div>
   </div>
 
   {% else %}

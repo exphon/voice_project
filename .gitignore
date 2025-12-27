@@ -31,9 +31,15 @@ migrate_files.py
 venv/
 env/
 ENV/
+.venv/
 
 # Media files
 media/
+
+# Local caches / backups
+cache/
+backups/
+*.djcache
 
 # SSL certificates
 *.crt

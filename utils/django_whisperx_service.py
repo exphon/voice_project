@@ -18,7 +18,7 @@ class WhisperXService:
     
     def __init__(self):
         self.config = getattr(settings, 'WHISPERX_CONFIG', {})
-        self.model_size = self.config.get('MODEL_SIZE', 'base')
+        self.model_size = self.config.get('MODEL_SIZE', 'large-v3')
         self.device = self._get_best_device()
         self.compute_type = self.config.get('COMPUTE_TYPE', 'int8')
         
@@ -110,28 +110,57 @@ class WhisperXService:
             batch_size = kwargs.get('batch_size', self.config.get('BATCH_SIZE', 16))
             temperature = kwargs.get('temperature', self.config.get('TEMPERATURE', 0.0))
             initial_prompt = kwargs.get('initial_prompt', self.config.get('INITIAL_PROMPT'))
-            language = kwargs.get('language', self.config.get('LANGUAGE'))
+            task = kwargs.get('task', self.config.get('TASK', 'transcribe'))
+            beam_size = kwargs.get('beam_size', self.config.get('BEAM_SIZE'))
+
+            # 한국어 전사 강제 (요청 파라미터보다 우선)
+            force_language = self.config.get('FORCE_LANGUAGE')
+            if force_language:
+                language = force_language
+            else:
+                language = kwargs.get('language', self.config.get('LANGUAGE'))
             
             # 음성인식 수행
             asr_options = {
                 'batch_size': batch_size,
                 'temperature': temperature,
             }
+            if task:
+                asr_options['task'] = task
+            if beam_size:
+                asr_options['beam_size'] = beam_size
             if initial_prompt:
                 asr_options['initial_prompt'] = initial_prompt
             if language:
                 asr_options['language'] = language
-                
-            result = model.transcribe(audio_path, **asr_options)
+
+            # whisperx 버전에 따라 일부 옵션이 지원되지 않을 수 있어 안전하게 재시도
+            try:
+                result = model.transcribe(audio_path, **asr_options)
+            except TypeError as e:
+                msg = str(e)
+                unsupported_keys = []
+                for key in ('task', 'beam_size', 'initial_prompt', 'language'):
+                    if key in asr_options and f"'{key}'" in msg:
+                        unsupported_keys.append(key)
+                if unsupported_keys:
+                    for key in unsupported_keys:
+                        asr_options.pop(key, None)
+                    logger.warning(f"Retrying transcribe without unsupported options: {unsupported_keys}")
+                    result = model.transcribe(audio_path, **asr_options)
+                else:
+                    raise
             
             # 언어 감지 결과
-            detected_language = result.get("language", "en")
+            detected_language = result.get("language", None)
+            language_for_alignment = language or detected_language or "en"
+            detected_language = detected_language or language_for_alignment
             logger.info(f"Detected language: {detected_language}")
             
             # 정렬 수행 (단어 단위 타이밍)
             if self.config.get('WORD_TIMESTAMPS', True):
                 try:
-                    alignment_model, metadata = self._get_alignment_model(detected_language)
+                    alignment_model, metadata = self._get_alignment_model(language_for_alignment)
                     result = whisperx.align(
                         result["segments"], 
                         alignment_model, 
@@ -150,7 +179,7 @@ class WhisperXService:
             
             return {
                 'success': True,
-                'language': detected_language,
+                'language': language_for_alignment,
                 'text': full_text,
                 'segments': segments,
                 'segment_count': len(segments),

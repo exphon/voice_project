@@ -7,13 +7,29 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2><i class="fas fa-map-marked-alt me-2"></i>위치 정보 대시보드</h2>
-            <p class="text-muted mb-0"><small>데이터 전송 위치 및 사이트 접근 IP 위치를 시각화합니다</small></p>
+            <p class="text-muted mb-0">
+                <small>데이터 전송 위치 및 사이트 접근 IP 위치를 시각화합니다</small>
+                {% if using_cache %}
+                <span class="badge bg-info ms-2">
+                    <i class="fas fa-database me-1"></i>캐시 데이터 (업데이트: {{ cache_updated_at }})
+                </span>
+                {% else %}
+                <span class="badge bg-success ms-2">
+                    <i class="fas fa-sync-alt me-1"></i>최신 데이터 (갱신: {{ cache_updated_at }})
+                </span>
+                {% endif %}
+            </p>
         </div>
         <div>
-            <a href="{% url 'index' %}" class="btn btn-outline-primary">
+            {% if user.is_staff %}
+            <a href="?refresh=1" class="btn btn-outline-secondary me-2" title="통계 데이터 강제 새로고침">
+                <i class="fas fa-sync-alt me-1"></i>데이터 갱신
+            </a>
+            {% endif %}
+            <a href="{% url 'voice_app:index' %}" class="btn btn-outline-primary">
                 <i class="fas fa-home me-1"></i>홈으로
             </a>
-            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+            <a href="{% url 'voice_app:dashboard' %}" class="btn btn-outline-secondary">
                 <i class="fas fa-chart-bar me-1"></i>대시보드
             </a>
         </div>

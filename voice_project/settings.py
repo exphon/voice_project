@@ -122,6 +122,17 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ✅ 캐싱 설정 (Dashboard 성능 최적화)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'cache',  # 캐시 파일 저장 위치
+        'TIMEOUT': 86400,  # 기본 타임아웃: 24시간 (86400초)
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
 
 # ✅ 미디어 파일 (사용자 업로드)
 MEDIA_URL = '/media/'
@@ -146,11 +157,20 @@ REST_FRAMEWORK = {
 
 # WhisperX 설정
 WHISPERX_CONFIG = {
-    'MODEL_SIZE': 'medium',  # tiny, base, small, medium, large, large-v2, large-v3
+    'MODEL_SIZE': 'large-v3',  # tiny, base, small, medium, large, large-v2, large-v3
     'DEVICE': 'auto',  # 'auto', 'cpu', 'cuda'
     'COMPUTE_TYPE': 'auto',  # 'auto', 'int8', 'float16', 'float32'
     'BATCH_SIZE': 16,
     'TEMPERATURE': 0.0,
+    # 한국어 전사 강제
+    'LANGUAGE': 'ko',
+    # FORCE_LANGUAGE가 설정되면 요청 파라미터와 무관하게 해당 언어로 고정
+    'FORCE_LANGUAGE': 'ko',
+    # translate가 아니라 원문 전사
+    'TASK': 'transcribe',
+    # 한국어로만 전사하도록 강하게 유도
+    'INITIAL_PROMPT': '다음은 한국어 음성의 전사입니다. 가능한 한 정확히, 반드시 한국어로만 전사하세요.',
+    'BEAM_SIZE': 5,
     'WORD_TIMESTAMPS': True,
     'SUPPORTED_LANGUAGES': [
         'en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'it', 'pt', 'ru',

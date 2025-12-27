@@ -44,6 +44,15 @@ Whisper AI를 활용한 자동 전사, 음성 분석, 메타데이터 관리 등
   - `transcript`: AI 자동 전사 원본 (읽기 전용)
   - `manual_transcript`: 사용자 수동 편집 (편집 가능)
 
+### 🎙️ 화자 분리 (Speaker Diarization) ✨ NEW!
+- **자동 화자 감지**: Pyannote.audio를 사용하여 1-2명의 화자 자동 분리
+- **화자별 레이블링**: 발화량 기준으로 "아동", "선생님" 자동 할당
+- **타임라인 시각화**: 화자별 발화 구간을 색상으로 구분하여 표시
+- **통계 정보**: 화자별 발화 시간, 세그먼트 수, 비율 제공
+- **화자별 오디오 추출**: 특정 화자의 발화만 별도 WAV 파일로 추출
+- **적용 대상**: 아동 데이터에서 선생님과 아동의 발화 구분에 최적화
+- 📖 상세 가이드: [SPEAKER_DIARIZATION_GUIDE.md](SPEAKER_DIARIZATION_GUIDE.md)
+
 ### 📊 음성 분석
 - **SNR (Signal-to-Noise Ratio) 측정**: 평균, 최대, 최소값
 - **파형 시각화**: WaveSurfer.js 기반 대칭 dB 스케일 (+40 to -40)

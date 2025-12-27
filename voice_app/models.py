@@ -2,11 +2,32 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 import json
+import re
+
+
+def _strip_speaker_prefixes_for_display(text: str) -> str:
+    if not text:
+        return text
+    lines = str(text).splitlines()
+    cleaned = [re.sub(r"^\s*\[[^\]]+\]\s*", "", line) for line in lines]
+    return "\n".join(cleaned).strip()
 
 def category_upload_path(instance, filename):
-    """카테고리별로 파일 저장 경로를 결정하는 함수"""
+    """카테고리와 identifier별로 파일 저장 경로를 결정하는 함수
+    
+    저장 구조: audio/{category}/{identifier}/{filename}
+    예: audio/child/C12345/audio.wav
+    
+    identifier가 없는 경우: audio/{category}/{filename}
+    """
     category = instance.category or 'normal'
-    return f'audio/{category}/{filename}'
+    
+    # identifier가 있으면 identifier 폴더 생성
+    if instance.identifier:
+        return f'audio/{category}/{instance.identifier}/{filename}'
+    else:
+        # identifier가 없으면 기존 방식대로 (하위 호환성)
+        return f'audio/{category}/{filename}'
 
 class AudioRecord(models.Model):
     identifier_validator = RegexValidator(
@@ -59,6 +80,7 @@ class AudioRecord(models.Model):
     # 기존 Django 처리 필드들
     transcript = models.TextField(blank=True, null=True, help_text='Whisper 자동 전사 결과')
     manual_transcript = models.TextField(blank=True, null=True, help_text='수동 수정된 전사 내용')
+    memo = models.TextField(blank=True, null=True, help_text='전사 수정 중 메모')
     age = models.CharField(max_length=3, null=True, blank=True, help_text='계산된 나이')  # 생년월일에서 계산
     
     # SNR 관련 필드들 (Django에서 처리)
@@ -86,6 +108,18 @@ class AudioRecord(models.Model):
         default='unprocessed'
     )
     
+    # Pyannote speaker diarization 관련 필드들
+    diarization_data = models.JSONField(null=True, blank=True, help_text='화자 분리(diarization) 결과 JSON')
+    diarization_status = models.CharField(
+        max_length=20,
+        choices=[('unprocessed', '미처리'), 
+                 ('processing', '처리 중'), 
+                 ('completed', '완료'), 
+                 ('failed', '실패')],
+        default='unprocessed'
+    )
+    num_speakers = models.IntegerField(null=True, blank=True, help_text='감지된 화자 수')
+    
     # 메타 정보
     data_source = models.CharField(
         max_length=20,
@@ -99,6 +133,26 @@ class AudioRecord(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def transcript_display(self) -> str:
+        """표시용 자동 전사 텍스트(프롬프트 유출/라벨 정리 포함)."""
+        from .whisper_utils import _scrub_prompt_leakage, _koreanize_common_english_tokens
+
+        text = _scrub_prompt_leakage(self.transcript or "")
+        text = _strip_speaker_prefixes_for_display(text)
+        text = _koreanize_common_english_tokens(text)
+        return (text or "").strip()
+
+    @property
+    def manual_transcript_display(self) -> str:
+        """표시용 수동 전사 텍스트(프롬프트 유출/라벨 정리 포함)."""
+        from .whisper_utils import _scrub_prompt_leakage, _koreanize_common_english_tokens
+
+        text = _scrub_prompt_leakage(self.manual_transcript or "")
+        text = _strip_speaker_prefixes_for_display(text)
+        text = _koreanize_common_english_tokens(text)
+        return (text or "").strip()
 
     def save(self, *args, **kwargs):
         """저장 시 나이 자동 계산"""

@@ -463,7 +463,7 @@
 <body>
   
   <div class="container">
-    <a href="{% url 'audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
+    <a href="{% url 'voice_app:audio_list' %}" class="back-button">← 목록으로 돌아가기</a>
     
     <h1>🎵 오디오 파일 상세 정보</h1>
 
@@ -475,81 +475,6 @@
         </div>
       {% endfor %}
     {% endif %}
-
-        <!-- 기본 정보 -->
-    <div class="section">
-      <h3>👤 기본 정보</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <h3>🆔 고유 ID</h3>
-          <p>
-            {% if audio.identifier %}
-              <a href="{% url 'identifier_audio_list' identifier=audio.identifier %}" style="color: #007bff; text-decoration: none; font-weight: bold;">
-                {{ audio.identifier }}
-              </a>
-            {% else %}
-              <span class='empty-value'>입력되지 않음</span>
-            {% endif %}
-          </p>
-        </div>
-
-        <div class="info-item">
-          <h3>👤 이름</h3>
-          <p>{{ audio.name|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>⚥ 성별</h3>
-          <p>
-            {% if audio.gender == 'male' or audio.gender == 'M' or audio.gender == 'MALE' %}
-              남
-            {% elif audio.gender == 'female' or audio.gender == 'F' or audio.gender == 'FEMALE' %}
-              여
-            {% elif audio.gender == '남' or audio.gender == '여' %}
-              {{ audio.gender }}
-            {% elif audio.gender %}
-              {{ audio.gender }}
-            {% else %}
-              <span class='empty-value'>입력되지 않음</span>
-            {% endif %}
-          </p>
-        </div>
-        
-        <div class="info-item">
-          <h3>🎂 나이</h3>
-          <p>{{ audio.age|default:"<span class='empty-value'>계산되지 않음</span>"|safe }}</p>
-        </div>
-        
-        {% if birth_date %}
-        <div class="info-item">
-          <h3>📅 생년월일</h3>
-          <p>{{ birth_date }}</p>
-        </div>
-        {% else %}
-        <div class="info-item">
-          <h3>📅 출생연도</h3>
-          <p>{{ audio.birth_year|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>📅 출생월</h3>
-          <p>{{ audio.birth_month|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
-        </div>
-        
-        <div class="info-item">
-          <h3>📅 출생일</h3>
-          <p>{{ audio.birth_day|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
-        </div>
-        {% endif %}
-
-        {% if age_in_months %}
-        <div class="info-item">
-          <h3>👶 월령</h3>
-          <p>{{ age_in_months }}개월</p>
-        </div>
-        {% endif %}
-      </div>
-    </div>
 
     <!-- WaveSurfer.js 시각화 -->
     <div class="section">
@@ -585,7 +510,14 @@
         
         <!-- 다운로드 및 전사 버튼 -->
         <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
-          <a href="{% url 'audio_download' audio.id %}" class="btn btn-primary">💾 다운로드</a>
+          <a href="{% url 'voice_app:audio_download' audio.id %}" class="btn btn-primary">💾 다운로드</a>
+
+          {% if user.is_staff or user.is_superuser %}
+          <form method="POST" action="{% url 'voice_app:audio_delete' audio.id %}" style="display: inline;" onsubmit="return confirm('정말 삭제하시겠습니까?\n\n- DB 레코드가 삭제됩니다.\n- 서버 media 폴더의 파일(.wav 포함)이 함께 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">🗑 삭제</button>
+          </form>
+          {% endif %}
           
           {% if user.is_staff or user.is_superuser %}
           <!-- 오디오 파일 재업로드 (보안 검증) -->
@@ -601,7 +533,7 @@
               🧠 전사 진행 중...
             </button>
           {% else %}
-            <form method="POST" action="{% url 'transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
+            <form method="POST" action="{% url 'voice_app:transcribe_single_audio' audio.id %}" style="display: inline;" id="transcribeForm">
               {% csrf_token %}
               <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
             </form>
@@ -629,83 +561,17 @@
 
         <!-- 전사 내용 (읽기 전용) -->
     <div class="section">
-      <h3>📝 전사 내용</h3>
+      <h3>📝 자동 전사 내용</h3>
       <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; min-height: 100px; padding: 15px;">
         {% if audio.manual_transcript %}
-          <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
-            {{ audio.manual_transcript }}
-            {% if audio.manual_transcript != audio.transcript %}
-              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; font-size: 12px; color: #666;">
-                <i class="fas fa-edit"></i> 수동 편집됨 (원본: {{ audio.transcript|truncatewords:10 }})
-              </div>
-            {% endif %}
-          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">{{ auto_transcript_display|default:audio.transcript_display|default_if_none:"" }}</div>
         {% elif audio.transcript %}
-          <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">
-            {{ audio.transcript }}
-          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; word-wrap: break-word;">{{ auto_transcript_display|default:audio.transcript_display|default_if_none:"" }}</div>
         {% else %}
           <div style="display: flex; align-items: center; justify-content: center; min-height: 80px; font-style: italic; color: #666;">
             아직 전사된 내용이 없습니다. Whisper 전사 버튼을 눌러 자동 전사를 시작하거나 아래에서 직접 입력해주세요.
           </div>
         {% endif %}
-      </div>
-    </div>
-
-    <!-- WhisperX Forced Alignment 섹션 -->
-    <div class="section">
-      <h3>🎯 WhisperX Forced Alignment</h3>
-      <div style="margin-bottom: 15px;">
-        <p>WhisperX를 사용하여 전사와 함께 단어/문장 단위의 정확한 시간 정보(forced alignment)를 얻을 수 있습니다.</p>
-        
-        <!-- Alignment 상태 표시 -->
-        <div style="margin: 10px 0;">
-          {% if audio.alignment_status == 'completed' %}
-            <span class="badge bg-success">✅ Alignment 완료</span>
-          {% elif audio.alignment_status == 'processing' %}
-            <span class="badge bg-warning">⏳ Alignment 진행 중</span>
-          {% elif audio.alignment_status == 'failed' %}
-            <span class="badge bg-danger">❌ Alignment 실패</span>
-          {% else %}
-            <span class="badge bg-secondary">⏸️ Alignment 대기</span>
-          {% endif %}
-        </div>
-        
-        <!-- Alignment 실행 버튼 -->
-        <div>
-          {% if audio.alignment_status == 'processing' %}
-            <button class="btn btn-warning" disabled>
-              <span class="spinner-border spinner-border-sm" role="status"></span>
-              🎯 Alignment 진행 중...
-            </button>
-          {% else %}
-            <form method="POST" action="{% url 'whisperx_align_audio' audio.id %}" style="display: inline;" id="alignmentForm">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-primary" id="alignmentBtn">🎯 WhisperX Alignment 시작</button>
-            </form>
-          {% endif %}
-          
-          {% if audio.alignment_data and audio.alignment_status == 'completed' %}
-            <button class="btn btn-success" onclick="showAlignmentVisualization()">👁️ Alignment 결과 보기</button>
-          {% endif %}
-        </div>
-      </div>
-      
-      <!-- Alignment 시각화 영역 -->
-      <div id="alignmentVisualization" style="display: none; margin-top: 20px;">
-        <h4>🎵 Alignment 시각화</h4>
-        <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
-          <div id="alignmentTimeline"></div>
-          <div style="margin-bottom: 15px;">
-            <button class="btn btn-primary" onclick="playAlignmentSegment()">▶️ 재생</button>
-            <button class="btn btn-secondary" onclick="pauseAlignment()">⏸️ 일시정지</button>
-            <select id="alignmentModeSelect" onchange="changeAlignmentMode()" style="margin-left: 10px; padding: 5px;">
-              <option value="segments">문장 단위</option>
-              <option value="words">단어 단위</option>
-            </select>
-          </div>
-          <div id="alignmentText"></div>
-        </div>
       </div>
     </div>
 
@@ -721,24 +587,39 @@
 
       <!-- 전사 수정 탭 -->
       <div id="transcription-tab" class="tab-content active">
-        <form method="POST" action="{% url 'update_transcription' audio.id %}">
+        <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}">
           {% csrf_token %}
           <div class="form-group">
             <label for="manual_transcript">전사 내용 (수동 편집)</label>
-            <textarea name="manual_transcript" id="manual_transcript" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 120px;">{{ audio.manual_transcript|default:audio.transcript|default_if_none:"" }}</textarea>
+            <textarea name="manual_transcript" id="manual_transcript" placeholder="전사 내용을 수정하거나 직접 입력하세요..." style="min-height: 120px;">{{ manual_transcript_display|default:transcript_display|default_if_none:"" }}</textarea>
             {% if audio.transcript %}
               <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                <i class="fas fa-info-circle"></i> 원본 자동 전사: {{ audio.transcript|truncatewords:20 }}
+                <i class="fas fa-info-circle"></i> 원본 자동 전사: {{ transcript_display|truncatewords:20 }}
               </small>
             {% endif %}
           </div>
           <button type="submit" class="btn btn-success">💾 전사 내용 저장</button>
         </form>
+
+        <!-- 메모 영역 (전사 수정 중 특이사항 기록) -->
+        <div style="margin-top: 15px;">
+          <form method="POST" action="{% url 'voice_app:update_memo' audio.id %}">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="memo">메모</label>
+              <textarea name="memo" id="memo" placeholder="전사를 수정하면서 특이사항/주의사항 등을 자유롭게 적어주세요..." style="min-height: 120px;">{{ audio.memo|default_if_none:"" }}</textarea>
+              <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                <i class="fas fa-info-circle"></i> 이 메모는 해당 오디오 레코드에 저장됩니다.
+              </small>
+            </div>
+            <button type="submit" class="btn btn-success">💾 메모 저장</button>
+          </form>
+        </div>
       </div>
 
       <!-- 메타데이터 수정 탭 -->
       <div id="metadata-tab" class="tab-content">
-        <form method="POST" action="{% url 'update_audio_metadata' audio.id %}">
+        <form method="POST" action="{% url 'voice_app:update_audio_metadata' audio.id %}">
           {% csrf_token %}
           <div class="form-row">
             <div class="form-group">
@@ -825,13 +706,214 @@
 
       <!-- 카테고리 정보 수정 탭 -->
       <div id="category-tab" class="tab-content">
-        <form method="POST" action="{% url 'update_category_data' audio.id %}">
+        <form method="POST" action="{% url 'voice_app:update_category_data' audio.id %}">
           {% csrf_token %}
           <div id="category-specific-fields">
             <!-- JavaScript로 동적 생성 -->
           </div>
           <button type="submit" class="btn btn-primary">🏷️ 카테고리 정보 업데이트</button>
         </form>
+      </div>
+    </div>
+
+    {% comment %}
+    WhisperX Forced Alignment 섹션 (임시 비활성화)
+    - 템플릿 태그 실행/URL reverse 등을 함께 막기 위해 Django template comment로 처리
+    {% endcomment %}
+    {% comment %}
+    <!-- WhisperX Forced Alignment 섹션 -->
+    <div class="section">
+      <h3>🎯 WhisperX Forced Alignment</h3>
+      <div style="margin-bottom: 15px;">
+        <p>WhisperX를 사용하여 전사와 함께 단어/문장 단위의 정확한 시간 정보(forced alignment)를 얻을 수 있습니다.</p>
+        
+        <!-- Alignment 상태 표시 -->
+        <div style="margin: 10px 0;">
+          {% if audio.alignment_status == 'completed' %}
+            <span class="badge bg-success">✅ Alignment 완료</span>
+          {% elif audio.alignment_status == 'processing' %}
+            <span class="badge bg-warning">⏳ Alignment 진행 중</span>
+          {% elif audio.alignment_status == 'failed' %}
+            <span class="badge bg-danger">❌ Alignment 실패</span>
+          {% else %}
+            <span class="badge bg-secondary">⏸️ Alignment 대기</span>
+          {% endif %}
+        </div>
+        
+        <!-- Alignment 실행 버튼 -->
+        <div>
+          {% if audio.alignment_status == 'processing' %}
+            <button class="btn btn-warning" disabled>
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+              🎯 Alignment 진행 중...
+            </button>
+          {% else %}
+            <form method="POST" action="{% url 'voice_app:whisperx_align_audio' audio.id %}" style="display: inline;" id="alignmentForm">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary" id="alignmentBtn">🎯 WhisperX Alignment 시작</button>
+            </form>
+          {% endif %}
+          
+          {% if audio.alignment_data and audio.alignment_status == 'completed' %}
+            <button class="btn btn-success" onclick="showAlignmentVisualization()">👁️ Alignment 결과 보기</button>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Alignment 시각화 영역 -->
+      <div id="alignmentVisualization" style="display: none; margin-top: 20px;">
+        <h4>🎵 Alignment 시각화</h4>
+        <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+          <div id="alignmentTimeline"></div>
+          <div style="margin-bottom: 15px;">
+            <button class="btn btn-primary" onclick="playAlignmentSegment()">▶️ 재생</button>
+            <button class="btn btn-secondary" onclick="pauseAlignment()">⏸️ 일시정지</button>
+            <select id="alignmentModeSelect" onchange="changeAlignmentMode()" style="margin-left: 10px; padding: 5px;">
+              <option value="segments">문장 단위</option>
+              <option value="words">단어 단위</option>
+            </select>
+          </div>
+          <div id="alignmentText"></div>
+        </div>
+      </div>
+    </div>
+    {% endcomment %}
+
+    <!-- Speaker Diarization 섹션 -->
+    <div class="section">
+      <h3>🎙️ 화자 분리 (Speaker Diarization)</h3>
+      <div style="margin-bottom: 15px;">
+        <p>Pyannote.audio를 사용하여 오디오에서 여러 화자를 자동으로 분리합니다. 아동 데이터의 경우 선생님과 아동의 발화를 구분할 수 있습니다.</p>
+        
+        <!-- Diarization 상태 표시 -->
+        <div style="margin: 10px 0;">
+          {% if audio.diarization_status == 'completed' %}
+            <span class="badge bg-success">✅ 화자 분리 완료 ({{ audio.num_speakers }}명)</span>
+          {% elif audio.diarization_status == 'processing' %}
+            <span class="badge bg-warning">⏳ 화자 분리 진행 중</span>
+          {% elif audio.diarization_status == 'failed' %}
+            <span class="badge bg-danger">❌ 화자 분리 실패</span>
+          {% else %}
+            <span class="badge bg-secondary">⏸️ 화자 분리 대기</span>
+          {% endif %}
+        </div>
+        
+        <!-- Diarization 실행 버튼 -->
+        <div style="display: flex; gap: 10px; align-items: center;">
+          {% if audio.diarization_status == 'processing' %}
+            <button class="btn btn-warning" disabled>
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+              🎙️ 화자 분리 진행 중...
+            </button>
+          {% else %}
+            <form method="POST" action="{% url 'voice_app:perform_diarization' audio.id %}" style="display: inline;" id="diarizationForm">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary" id="diarizationBtn">🎙️ 화자 분리 시작</button>
+            </form>
+          {% endif %}
+          
+          {% if audio.diarization_data and audio.diarization_status == 'completed' %}
+            <button class="btn btn-success" onclick="showDiarizationVisualization()">👁️ 화자 분리 결과 보기</button>
+            <button class="btn btn-info" onclick="showSpeakerExtractModal()">💾 화자별 오디오 추출</button>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Diarization 시각화 영역 -->
+      <div id="diarizationVisualization" style="display: none; margin-top: 20px;">
+        <h4>🎙️ 화자 분리 시각화</h4>
+        <div style="background-color: white; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+          <div id="diarizationTimeline"></div>
+          <div id="diarizationStats" style="margin-top: 15px;"></div>
+          <div id="diarizationSegments" style="margin-top: 15px; max-height: 400px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 화자 오디오 추출 모달 -->
+    <div id="speakerExtractModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+      <div style="background-color: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%;">
+        <h3>💾 화자별 오디오 추출</h3>
+        <p>추출할 화자를 선택하세요:</p>
+        <div id="speakerSelectionList"></div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-secondary" onclick="closeSpeakerExtractModal()">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 기본 정보 -->
+    <div class="section">
+      <h3>👤 기본 정보</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>🆔 고유 ID</h3>
+          <p>
+            {% if audio.identifier %}
+              <a href="{% url 'voice_app:identifier_audio_list' identifier=audio.identifier %}" style="color: #007bff; text-decoration: none; font-weight: bold;">
+                {{ audio.identifier }}
+              </a>
+            {% else %}
+              <span class='empty-value'>입력되지 않음</span>
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="info-item">
+          <h3>👤 이름</h3>
+          <p>{{ audio.name|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>⚥ 성별</h3>
+          <p>
+            {% if audio.gender == 'male' or audio.gender == 'M' or audio.gender == 'MALE' %}
+              남
+            {% elif audio.gender == 'female' or audio.gender == 'F' or audio.gender == 'FEMALE' %}
+              여
+            {% elif audio.gender == '남' or audio.gender == '여' %}
+              {{ audio.gender }}
+            {% elif audio.gender %}
+              {{ audio.gender }}
+            {% else %}
+              <span class='empty-value'>입력되지 않음</span>
+            {% endif %}
+          </p>
+        </div>
+        
+        <div class="info-item">
+          <h3>🎂 나이</h3>
+          <p>{{ audio.age|default:"<span class='empty-value'>계산되지 않음</span>"|safe }}</p>
+        </div>
+        
+        {% if birth_date %}
+        <div class="info-item">
+          <h3>📅 생년월일</h3>
+          <p>{{ birth_date }}</p>
+        </div>
+        {% else %}
+        <div class="info-item">
+          <h3>📅 출생연도</h3>
+          <p>{{ audio.birth_year|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>📅 출생월</h3>
+          <p>{{ audio.birth_month|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        
+        <div class="info-item">
+          <h3>📅 출생일</h3>
+          <p>{{ audio.birth_day|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
+        </div>
+        {% endif %}
+
+        {% if age_in_months %}
+        <div class="info-item">
+          <h3>👶 월령</h3>
+          <p>{{ age_in_months }}개월</p>
+        </div>
+        {% endif %}
       </div>
     </div>
 
@@ -845,7 +927,7 @@
         </div>
         
         <div class="info-item">
-          <h3>� 카테고리</h3>
+          <h3>🏷️ 카테고리</h3>
           <p><span class="category-badge category-{{ audio.category }}">{{ audio.get_category_display }}</span></p>
         </div>
         
@@ -860,7 +942,7 @@
         </div>
 
         <div class="info-item">
-          <h3>� 업로드 시간</h3>
+          <h3>⏰ 업로드 시간</h3>
           <p>{{ audio.created_at|date:"Y-m-d H:i" }}</p>
         </div>
 
@@ -888,7 +970,7 @@
         </div>
         
         <div class="info-item">
-          <h3>� 소음 수준</h3>
+          <h3>🔊 소음 수준</h3>
           <p>{{ audio.noise_level|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
         </div>
         
@@ -898,7 +980,7 @@
         </div>
         
         <div class="info-item">
-          <h3>� 마이크 유무</h3>
+          <h3>🎙️ 마이크 유무</h3>
           <p>{{ audio.has_microphone|default:"<span class='empty-value'>입력되지 않음</span>"|safe }}</p>
         </div>
         
@@ -935,7 +1017,7 @@
                 {% if key == 'task_type' %}📋 과제 유형
                 {% elif key == 'sentence_text' %}💬 문장 내용
                 {% elif key == 'sentence_index' %}📝 문장 번호
-                {% elif key == 'place' %}� 장소
+                {% elif key == 'place' %}📍 장소
                 {% elif key == 'region' %}🌍 지역
                 {% elif key == 'pronunciation_problem' or key == 'pronunProblem' %}🗣️ 발음 문제
                 {% elif key == 'subjective_rating' %}⭐ 주관적 평가
@@ -1002,7 +1084,7 @@
         
         {% if audio.snr_min %}
         <div class="info-item">
-          <h3>� 최소 SNR</h3>
+          <h3>📉 최소 SNR</h3>
           <p>{{ audio.snr_min }} dB</p>
         </div>
         {% endif %}
@@ -1026,7 +1108,7 @@
 
 
     <div style="text-align: center; margin-top: 30px;">
-      <a href="{% url 'audio_list' %}" class="btn btn-danger">❌ 닫기</a>
+      <a href="{% url 'voice_app:audio_list' %}" class="btn btn-danger"><span class="me-1" aria-hidden="true">×</span>닫기</a>
     </div>
   </div>
 
@@ -1534,6 +1616,345 @@
       }
     }
 
+    // ============================================================================
+    // Speaker Diarization 관련 함수들
+    // ============================================================================
+    
+    let diarizationData = null;
+    
+    function checkDiarizationStatus() {
+      const status = '{{ audio.diarization_status }}';
+      if (status === 'processing') {
+        const checkInterval = setInterval(function() {
+          fetch(`/audio/diarization-status/{{ audio.id }}/`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.status !== 'processing') {
+                location.reload();
+              }
+            })
+            .catch(error => console.log('Status check error:', error));
+        }, 5000);
+
+        window.addEventListener('beforeunload', function() {
+          clearInterval(checkInterval);
+        });
+      }
+    }
+    
+    function showDiarizationVisualization() {
+      console.log('Showing diarization visualization');
+      const container = document.getElementById('diarizationVisualization');
+      
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+        loadDiarizationData();
+      } else {
+        container.style.display = 'none';
+      }
+    }
+    
+    function loadDiarizationData() {
+      console.log('Loading diarization data...');
+      fetch(`/audio/diarization-data/{{ audio.id }}/`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Diarization data response:', data);
+          if (data.success) {
+            diarizationData = data.data;
+            renderDiarizationVisualization();
+          } else {
+            document.getElementById('diarizationSegments').innerHTML = 
+              '<div style="color: red;">화자 분리 데이터 없음: ' + (data.message || data.error) + '</div>';
+          }
+        })
+        .catch(error => {
+          console.error('Diarization data load error:', error);
+          document.getElementById('diarizationSegments').innerHTML = 
+            '<div style="color: red;">데이터 로드 실패: ' + error.message + '</div>';
+        });
+    }
+    
+    function renderDiarizationVisualization() {
+      if (!diarizationData) {
+        console.log('No diarization data to render');
+        return;
+      }
+
+      console.log('Rendering diarization visualization:', diarizationData);
+
+      // 타임라인 렌더링
+      renderDiarizationTimeline();
+      
+      // 통계 렌더링
+      renderDiarizationStats();
+      
+      // 세그먼트 목록 렌더링
+      renderDiarizationSegments();
+    }
+    
+    function renderDiarizationTimeline() {
+      const timeline = document.getElementById('diarizationTimeline');
+      timeline.innerHTML = '<h5>화자별 타임라인</h5>';
+      
+      if (!diarizationData.timeline || diarizationData.timeline.length === 0) {
+        timeline.innerHTML += '<p>타임라인 데이터가 없습니다.</p>';
+        return;
+      }
+      
+      const timelineDiv = document.createElement('div');
+      timelineDiv.style.cssText = 'position: relative; height: 80px; background-color: #f8f9fa; border-radius: 5px; margin-top: 10px;';
+      
+      // 전체 발화 시간
+      const totalTime = diarizationData.total_speech_time || 10;
+      
+      // 화자별 색상
+      const speakerColors = {
+        '아동': '#FF6B6B',
+        '선생님': '#4ECDC4',
+        '화자3': '#95E1D3',
+        '화자4': '#F3A683'
+      };
+      
+      diarizationData.timeline.forEach(segment => {
+        const startPercent = (segment.start / totalTime) * 100;
+        const widthPercent = ((segment.end - segment.start) / totalTime) * 100;
+        const color = speakerColors[segment.speaker] || '#999';
+        
+        const segmentDiv = document.createElement('div');
+        segmentDiv.style.cssText = `
+          position: absolute;
+          left: ${startPercent}%;
+          width: ${widthPercent}%;
+          height: 60px;
+          top: 10px;
+          background-color: ${color};
+          border: 1px solid #fff;
+          cursor: pointer;
+        `;
+        segmentDiv.title = segment.label;
+        
+        segmentDiv.addEventListener('click', function() {
+          if (wavesurfer && wavesurfer.getDuration()) {
+            wavesurfer.seekTo(segment.start / wavesurfer.getDuration());
+            wavesurfer.play();
+          }
+        });
+        
+        timelineDiv.appendChild(segmentDiv);
+      });
+      
+      timeline.appendChild(timelineDiv);
+    }
+    
+    function renderDiarizationStats() {
+      const statsDiv = document.getElementById('diarizationStats');
+      statsDiv.innerHTML = '<h5>화자별 통계</h5>';
+      
+      if (!diarizationData.speaker_stats) {
+        statsDiv.innerHTML += '<p>통계 데이터가 없습니다.</p>';
+        return;
+      }
+      
+      const table = document.createElement('table');
+      table.style.cssText = 'width: 100%; border-collapse: collapse; margin-top: 10px;';
+      table.innerHTML = `
+        <thead>
+          <tr style="background-color: #f8f9fa;">
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">화자</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">발화 시간</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">세그먼트 수</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">비율</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      `;
+      
+      const tbody = table.querySelector('tbody');
+      
+      for (const [speaker, stats] of Object.entries(diarizationData.speaker_stats)) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>${speaker}</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${stats.total_duration.toFixed(2)}초</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${stats.num_segments}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${stats.percentage.toFixed(1)}%</td>
+        `;
+        tbody.appendChild(row);
+      }
+      
+      statsDiv.appendChild(table);
+    }
+    
+    function renderDiarizationSegments() {
+      const segmentsDiv = document.getElementById('diarizationSegments');
+      segmentsDiv.innerHTML = '<h5>화자별 세그먼트</h5>';
+      
+      if (!diarizationData.segments_by_speaker) {
+        segmentsDiv.innerHTML += '<p>세그먼트 데이터가 없습니다.</p>';
+        return;
+      }
+      
+      for (const [speaker, segments] of Object.entries(diarizationData.segments_by_speaker)) {
+        const speakerDiv = document.createElement('div');
+        speakerDiv.style.cssText = 'margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;';
+        
+        speakerDiv.innerHTML = `<h6 style="margin-bottom: 10px;">🎤 ${speaker} (${segments.length}개 세그먼트)</h6>`;
+        
+        const list = document.createElement('div');
+        segments.slice(0, 10).forEach((seg, idx) => {  // 처음 10개만 표시
+          const segItem = document.createElement('div');
+          segItem.style.cssText = 'padding: 5px; margin: 3px 0; background-color: white; border-radius: 3px; cursor: pointer; font-size: 14px;';
+          segItem.innerHTML = `${idx + 1}. ${seg.start_formatted} - ${seg.end_formatted} (${seg.duration_formatted})`;
+          
+          segItem.addEventListener('click', function() {
+            if (wavesurfer && wavesurfer.getDuration()) {
+              wavesurfer.seekTo(seg.start / wavesurfer.getDuration());
+              wavesurfer.play();
+            }
+          });
+          
+          list.appendChild(segItem);
+        });
+        
+        if (segments.length > 10) {
+          const moreDiv = document.createElement('div');
+          moreDiv.style.cssText = 'padding: 5px; margin-top: 5px; font-style: italic; color: #666;';
+          moreDiv.textContent = `... 외 ${segments.length - 10}개 더`;
+          list.appendChild(moreDiv);
+        }
+        
+        speakerDiv.appendChild(list);
+        segmentsDiv.appendChild(speakerDiv);
+      }
+    }
+    
+    function showSpeakerExtractModal() {
+      if (!diarizationData || !diarizationData.speakers) {
+        alert('화자 분리 데이터가 없습니다.');
+        return;
+      }
+      
+      const modal = document.getElementById('speakerExtractModal');
+      const speakerList = document.getElementById('speakerSelectionList');
+      
+      speakerList.innerHTML = '';
+      
+      diarizationData.speakers.forEach(speaker => {
+        const button = document.createElement('button');
+        button.className = 'btn btn-primary';
+        button.style.cssText = 'width: 100%; margin: 5px 0;';
+        button.textContent = `💾 ${speaker} 오디오 추출`;
+        button.onclick = function() {
+          extractSpeaker(speaker);
+        };
+        speakerList.appendChild(button);
+      });
+      
+      modal.style.display = 'flex';
+    }
+    
+    function closeSpeakerExtractModal() {
+      document.getElementById('speakerExtractModal').style.display = 'none';
+    }
+    
+    function extractSpeaker(speaker) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/audio/extract-speaker/{{ audio.id }}/`;
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = '{{ csrf_token }}';
+      form.appendChild(csrfInput);
+      
+      const speakerInput = document.createElement('input');
+      speakerInput.type = 'hidden';
+      speakerInput.name = 'speaker';
+      speakerInput.value = speaker;
+      form.appendChild(speakerInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+      
+      closeSpeakerExtractModal();
+    }
+    
+    // Diarization form submit handler
+    document.addEventListener('DOMContentLoaded', function() {
+      const diarizationForm = document.getElementById('diarizationForm');
+      if (diarizationForm) {
+        diarizationForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          const audioId = {{ audio.id }};
+          
+          // CSRF 토큰 가져오기
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+          
+          fetch(`/audio/diarize/${audioId}/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': csrfToken
+            }
+          })
+          .then(response => {
+            // 응답이 JSON인지 확인
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              return response.json();
+            } else {
+              // HTML 응답인 경우 (로그인 페이지 등)
+              throw new Error('서버가 JSON 대신 HTML을 반환했습니다. 로그인 상태를 확인해주세요.');
+            }
+          })
+          .then(data => {
+            if (data.success) {
+              alert(data.message);
+              location.reload();
+            } else {
+              alert('오류: ' + (data.error || '알 수 없는 오류'));
+            }
+          })
+          .catch(error => {
+            console.error('Diarization error:', error);
+            alert('화자 분리 요청 실패: ' + error.message);
+          });
+        });
+      }
+      
+      // 화자 분리 상태 체크
+      checkDiarizationStatus();
+    });
+
+    // ============================================================================
+    // Alignment 관련 함수들
+    // ============================================================================
+
+    function checkAlignmentStatus() {
+      const status = '{{ audio.alignment_status }}';
+      if (status === 'processing') {
+        const checkInterval = setInterval(function() {
+          fetch(`/api/alignment-status/{{ audio.id }}/`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.status !== 'processing') {
+                location.reload();
+              }
+            })
+            .catch(error => console.log('Status check error:', error));
+        }, 5000);
+
+        window.addEventListener('beforeunload', function() {
+          clearInterval(checkInterval);
+        });
+      }
+    }
+
     // Alignment 시각화 함수들
     function showAlignmentVisualization() {
       console.log('Showing alignment visualization');
@@ -1759,7 +2180,7 @@
         </ul>
       </div>
       
-      <form id="reuploadForm" method="POST" action="{% url 'audio_reupload' audio.id %}" enctype="multipart/form-data">
+      <form id="reuploadForm" method="POST" action="{% url 'voice_app:audio_reupload' audio.id %}" enctype="multipart/form-data">
         {% csrf_token %}
         
         <div style="margin-bottom: 20px;">

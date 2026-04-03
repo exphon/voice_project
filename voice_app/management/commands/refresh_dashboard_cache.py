@@ -15,6 +15,7 @@ from django.db.models import Count, Q, Avg
 from django.utils import timezone
 from voice_app.models import AudioRecord
 from decimal import Decimal
+from collections import defaultdict
 
 
 class Command(BaseCommand):
@@ -82,6 +83,23 @@ class Command(BaseCommand):
                 'poor': recordings_with_snr.filter(snr_mean__lt=0).count(),
                 'average': float(avg_snr) if avg_snr else 0,
             }
+
+            # 5-1. 소음 수준(noise_level) 분포 통계 (메타데이터 기반)
+            noise_level_counts = defaultdict(int)
+            for row in AudioRecord.objects.exclude(noise_level__isnull=True).exclude(noise_level__exact='').values('noise_level'):
+                raw_level = (row.get('noise_level') or '').strip()
+                if not raw_level:
+                    continue
+                normalized = raw_level
+                lowered = raw_level.lower()
+                if lowered in ['unknown', '미상', '불명', 'null', 'none']:
+                    normalized = '미상'
+                noise_level_counts[normalized] += 1
+            noise_level_stats = sorted(
+                [{'level': k, 'count': v} for k, v in noise_level_counts.items()],
+                key=lambda x: x['count'],
+                reverse=True
+            )
             
             # 6. 월별 통계 (최근 12개월)
             from datetime import datetime
@@ -172,6 +190,7 @@ class Command(BaseCommand):
                 'gender_stats': gender_stats,
                 'status_stats': status_stats,
                 'snr_stats': snr_stats,
+                'noise_level_stats': noise_level_stats,
                 'monthly_stats': monthly_stats,
                 'diagnosis_stats': diagnosis_stats,
                 'using_cache': True,

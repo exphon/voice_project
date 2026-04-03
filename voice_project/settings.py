@@ -56,6 +56,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "voice_app.context_processors.audio_download_size",
             ],
         },
     },
@@ -146,6 +147,11 @@ ASSETS_ROOT = BASE_DIR / 'assets'
 # 로그인/로그아웃 리다이렉트 설정
 LOGIN_REDIRECT_URL = '/'  # 로그인 후 음성 데이터 목록으로 리다이렉트
 LOGOUT_REDIRECT_URL = '/'  # 로그아웃 후 홈페이지로 리다이렉트
+
+# 상단 '데이터 다운로드 (xxMB)' 용량 표시는 민감할 수 있어 제한합니다.
+# - superuser는 항상 표시
+# - staff는 아래 ID 목록에 포함된 경우에만 표시
+DOWNLOAD_SIZE_STAFF_USER_IDS = [4]  # calvinso
 
 # Django REST Framework 설정
 REST_FRAMEWORK = {

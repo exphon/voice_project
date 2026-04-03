@@ -10,6 +10,9 @@ urlpatterns = [
     path('userprofile/', views.userprofile, name='userprofile'),
     path('dashboard/', views.dashboard, name='dashboard'),
 
+    # Download
+    path('download/audio/', views.download_audio_zip, name='download_audio_zip'),
+
     # Lists / detail
     path('list/', views.audio_list, name='audio_list'),
     path('audio/<int:audio_id>/', views.audio_detail, name='audio_detail'),

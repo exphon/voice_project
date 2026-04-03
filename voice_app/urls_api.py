@@ -5,6 +5,11 @@ from .views import AudioUploadView, SimpleCategoryUploadView
 app_name = 'voice_app_api'
 
 urlpatterns = [
+    # Alias: legacy/simple list endpoint
+    # - /api/list and /api/list/ -> same as /api/all/list/api/
+    path('list', views.api_all_audio_list, name='api_list'),
+    path('list/', views.api_all_audio_list, name='api_list_slash'),
+
     # Assets (React Native)
     path('assets/list/', views.api_assets_list, name='api_assets_list'),
     path('assets/list/<str:category>/<str:folder>/', views.api_assets_files, name='api_assets_files'),
@@ -32,6 +37,9 @@ urlpatterns = [
     path('status/', views.api_status, name='api_status'),
     path('config/', views.api_config, name='api_config'),
     path('test-upload/', views.test_file_upload, name='api_test_upload'),
+    
+    # Identifier generation
+    path('generate-identifier/', views.generate_identifier, name='generate_identifier'),
 
     # WhisperX APIs
     path('whisperx/transcribe/', views.whisperx_transcribe, name='whisperx_transcribe'),

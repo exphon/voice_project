@@ -499,7 +499,7 @@
     <tbody>
       {% for audio in audio_list %}
       <tr id="row-{{ audio.id }}" tabindex="-1">
-        <td>{{ forloop.counter }}</td>
+        <td>{{ audio.display_no }}</td>
         <td class="audio-cell">
           <div class="custom-audio-player">
             <button class="play-button" onclick="toggleAudio(this, '{{ audio.audio_file.url|escapejs }}', '{{ forloop.counter0 }}')">

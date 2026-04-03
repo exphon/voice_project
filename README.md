@@ -434,3 +434,63 @@ voice_project/
 **Made with ❤️ by exphon**
 
 *Last Updated: 2025-01-27*
+
+✅ Django에 Storytelling 녹음 기능 추가 완료
+React Native 앱의 storytelling 녹음 기능을 Django 백엔드에 성공적으로 추가했습니다.
+
+📝 변경 사항 요약
+1️⃣ 모델 업데이트 (models.py)
+get_formatted_category_data() 함수의 senior 카테고리에 새 필드 추가:
+task_type: 과제 유형
+task_description: 과제 설명
+question_step: 질문 단계 (1 또는 2)
+recording_duration_seconds: 녹음 시간(초)
+2️⃣ 업로드 뷰 업데이트 (views.py)
+AudioUploadView에서 storytelling 메타데이터 처리:
+metadata_json의 task_info에서 storytelling 관련 필드 추출
+Senior 카테고리 데이터에 storytelling 필드 저장
+기존 /api/senior/upload/ 엔드포인트로 업로드 가능
+3️⃣ Admin 인터페이스 업데이트 (admin.py)
+Storytelling 타입별 필터 추가:
+"자발화 필수질문 (하루 일과)"
+"자발화 추가질문 (행복한 순간)"
+"모든 Storytelling"
+list_display에 과제 유형 컬럼 추가
+4️⃣ 템플릿 업데이트
+audio_detail.html: storytelling 필드용 아이콘/레이블 추가
+
+📝 과제 설명
+🔢 질문 단계
+⏱️ 녹음 시간(초)
+category_audio_list.html: task_type을 배지로 표시
+
+storytelling_required → 🔵 자발화 필수질문
+storytelling_additional → 🟢 자발화 추가질문
+🎯 업로드되는 데이터 매핑
+React Native에서 업로드하는 데이터가 Django에 다음과 같이 저장됩니다:
+
+React Native 필드	Django 저장 위치	설명
+metainfo_senior.*	AudioRecord 기본 필드	이름, 나이, 성별, 생년월일 등
+task_info.task_type	category_specific_data.task_type	storytelling_required 또는 storytelling_additional
+task_info.task_description	category_specific_data.task_description	과제 설명 텍스트
+task_info.question_step	category_specific_data.question_step	1 또는 2
+task_info.recording_duration_seconds	category_specific_data.recording_duration_seconds	녹음 시간
+🚀 테스트 방법
+업로드 테스트
+
+Admin 패널에서 확인
+
+Storytelling 타입 필터 사용
+과제 유형 컬럼에서 "필수질문" 또는 "추가질문" 확인
+리스트 페이지에서 확인
+
+task_type이 배지로 표시됨
+상세 페이지에서 확인
+
+각 레코드 클릭 시 상세 정보에 storytelling 필드 표시
+📌 추가 참고사항
+기존 /api/senior/upload/ 엔드포인트를 그대로 사용하므로 별도 URL 설정 불필요
+category_specific_data에 JSON 형태로 저장되어 유연한 확장 가능
+파일명 패턴: senior_storytelling_{required|additional}_{timestamp}_{name}_{age}_{gender}.m4a
+메타데이터 JSON도 함께 저장되어 추후 분석 가능
+모든 변경사항이 완료되었습니다! 🎉

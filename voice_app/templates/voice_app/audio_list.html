@@ -368,6 +368,12 @@
     audio::-webkit-media-controls-fullscreen-button {
       display: none !important;
     }
+
+    /* 작업중(전사 저장 전) 배지: 옅은 회색 */
+    .bg-working {
+      background-color: #e9ecef !important;
+      color: #333 !important;
+    }
   </style>
 
   <script>
@@ -672,7 +678,7 @@
           data-name="{{ audio.name|default_if_none:'' }}"
           data-gender="{{ audio.gender|default_if_none:'' }}"
           data-age="{{ audio.age|default_if_none:'' }}">
-        <td>{{ forloop.counter }}</td>
+        <td>{{ audio.display_no }}</td>
         <td class="speaker-count-cell">{{ audio.speaker_index }}</td>
         <td>
           {% if audio.identifier %}
@@ -751,7 +757,7 @@
           {% endif %}
         </td>
         <td>
-          <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}" onsubmit="return stayHere();">
+          <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}" onsubmit="return stayHere();" data-audio-id="{{ audio.id }}" data-has-auto="{% if audio.transcript %}1{% else %}0{% endif %}">
             {% csrf_token %}
             <textarea name="manual_transcript" rows="2">{{ audio.manual_transcript_display|default:audio.transcript_display|default_if_none:"" }}</textarea>
             <button type="submit" class="btn btn-save">💾 저장</button>
@@ -765,6 +771,9 @@
           <a href="{% url 'voice_app:audio_detail' audio.id %}?next={{ request.get_full_path|urlencode }}&focus={{ audio.id }}" class="btn-edit" title="상세 정보 편집">
             <i class="fas fa-edit"></i>
           </a>
+          <div style="margin-top: 4px; text-align: center;">
+            <span class="badge bg-working" data-transcript-status="1" data-audio-id="{{ audio.id }}">⏳ 작업중</span>
+          </div>
         </td>
       </tr>
       {% endfor %}
@@ -810,18 +819,64 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // 1) 해시로 선택 행 복귀
       const hash = window.location.hash || '';
-      if (!hash.startsWith('#row-')) return;
-
-      const row = document.querySelector(hash);
-      if (!row) return;
-
-      row.scrollIntoView({ block: 'center' });
-      try {
-        row.focus({ preventScroll: true });
-      } catch (e) {
-        row.focus();
+      if (hash.startsWith('#row-')) {
+        const row = document.querySelector(hash);
+        if (row) {
+          row.scrollIntoView({ block: 'center' });
+          try {
+            row.focus({ preventScroll: true });
+          } catch (e) {
+            row.focus();
+          }
+        }
       }
+
+      // 2) 전사 저장 상태 표시(기본 작업중 → 저장된 ID만 완료)
+      const badges = document.querySelectorAll('[data-transcript-status][data-audio-id]');
+      badges.forEach((badge) => {
+        const audioId = badge.getAttribute('data-audio-id');
+        if (!audioId) return;
+        try {
+          const key = 'djvm_transcript_saved_v1_' + String(audioId);
+          if (localStorage.getItem(key) === '1') {
+            badge.classList.remove('bg-working');
+            badge.classList.add('bg-success');
+            badge.textContent = '✅ 완료';
+          }
+        } catch (e) {
+          // ignore
+        }
+      });
+
+      // 3) 저장 버튼 클릭(폼 submit) 시 완료 플래그 갱신
+      // - 텍스트가 있으면 완료
+      // - 텍스트가 비어있더라도 자동 전사가 없는 경우(전사 불가 케이스)면 완료로 인정
+      // - 텍스트가 비어있고 자동 전사가 있으면 작업중 유지(완료 플래그 제거)
+      const transcriptionForms = document.querySelectorAll('form[action*="/update_transcription/"][data-audio-id]');
+      transcriptionForms.forEach((form) => {
+        form.addEventListener('submit', function () {
+          const audioId = form.getAttribute('data-audio-id');
+          const hasAuto = form.getAttribute('data-has-auto') === '1';
+          const textarea = form.querySelector('textarea[name="manual_transcript"]');
+          const current = ((textarea && textarea.value) || '').trim();
+          if (!audioId) return;
+
+          const key = 'djvm_transcript_saved_v1_' + String(audioId);
+          const shouldMarkDone = current.length > 0 || !hasAuto;
+
+          try {
+            if (shouldMarkDone) {
+              localStorage.setItem(key, '1');
+            } else {
+              localStorage.removeItem(key);
+            }
+          } catch (e) {
+            // ignore
+          }
+        });
+      });
     });
   </script>
 </body>

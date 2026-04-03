@@ -258,6 +258,7 @@
 
     .bg-success { background-color: #28a745 !important; color: white; }
     .bg-warning { background-color: #ffc107 !important; color: #333; }
+    .bg-working { background-color: #e9ecef !important; color: #333; }
     .bg-danger { background-color: #dc3545 !important; color: white; }
     .bg-secondary { background-color: #6c757d !important; color: white; }
 
@@ -505,25 +506,25 @@
         </div>
         <div class="volume-control">
           <label for="volumeSlider">볼륨:</label>
-          <input type="range" id="volumeSlider" min="0" max="100" value="50">
+          <input type="range" id="volumeSlider" min="0" max="130" value="130">
         </div>
         
         <!-- 다운로드 및 전사 버튼 -->
         <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
-          <a href="{% url 'voice_app:audio_download' audio.id %}" class="btn btn-primary">💾 다운로드</a>
-
-          {% if user.is_staff or user.is_superuser %}
-          <form method="POST" action="{% url 'voice_app:audio_delete' audio.id %}" style="display: inline;" onsubmit="return confirm('정말 삭제하시겠습니까?\n\n- DB 레코드가 삭제됩니다.\n- 서버 media 폴더의 파일(.wav 포함)이 함께 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.');">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger">🗑 삭제</button>
-          </form>
+          {% if user.is_superuser or user.username == 'hallym' %}
+            <a href="{% url 'voice_app:audio_download' audio.id %}" class="btn btn-primary">💾 다운로드</a>
           {% endif %}
-          
-          {% if user.is_staff or user.is_superuser %}
-          <!-- 오디오 파일 재업로드 (보안 검증) -->
-          <button type="button" class="btn btn-warning" onclick="document.getElementById('reuploadModal').style.display='block'">
-            🔄 파일 재업로드
-          </button>
+
+          {% if user.is_superuser %}
+            <form method="POST" action="{% url 'voice_app:audio_delete' audio.id %}" style="display: inline;" onsubmit="return confirm('정말 삭제하시겠습니까?\n\n- DB 레코드가 삭제됩니다.\n- 서버 media 폴더의 파일(.wav 포함)이 함께 삭제됩니다.\n\n이 작업은 되돌릴 수 없습니다.');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">🗑 삭제</button>
+            </form>
+
+            <!-- 오디오 파일 재업로드 (보안 검증) -->
+            <button type="button" class="btn btn-warning" onclick="document.getElementById('reuploadModal').style.display='block'">
+              🔄 파일 재업로드
+            </button>
           {% endif %}
           
           <!-- Whisper 전사 버튼과 상태 표시 -->
@@ -587,7 +588,7 @@
 
       <!-- 전사 수정 탭 -->
       <div id="transcription-tab" class="tab-content active">
-        <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}">
+        <form method="POST" action="{% url 'voice_app:update_transcription' audio.id %}" id="transcriptionForm">
           {% csrf_token %}
           <div class="form-group">
             <label for="manual_transcript">전사 내용 (수동 편집)</label>
@@ -598,7 +599,42 @@
               </small>
             {% endif %}
           </div>
-          <button type="submit" class="btn btn-success">💾 전사 내용 저장</button>
+          <button type="submit" class="btn btn-success" id="transcriptionSaveBtn">💾 전사 내용 저장</button>
+          <span style="margin-left: 8px; display: inline-flex; align-items: center; gap: 8px; vertical-align: middle;">
+            <span id="transcriptionSaveStatus" class="badge {% if request.GET.saved_transcript == '1' %}bg-success{% else %}bg-working{% endif %}" style="display: inline-flex; align-items: center; line-height: 1;">
+              {% if request.GET.saved_transcript == '1' %}✅ 완료{% else %}⏳ 작업중{% endif %}
+            </span>
+
+            {% if prev_audio_url %}
+              <a href="{{ prev_audio_url }}" aria-label="이전 데이터" style="text-decoration: none; display: inline-flex; align-items: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">
+                  <path d="M15 19L8 12L15 5" stroke="#0d6efd" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            {% else %}
+              <span aria-label="이전 데이터 없음" style="display: inline-flex; align-items: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">
+                  <path d="M15 19L8 12L15 5" stroke="#bbb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            {% endif %}
+
+            <span style="display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; color: #0d6efd;">전 - 후</span>
+
+            {% if next_audio_url %}
+              <a href="{{ next_audio_url }}" aria-label="다음 데이터" style="text-decoration: none; display: inline-flex; align-items: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">
+                  <path d="M9 5L16 12L9 19" stroke="#0d6efd" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            {% else %}
+              <span aria-label="다음 데이터 없음" style="display: inline-flex; align-items: center;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block;">
+                  <path d="M9 5L16 12L9 19" stroke="#bbb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            {% endif %}
+          </span>
         </form>
 
         <!-- 메모 영역 (전사 수정 중 특이사항 기록) -->
@@ -1015,6 +1051,9 @@
             <div class="info-item">
               <h3>
                 {% if key == 'task_type' %}📋 과제 유형
+                {% elif key == 'task_description' %}📝 과제 설명
+                {% elif key == 'question_step' %}🔢 질문 단계
+                {% elif key == 'recording_duration_seconds' %}⏱️ 녹음 시간(초)
                 {% elif key == 'sentence_text' %}💬 문장 내용
                 {% elif key == 'sentence_index' %}📝 문장 번호
                 {% elif key == 'place' %}📍 장소
@@ -1485,6 +1524,15 @@
           responsive: true,
           normalize: true
         });
+
+        // 기본 볼륨(현재 기본값 기준 +30%)을 즉시 반영
+        const volumeSlider = document.getElementById('volumeSlider');
+        if (volumeSlider) {
+          const maxVal = parseFloat(volumeSlider.max || '130');
+          const rawVal = parseFloat(volumeSlider.value || '130');
+          const safeVal = Math.min(Math.max(rawVal, 0), isNaN(maxVal) ? 130 : maxVal);
+          wavesurfer.setVolume(safeVal / 100);
+        }
 
         const audioUrl = '{{ audio.audio_file.url }}';
         console.log('Loading audio:', audioUrl);
@@ -2160,6 +2208,7 @@
     });
   </script>
 
+  {% if user.is_superuser %}
   <!-- 오디오 재업로드 모달 -->
   <div id="reuploadModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div style="background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; border-radius: 10px; width: 600px; max-width: 90%;">
@@ -2346,6 +2395,83 @@
       xhr.open('POST', this.action);
       xhr.setRequestHeader('X-CSRFToken', formData.get('csrfmiddlewaretoken'));
       xhr.send(formData);
+    });
+  </script>
+  {% endif %}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('transcriptionForm');
+      const textarea = document.getElementById('manual_transcript');
+      const status = document.getElementById('transcriptionSaveStatus');
+
+      const hasAutoTranscript = {% if audio.transcript %}true{% else %}false{% endif %};
+
+      if (!form || !textarea || !status) return;
+
+      const setWorking = () => {
+        status.classList.remove('bg-success');
+        status.classList.add('bg-working');
+        status.textContent = '⏳ 작업중';
+      };
+
+      const setDone = () => {
+        status.classList.remove('bg-working');
+        status.classList.add('bg-success');
+        status.textContent = '✅ 완료';
+      };
+
+      // audio_detail은 저장 직후에만 saved_transcript=1 이 붙어서 오므로,
+      // 페이지 리다이렉트(예: Whisper 전사) 이후에도 완료 표시를 유지하려면 localStorage를 사용.
+      // 단, 현재 전사 내용이 비어있으면 완료로 유지하지 않고 '작업중'으로 표시.
+      try {
+        const key = 'djvm_transcript_saved_v1_' + String({{ audio.id }});
+        if (localStorage.getItem(key) === '1') {
+          const current = (textarea.value || '').trim();
+          if (current.length > 0) {
+            setDone();
+          } else if (!hasAutoTranscript) {
+            // 자동 전사 자체가 없는(전사 불가) 케이스면 빈 값 저장도 완료로 인정
+            setDone();
+          } else {
+            setWorking();
+            try {
+              localStorage.removeItem(key);
+            } catch (e) {
+              // ignore
+            }
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      const initialValue = textarea.value;
+
+      textarea.addEventListener('input', function () {
+        if (textarea.value !== initialValue) {
+          setWorking();
+        }
+      });
+
+      form.addEventListener('submit', function () {
+        const current = (textarea.value || '').trim();
+        if (current.length > 0 || !hasAutoTranscript) {
+          setDone();
+          try {
+            localStorage.setItem('djvm_transcript_saved_v1_' + String({{ audio.id }}), '1');
+          } catch (e) {
+            // ignore
+          }
+        } else {
+          setWorking();
+          try {
+            localStorage.removeItem('djvm_transcript_saved_v1_' + String({{ audio.id }}));
+          } catch (e) {
+            // ignore
+          }
+        }
+      });
     });
   </script>
 </body>

@@ -137,25 +137,28 @@ class AudioRecord(models.Model):
     @property
     def transcript_display(self) -> str:
         """표시용 자동 전사 텍스트(프롬프트 유출/라벨 정리 포함)."""
-        from .whisper_utils import _scrub_prompt_leakage, _koreanize_common_english_tokens
+        from .whisper_utils import _scrub_prompt_leakage, _koreanize_common_english_tokens, _strip_non_korean_scripts
 
         text = _scrub_prompt_leakage(self.transcript or "")
         text = _strip_speaker_prefixes_for_display(text)
         text = _koreanize_common_english_tokens(text)
+        text = _strip_non_korean_scripts(text)
         return (text or "").strip()
 
     @property
     def manual_transcript_display(self) -> str:
         """표시용 수동 전사 텍스트(프롬프트 유출/라벨 정리 포함)."""
-        from .whisper_utils import _scrub_prompt_leakage, _koreanize_common_english_tokens
+        from .whisper_utils import _scrub_prompt_leakage, _koreanize_common_english_tokens, _strip_non_korean_scripts
 
         text = _scrub_prompt_leakage(self.manual_transcript or "")
         text = _strip_speaker_prefixes_for_display(text)
         text = _koreanize_common_english_tokens(text)
+        text = _strip_non_korean_scripts(text)
         return (text or "").strip()
 
     def save(self, *args, **kwargs):
-        """저장 시 나이 자동 계산"""
+        """저장 시 나이 자동 계산 및 identifier 검증"""
+        # 나이 자동 계산
         if self.birth_year:
             try:
                 current_year = timezone.now().year
@@ -163,6 +166,35 @@ class AudioRecord(models.Model):
                 self.age = str(current_year - birth_year)
             except (ValueError, TypeError):
                 pass
+        
+        # identifier가 있고 생년월일이 있는 경우, 동일 identifier의 생년월일 일치 검증
+        if self.identifier and self.birth_year and self.birth_month and self.birth_day:
+            # 현재 저장하려는 생년월일
+            current_birth_date = f"{self.birth_year}-{self.birth_month.zfill(2)}-{self.birth_day.zfill(2)}"
+            
+            # 동일 identifier를 가진 다른 레코드 중 생년월일이 있는 것 찾기
+            existing_records = AudioRecord.objects.filter(
+                identifier=self.identifier
+            ).exclude(
+                pk=self.pk  # 자기 자신은 제외
+            ).exclude(
+                birth_year__isnull=True
+            ).exclude(
+                birth_month__isnull=True
+            ).exclude(
+                birth_day__isnull=True
+            )
+            
+            for record in existing_records[:1]:  # 첫 번째 레코드만 확인하면 충분
+                existing_birth_date = f"{record.birth_year}-{record.birth_month.zfill(2)}-{record.birth_day.zfill(2)}"
+                if existing_birth_date != current_birth_date:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError(
+                        f"동일한 identifier '{self.identifier}'를 가진 다른 화자가 이미 존재합니다. "
+                        f"기존 생년월일: {existing_birth_date}, 입력된 생년월일: {current_birth_date}. "
+                        f"서로 다른 사람은 다른 identifier를 사용해야 합니다."
+                    )
+        
         super().save(*args, **kwargs)
 
     # 카테고리별 특화 데이터 접근 메서드들
@@ -671,7 +703,11 @@ class AudioRecord(models.Model):
             'senior': {
                 'education': '교육 수준',
                 'has_voice_problem': '음성 문제 여부',
-                'region': '지역'
+                'region': '지역',
+                'task_type': '과제 유형',
+                'task_description': '과제 설명',
+                'question_step': '질문 단계',
+                'recording_duration_seconds': '녹음 시간(초)'
             },
             'auditory': {
                 'education': '교육 수준',

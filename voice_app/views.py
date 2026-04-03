@@ -26,7 +26,10 @@ import subprocess
 import whisper
 import json
 import base64
+import zipfile
+import tempfile
 from urllib.parse import unquote
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.paginator import Paginator
@@ -41,15 +44,39 @@ from rest_framework.decorators import api_view
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.utils import timezone
 from django.db.models import Q
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
+
+
+@login_required
+def download_audio_zip(request):
+    audio_root = os.path.join(settings.MEDIA_ROOT, 'audio')
+    if not os.path.isdir(audio_root):
+        return HttpResponse('media/audio 폴더를 찾을 수 없습니다.', status=404)
+
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+    download_name = f'audio_{timestamp}.zip'
+
+    tmp = tempfile.NamedTemporaryFile(suffix='.zip', delete=True)
+    with zipfile.ZipFile(tmp, 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
+        for root, _dirs, files in os.walk(audio_root):
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                if not os.path.isfile(file_path):
+                    continue
+                arcname = os.path.relpath(file_path, settings.MEDIA_ROOT)
+                zipf.write(file_path, arcname)
+
+    tmp.seek(0)
+    return FileResponse(tmp, as_attachment=True, filename=download_name, content_type='application/zip')
 
 from .tasks import transcribe_audio_task
 from django.views.generic import View
@@ -60,7 +87,7 @@ from django.views.decorators.http import require_POST
 import json
 from .models import AudioRecord
 from pydub import AudioSegment  # 의존성 때문에 임시 주석
-from .whisper_utils import transcribe_audio, transcribe_and_align_whisperx, format_alignment_for_frontend, _scrub_prompt_leakage  # whisperx 의존성 때문에 임시 주석
+from .whisper_utils import transcribe_audio, transcribe_and_align_whisperx, format_alignment_for_frontend, _scrub_prompt_leakage, _strip_non_korean_scripts  # whisperx 의존성 때문에 임시 주석
 import re
 
 
@@ -95,6 +122,7 @@ def _clean_transcript_for_display(text: str) -> str:
     out = _scrub_prompt_leakage(text or '')
     out = _strip_speaker_prefixes(out)
     out = _koreanize_common_english_tokens(out)
+    out = _strip_non_korean_scripts(out)
     return (out or '').strip()
 
 
@@ -111,6 +139,163 @@ def _speaker_key(identifier, name, gender, age):
         _normalize_speaker_key_part(gender),
         _normalize_speaker_key_part(age),
     )
+
+
+def _normalize_filter_value(value):
+    if value is None:
+        return None
+    s = str(value).strip()
+    return s or None
+
+
+def _build_ordered_audio_ids_for_list_context(request, next_url: str):
+    """Build ordered AudioRecord id list for a given list-page URL (path+query).
+
+    Supports:
+    - audio_list: /voice/list/
+    - category_audio_list: /voice/<category>/list/
+    - identifier_audio_list: /voice/identifier/<identifier>/
+
+    Returns: list[int] or None
+    """
+    if not next_url:
+        return None
+
+    try:
+        parts = urlsplit(next_url)
+        path = parts.path or ''
+        params = dict(parse_qsl(parts.query, keep_blank_values=True))
+    except Exception:
+        return None
+
+    # normalize path (no trailing slash issues)
+    if path and not path.endswith('/'):
+        path = path + '/'
+
+    audio_list_path = reverse('voice_app:audio_list')
+    if audio_list_path and not audio_list_path.endswith('/'):
+        audio_list_path += '/'
+
+    identifier_prefix = reverse('voice_app:identifier_audio_list', kwargs={'identifier': 'DUMMY'}).replace('DUMMY/', '')
+    if identifier_prefix and not identifier_prefix.endswith('/'):
+        identifier_prefix += '/'
+
+    # 1) identifier_audio_list
+    if path.startswith(identifier_prefix):
+        identifier = path[len(identifier_prefix):].strip('/')
+        if not identifier:
+            return None
+        sort_by = _normalize_filter_value(params.get('sort')) or '-created_at'
+        valid_sort_fields = [
+            'identifier', '-identifier',
+            'id', '-id',
+            'created_at', '-created_at',
+            'name', '-name',
+            'gender', '-gender',
+            'age', '-age',
+            'category', '-category',
+            'status', '-status',
+            'snr_mean', '-snr_mean',
+            'snr_max', '-snr_max',
+            'snr_min', '-snr_min',
+            'region', '-region',
+            'education_level', '-education_level',
+            'hearing_level', '-hearing_level',
+            'age_in_months', '-age_in_months'
+        ]
+        if sort_by not in valid_sort_fields:
+            sort_by = '-created_at'
+        return list(
+            AudioRecord.objects.filter(identifier=identifier).order_by(sort_by).values_list('id', flat=True)
+        )
+
+    # 2) category_audio_list: /voice/<category>/list/
+    # keep this simple (only known categories)
+    m = re.match(r"^/voice/(?P<category>child|senior|atypical|auditory|normal)/list/", path)
+    category = m.group('category') if m else None
+
+    # 3) audio_list: exact match
+    is_all_list = (path == audio_list_path)
+    if not is_all_list and not category:
+        return None
+
+    identifier_filter = _normalize_filter_value(params.get('identifier'))
+    name_filter = _normalize_filter_value(params.get('name'))
+    age_filter = _normalize_filter_value(params.get('age'))
+    task_type_filter = _normalize_filter_value(params.get('task_type'))
+
+    sort_by = _normalize_filter_value(params.get('sort')) or '-created_at'
+    valid_sort_fields = [
+        'identifier', '-identifier',
+        'id', '-id',
+        'created_at', '-created_at',
+        'name', '-name',
+        'gender', '-gender',
+        'age', '-age',
+        'speaker', '-speaker',
+        'task_type', '-task_type',
+        'status', '-status',
+        'category', '-category',
+        'snr_mean', '-snr_mean',
+        'snr_max', '-snr_max',
+        'snr_min', '-snr_min',
+        'region', '-region',
+        'education_level', '-education_level',
+        'hearing_level', '-hearing_level',
+        'age_in_months', '-age_in_months'
+    ]
+    if sort_by not in valid_sort_fields:
+        sort_by = '-created_at'
+
+    qs = AudioRecord.objects.all() if is_all_list else AudioRecord.objects.filter(category=category)
+
+    if identifier_filter:
+        qs = qs.filter(identifier=identifier_filter)
+    if name_filter:
+        qs = qs.filter(name__icontains=name_filter)
+    if age_filter:
+        qs = qs.filter(age=age_filter)
+    if task_type_filter:
+        try:
+            qs = qs.filter(category_specific_data__task_type__icontains=task_type_filter)
+        except Exception:
+            needle = task_type_filter.lower()
+            qs = [
+                a for a in qs
+                if needle in str((a.category_specific_data or {}).get('task_type', '') or '').lower()
+            ]
+
+    # Sorting (match list views)
+    if sort_by in ['speaker', '-speaker']:
+        items = list(qs) if not isinstance(qs, list) else qs
+        reverse_sort = sort_by.startswith('-')
+        items.sort(key=lambda x: (x.created_at is None, x.created_at), reverse=True)
+        items.sort(key=lambda x: _speaker_key(x.identifier, x.name, x.gender, x.age), reverse=reverse_sort)
+        return [a.id for a in items]
+
+    if sort_by in ['task_type', '-task_type']:
+        items = list(qs) if not isinstance(qs, list) else qs
+        reverse_sort = sort_by.startswith('-')
+        items.sort(
+            key=lambda x: str((x.category_specific_data or {}).get('task_type', '') or '').lower(),
+            reverse=reverse_sort,
+        )
+        return [a.id for a in items]
+
+    if isinstance(qs, list):
+        reverse_sort = sort_by.startswith('-')
+        field = sort_by[1:] if reverse_sort else sort_by
+
+        def _key(obj):
+            value = getattr(obj, field, None)
+            if isinstance(value, str):
+                value = value.lower()
+            return (value is None, value)
+
+        qs.sort(key=_key, reverse=reverse_sort)
+        return [a.id for a in qs]
+
+    return list(qs.order_by(sort_by).values_list('id', flat=True))
 
 
 def _build_speaker_index_map(audio_list_qs):
@@ -319,6 +504,69 @@ def api_config(request):
         'sample_rate': 16000,
         'channels': 1
     })
+
+@api_view(['GET'])
+def generate_identifier(request):
+    """
+    사용 가능한 새로운 identifier 생성 API
+    
+    Query Parameters:
+    - category: 카테고리 (child, senior, auditory, atypical)
+    
+    Response:
+    {
+        "success": true,
+        "identifier": "C12345",
+        "category": "child",
+        "prefix": "C"
+    }
+    """
+    import random
+    from .models import AudioRecord
+    
+    category = request.GET.get('category', 'child')
+    
+    # 카테고리별 접두사 매핑
+    prefix_map = {
+        'child': 'C',
+        'senior': 'S',
+        'auditory': 'A',
+        'atypical': 'A',
+        'normal': 'N'
+    }
+    
+    prefix = prefix_map.get(category, 'C')
+    
+    # 기존 identifier 수집
+    existing_identifiers = set(
+        AudioRecord.objects.filter(
+            identifier__isnull=False,
+            identifier__startswith=prefix
+        ).values_list('identifier', flat=True)
+    )
+    
+    # 새로운 identifier 생성 (최대 100번 시도)
+    new_identifier = None
+    for _ in range(100):
+        number = random.randint(10000, 99999)
+        candidate = f"{prefix}{number}"
+        
+        if candidate not in existing_identifiers:
+            new_identifier = candidate
+            break
+    
+    if new_identifier:
+        return Response({
+            'success': True,
+            'identifier': new_identifier,
+            'category': category,
+            'prefix': prefix
+        })
+    else:
+        return Response({
+            'success': False,
+            'error': f'사용 가능한 {prefix} identifier를 찾을 수 없습니다.'
+        }, status=500)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AudioUploadView(APIView):
@@ -562,6 +810,11 @@ class AudioUploadView(APIView):
             subjective_note = request.data.get('subjectiveNote')
             job = request.data.get('job')
             
+            # Senior storytelling 관련 필드
+            task_description = request.data.get('task_description')
+            question_step = request.data.get('question_step')
+            recording_duration_seconds = request.data.get('recording_duration_seconds')
+            
             # Auditory 고유 - 청각 관련
             hearing_level = request.data.get('hearingLevel') or request.data.get('hearingDegree')
             hearing_loss_duration = request.data.get('hearingLossDuration')
@@ -671,6 +924,11 @@ class AudioUploadView(APIView):
                         elif task_info_data.get('sentence_index') is not None:
                             sentence_index = sentence_index or str(task_info_data['sentence_index'])
                         sentence_text = sentence_text or task_info_data.get('sentence_text')
+                        
+                        # Senior storytelling 관련 필드 추출
+                        task_description = task_description or task_info_data.get('task_description')
+                        question_step = question_step or task_info_data.get('question_step')
+                        recording_duration_seconds = recording_duration_seconds or task_info_data.get('recording_duration_seconds')
                     
                     # upload_info에서 정보 추출
                     if 'upload_info' in metadata:
@@ -718,6 +976,101 @@ class AudioUploadView(APIView):
             print(f"[DEBUG] Extracted data - name: {name}, gender: {gender}, region: {region}, place: {place}")
             print(f"[DEBUG] Device info - device: {device}, mic: {mic}, noise: {noise}")
             print(f"[DEBUG] Task info - task_type: {task_type}, sentence_index: {sentence_index}")
+            
+            # identifier 중복 검증 및 자동 할당 (생년월일이 다른 경우)
+            original_identifier = identifier  # 원본 identifier 저장
+            identifier_was_auto_assigned = False
+            birth_date_was_corrected = False
+            
+            if identifier and birth_year and birth_month and birth_day:
+                current_birth_date = f"{birth_year}-{birth_month.zfill(2)}-{birth_day.zfill(2)}"
+                
+                # 1차 검증: 동일 identifier를 가진 레코드 확인
+                existing_with_birth = AudioRecord.objects.filter(
+                    identifier=identifier
+                ).exclude(
+                    birth_year__isnull=True
+                ).exclude(
+                    birth_month__isnull=True
+                ).exclude(
+                    birth_day__isnull=True
+                ).first()
+                
+                # 2차 검증: 동일 identifier + 이름을 가진 레코드 확인 (같은 사람인데 생년월일 오류)
+                if name and existing_with_birth:
+                    existing_with_name = AudioRecord.objects.filter(
+                        identifier=identifier,
+                        name=name.strip()
+                    ).exclude(
+                        birth_year__isnull=True
+                    ).exclude(
+                        birth_month__isnull=True
+                    ).exclude(
+                        birth_day__isnull=True
+                    ).first()
+                    
+                    if existing_with_name:
+                        existing_name_birth_date = f"{existing_with_name.birth_year}-{existing_with_name.birth_month.zfill(2)}-{existing_with_name.birth_day.zfill(2)}"
+                        
+                        # 같은 identifier + 같은 이름인데 생년월일이 다른 경우
+                        if existing_name_birth_date != current_birth_date:
+                            # 데이터 입력 오류로 간주하고 기존 생년월일로 자동 수정
+                            warning_msg = (
+                                f"⚠️ 생년월일 오류 감지! '{identifier}' ({name})의 생년월일이 "
+                                f"'{current_birth_date}'로 입력되었으나, 기존 레코드는 '{existing_name_birth_date}'입니다. "
+                                f"데이터 일관성을 위해 '{existing_name_birth_date}'로 자동 수정합니다."
+                            )
+                            print(f"[WARNING] {warning_msg}")
+                            
+                            # 생년월일을 기존 값으로 수정
+                            birth_year = existing_with_name.birth_year
+                            birth_month = existing_with_name.birth_month
+                            birth_day = existing_with_name.birth_day
+                            birth_date_was_corrected = True
+                
+                # 3차 검증: 다른 사람인데 identifier가 같은 경우 (생년월일이 다름)
+                if existing_with_birth and not birth_date_was_corrected:
+                    existing_birth_date = f"{existing_with_birth.birth_year}-{existing_with_birth.birth_month.zfill(2)}-{existing_with_birth.birth_day.zfill(2)}"
+                    if existing_birth_date != current_birth_date:
+                        # 🔄 서버가 자동으로 새 identifier 생성 및 할당
+                        import random
+                        category_prefix = identifier[0].upper() if identifier else 'C'
+                        if category_prefix not in ['C', 'S', 'A']:
+                            category_prefix = 'C'
+                        
+                        # 사용 가능한 새 identifier 찾기
+                        new_identifier = None
+                        existing_identifiers = set(
+                            AudioRecord.objects.filter(
+                                identifier__startswith=category_prefix
+                            ).values_list('identifier', flat=True)
+                        )
+                        
+                        for attempt in range(100):  # 최대 100번 시도
+                            number = random.randint(10000, 99999)
+                            candidate_id = f"{category_prefix}{number}"
+                            if candidate_id not in existing_identifiers:
+                                new_identifier = candidate_id
+                                break
+                        
+                        if new_identifier:
+                            warning_msg = (
+                                f"⚠️ Identifier 충돌 감지! '{identifier}'는 다른 화자(생년월일: {existing_birth_date})가 이미 사용 중입니다. "
+                                f"서버가 자동으로 새 identifier '{new_identifier}'를 할당했습니다."
+                            )
+                            print(f"[WARNING] {warning_msg}")
+                            
+                            # identifier를 새로 생성된 것으로 교체
+                            identifier = new_identifier
+                            identifier_was_auto_assigned = True
+                        else:
+                            # 새 identifier 생성 실패 (극히 드문 경우)
+                            error_msg = (
+                                f"동일한 identifier '{identifier}'를 가진 다른 화자가 이미 존재하며, "
+                                f"새로운 identifier 생성에 실패했습니다. 나중에 다시 시도해주세요."
+                            )
+                            print(f"[ERROR] {error_msg}")
+                            return Response({'error': error_msg}, status=500)
             
             # URL에서 카테고리 추출하거나 POST 데이터에서 가져오기
             category = kwargs.get('category') or request.data.get('category', 'normal')
@@ -955,6 +1308,14 @@ class AudioUploadView(APIView):
                     category_data['subjective_note'] = subjective_note
                 if job:
                     category_data['job'] = job
+                
+                # Senior storytelling 관련 필드 저장
+                if task_description:
+                    category_data['task_description'] = task_description
+                if question_step:
+                    category_data['question_step'] = question_step
+                if recording_duration_seconds:
+                    category_data['recording_duration_seconds'] = recording_duration_seconds
             
             # Auditory 고유 필드
             if category == 'auditory':
@@ -1089,10 +1450,42 @@ class AudioUploadView(APIView):
             elif ext.lower() == 'wav':
                 print(f"[DEBUG] Skipping removal of WAV file as it was converted in-place")
 
-            return Response({
+            # 응답 데이터 구성
+            response_data = {
                 'message': '업로드 성공',
-                'file_path': audio_record.audio_file.url
-            })
+                'file_path': audio_record.audio_file.url,
+                'audio_id': audio_record.id,
+                'identifier': identifier
+            }
+            
+            # identifier가 자동 할당된 경우 추가 정보 포함
+            if identifier_was_auto_assigned:
+                response_data.update({
+                    'identifier_auto_assigned': True,
+                    'original_identifier': original_identifier,
+                    'new_identifier': identifier,
+                    'warning': (
+                        f"⚠️ 원본 identifier '{original_identifier}'는 다른 화자가 사용 중입니다. "
+                        f"서버가 자동으로 '{identifier}'를 할당했습니다. "
+                        f"앱의 로컬 저장소를 업데이트해주세요."
+                    )
+                })
+                print(f"[INFO] Auto-assigned identifier included in response: {identifier}")
+            
+            # 생년월일이 자동 수정된 경우 추가 정보 포함
+            if birth_date_was_corrected:
+                corrected_birth_date = f"{birth_year}-{birth_month.zfill(2)}-{birth_day.zfill(2)}"
+                response_data.update({
+                    'birth_date_corrected': True,
+                    'corrected_birth_date': corrected_birth_date,
+                    'info': (
+                        f"ℹ️ 동일 인물({name})의 생년월일이 '{corrected_birth_date}'로 자동 수정되었습니다. "
+                        f"데이터 일관성을 위해 기존 레코드와 동일한 생년월일을 사용합니다."
+                    )
+                })
+                print(f"[INFO] Birth date corrected to: {corrected_birth_date}")
+            
+            return Response(response_data)
             
         except Exception as e:
             print(f"[ERROR] Upload failed: {str(e)}")
@@ -1383,6 +1776,13 @@ def audio_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # 테이블 번호: 정렬 방향에 맞춰 자동(내림차순: N→1, 오름차순: 1→N)
+    page_offset = (page_obj.number - 1) * paginator.per_page
+    total_count = paginator.count
+    is_desc = str(sort_by).startswith('-')
+    for idx, audio in enumerate(page_obj.object_list):
+        audio.display_no = (total_count - page_offset - idx) if is_desc else (page_offset + idx + 1)
+
     # 페이지네이션: 현재 페이지 기준으로 10개 페이지 번호를 노출
     total_pages = paginator.num_pages
     current_page = page_obj.number
@@ -1400,10 +1800,16 @@ def audio_list(request):
     next_jump_page = min(total_pages, current_page + jump)
 
     # 현재 페이지에 화자 번호 주입 (템플릿 표시용)
+    # 정렬 방향에 맞춰 화자 번호도 자동(내림차순: N→1, 오름차순: 1→N)
+    is_desc = str(sort_by).startswith('-')
     for audio in page_obj.object_list:
-        audio.speaker_index = speaker_index_by_key.get(
+        idx = speaker_index_by_key.get(
             _speaker_key(audio.identifier, audio.name, audio.gender, audio.age)
         )
+        if isinstance(idx, int) and is_desc:
+            audio.speaker_index = (speaker_total - idx + 1)
+        else:
+            audio.speaker_index = idx
 
     # 현재 페이지 항목만 메타데이터에서 기본 정보 추출 (표시용)
     # persist=False: 리스트에서 대량 저장/락 방지
@@ -1584,6 +1990,13 @@ def category_audio_list(request, category):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # 테이블 번호: 정렬 방향에 맞춰 자동(내림차순: N→1, 오름차순: 1→N)
+    page_offset = (page_obj.number - 1) * paginator.per_page
+    total_count = paginator.count
+    is_desc = str(sort_by).startswith('-')
+    for idx, audio in enumerate(page_obj.object_list):
+        audio.display_no = (total_count - page_offset - idx) if is_desc else (page_offset + idx + 1)
+
     # 페이지네이션: 현재 페이지 기준으로 10개 페이지 번호를 노출
     total_pages = paginator.num_pages
     current_page = page_obj.number
@@ -1601,10 +2014,16 @@ def category_audio_list(request, category):
     next_jump_page = min(total_pages, current_page + jump)
 
     # 현재 페이지에 화자 번호 주입 (템플릿 표시용)
+    # 정렬 방향에 맞춰 화자 번호도 자동(내림차순: N→1, 오름차순: 1→N)
+    is_desc = str(sort_by).startswith('-')
     for audio in page_obj.object_list:
-        audio.speaker_index = speaker_index_by_key.get(
+        idx = speaker_index_by_key.get(
             _speaker_key(audio.identifier, audio.name, audio.gender, audio.age)
         )
+        if isinstance(idx, int) and is_desc:
+            audio.speaker_index = (speaker_total - idx + 1)
+        else:
+            audio.speaker_index = idx
 
     # 현재 페이지 항목만 메타데이터에서 기본 정보 추출 (표시용)
     # persist=False: 리스트에서 대량 저장/락 방지
@@ -1684,29 +2103,40 @@ def update_transcription(request, audio_id):
     """수동 전사 내용 업데이트 (manual_transcript 필드 및 txt 파일 저장)"""
     audio = get_object_or_404(AudioRecord, id=audio_id)
     new_manual_transcript = request.POST.get('manual_transcript', '').strip()
+    saved_manual_transcript = False
 
-    if new_manual_transcript:
-        audio.manual_transcript = new_manual_transcript
+    # 정책:
+    # - 일반적으로는 빈 전사 저장을 막음(실수로 공백 덮어쓰기 방지)
+    # - 단, Whisper 자동 전사 결과(audio.transcript)도 없는 경우에는(전사 불가 케이스)
+    #   빈 전사라도 "작업 완료"로 처리할 수 있도록 저장을 허용
+    allow_empty_manual_when_no_auto = not (audio.transcript or '').strip()
+
+    if new_manual_transcript or allow_empty_manual_when_no_auto:
+        audio.manual_transcript = new_manual_transcript  # 빈 값도 허용(조건부)
         # 정책: 수동 편집은 manual_transcript만 변경하며, Whisper 자동 전사(audio.transcript)는 절대 수정하지 않음
         audio.save(update_fields=['manual_transcript', 'updated_at'])
-        
+        saved_manual_transcript = True
+
         # txt 파일로도 저장
         try:
             # 오디오 파일 경로에서 basename 추출
             audio_file_path = audio.audio_file.path
             audio_basename = os.path.splitext(os.path.basename(audio_file_path))[0]
-            
+
             # txt 파일 경로 생성 (오디오 파일과 같은 디렉토리)
             audio_dir = os.path.dirname(audio_file_path)
             txt_file_path = os.path.join(audio_dir, f"{audio_basename}.txt")
-            
+
             # txt 파일 저장 (UTF-8 인코딩)
             with open(txt_file_path, 'w', encoding='utf-8') as f:
                 f.write(new_manual_transcript)
-            
+
             print(f"[Update Transcription] Saved txt file: {txt_file_path}")
-            messages.success(request, '전사 내용이 저장되었습니다.')
-            
+            if new_manual_transcript:
+                messages.success(request, '전사 내용이 저장되었습니다.')
+            else:
+                messages.success(request, '전사 내용이 비어있지만 완료로 저장되었습니다.')
+
         except Exception as e:
             print(f"[Update Transcription Error] Failed to save txt file: {e}")
             messages.warning(request, f'전사 내용은 데이터베이스에 저장되었으나 txt 파일 저장 실패: {str(e)}')
@@ -1719,6 +2149,12 @@ def update_transcription(request, audio_id):
         allowed_hosts={request.get_host()},
         require_https=False,
     ):
+        if saved_manual_transcript:
+            parts = urlsplit(referer)
+            query_pairs = [(k, v) for (k, v) in parse_qsl(parts.query, keep_blank_values=True) if k != 'saved_transcript']
+            query_pairs.append(('saved_transcript', '1'))
+            new_query = urlencode(query_pairs)
+            referer = urlunsplit((parts.scheme, parts.netloc, parts.path, new_query, parts.fragment))
         return redirect(referer)
 
     return redirect('voice_app:audio_detail', audio_id=audio_id)
@@ -2196,10 +2632,67 @@ def audio_detail(request, audio_id):
     ):
         next_url = ''
 
+    # next 파라미터는 상세 화면에서의 여러 POST/redirect 흐름(예: Whisper 전사, 저장 등)에서
+    # 쉽게 유실될 수 있으므로, 마지막 목록 URL을 세션에 저장해두고 복원한다.
+    if next_url:
+        try:
+            request.session['djvm_last_list_url_v1'] = next_url
+        except Exception:
+            pass
+    else:
+        try:
+            session_next = request.session.get('djvm_last_list_url_v1', '')
+        except Exception:
+            session_next = ''
+        if session_next and session_next.startswith('/') and not session_next.startswith('//'):
+            if url_has_allowed_host_and_scheme(
+                url=session_next,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                next_url = session_next
+
     focus_id = focus_param if str(focus_param).isdigit() else ''
     return_url = ''
     if next_url:
-        return_url = f"{next_url}#row-{focus_id}" if focus_id else next_url
+        # 목록으로 돌아갈 때는 현재 상세의 오디오 행으로 포커스하는 것이 안전함.
+        return_url = f"{next_url}#row-{audio.id}"
+
+    # 이전/다음 네비게이션 (next=목록 URL 기준)
+    prev_audio_url = ''
+    next_audio_url = ''
+    try:
+        ordered_ids = _build_ordered_audio_ids_for_list_context(request, next_url) if next_url else None
+        if ordered_ids and audio.id in ordered_ids:
+            idx = ordered_ids.index(audio.id)
+            if idx > 0:
+                prev_id = ordered_ids[idx - 1]
+                prev_audio_url = (
+                    reverse('voice_app:audio_detail', kwargs={'audio_id': prev_id})
+                    + '?'
+                    + urlencode({'next': next_url, 'focus': str(prev_id)})
+                )
+            if idx < len(ordered_ids) - 1:
+                next_id = ordered_ids[idx + 1]
+                next_audio_url = (
+                    reverse('voice_app:audio_detail', kwargs={'audio_id': next_id})
+                    + '?'
+                    + urlencode({'next': next_url, 'focus': str(next_id)})
+                )
+    except Exception:
+        prev_audio_url = ''
+        next_audio_url = ''
+
+    # 목록 컨텍스트(next=...)가 없더라도, 상세 페이지에서 전/후 이동은 가능해야 함.
+    # saved_transcript=1 등 단독 파라미터로 접근했을 때도 기본 정렬(id 기준)로 이전/다음 레코드로 이동.
+    if not prev_audio_url:
+        prev_obj = AudioRecord.objects.filter(id__lt=audio.id).order_by('-id').only('id').first()
+        if prev_obj:
+            prev_audio_url = reverse('voice_app:audio_detail', kwargs={'audio_id': prev_obj.id})
+    if not next_audio_url:
+        next_obj = AudioRecord.objects.filter(id__gt=audio.id).order_by('id').only('id').first()
+        if next_obj:
+            next_audio_url = reverse('voice_app:audio_detail', kwargs={'audio_id': next_obj.id})
     
     # 카테고리 한글명 매핑
     category_names = {
@@ -2445,6 +2938,10 @@ def audio_detail(request, audio_id):
 
         # 목록 복귀용
         'return_url': return_url,
+
+        # 상세 내 이전/다음
+        'prev_audio_url': prev_audio_url,
+        'next_audio_url': next_audio_url,
     }
 
     # 자동 전사(Whisper) 표시용: diarization 라벨/프롬프트 유출 제거
@@ -2831,6 +3328,23 @@ def dashboard(request):
         min_snr=Min('snr_mean'),
         count_with_snr=Count('snr_mean')
     )
+
+    # 소음 수준(noise_level) 분포 통계 (메타데이터 기반)
+    noise_level_counts = defaultdict(int)
+    for row in AudioRecord.objects.exclude(noise_level__isnull=True).exclude(noise_level__exact='').values('noise_level'):
+        raw_level = (row.get('noise_level') or '').strip()
+        if not raw_level:
+            continue
+        normalized = raw_level
+        lowered = raw_level.lower()
+        if lowered in ['unknown', '미상', '불명', 'null', 'none']:
+            normalized = '미상'
+        noise_level_counts[normalized] += 1
+    noise_level_stats_list = sorted(
+        [{'level': k, 'count': v} for k, v in noise_level_counts.items()],
+        key=lambda x: x['count'],
+        reverse=True
+    )
     
     # 월별 업로드 통계 (최근 12개월)
     monthly_stats = []
@@ -2967,6 +3481,7 @@ def dashboard(request):
         'gender_stats': gender_stats,
         'status_stats': status_stats,
         'snr_stats': snr_stats,
+        'noise_level_stats': noise_level_stats_list,
         'monthly_stats': monthly_stats,
         'diagnosis_stats': diagnosis_stats,
         'using_cache': False,  # 새로 계산한 데이터
@@ -3757,13 +4272,18 @@ def userprofile(request):
     CACHE_TIMEOUT = 86400  # 24시간
     
     # 관리자가 강제 새로고침 요청한 경우
-    force_refresh = request.GET.get('refresh') == '1' and request.user.is_staff
+    force_refresh = request.GET.get('refresh') == '1' and (request.user.is_staff or request.user.is_superuser)
     
     # 캐시에서 데이터 확인
     if not force_refresh:
         cached_data = cache.get(CACHE_KEY)
         if cached_data:
             print(f"[UserProfile] 캐시 데이터 사용 (업데이트: {cached_data.get('cache_updated_at')})")
+            cached_data['cache_updated_at'] = cache.get(
+                f'{CACHE_KEY}_updated_at',
+                cached_data.get('cache_updated_at', '알 수 없음')
+            )
+            cached_data['using_cache'] = True
             return render(request, 'voice_app/userprofile.html', cached_data)
     
     print("[UserProfile] 캐시 미스 - 새로 통계 계산 시작...")
@@ -3879,6 +4399,9 @@ def audio_reupload(request, audio_id):
     - 변경 이력 기록
     """
     from .audio_reupload import replace_audio_file
+
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': '권한이 없습니다.'}, status=403)
     
     audio = get_object_or_404(AudioRecord, id=audio_id)
     
@@ -3928,6 +4451,9 @@ def audio_download(request, audio_id):
     오디오 파일 다운로드
     """
     from django.http import FileResponse, Http404
+
+    if not (request.user.is_superuser or request.user.username == 'hallym'):
+        return HttpResponse('권한이 없습니다.', status=403)
     
     audio = get_object_or_404(AudioRecord, id=audio_id)
     
@@ -3958,7 +4484,7 @@ def audio_delete(request, audio_id):
     - Deletes the FileField target via storage
     - Best-effort deletes derived files with same basename (.wav/.txt)
     """
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not request.user.is_superuser:
         try:
             messages.error(request, '권한이 없습니다.')
         except Exception:
@@ -4066,6 +4592,13 @@ def identifier_audio_list(request, identifier):
     paginator = Paginator(audio_list_qs, 20)  # 한 페이지당 20개 항목
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # 테이블 번호: 정렬 방향에 맞춰 자동(내림차순: N→1, 오름차순: 1→N)
+    page_offset = (page_obj.number - 1) * paginator.per_page
+    total_count = paginator.count
+    is_desc = str(sort_by).startswith('-')
+    for idx, audio in enumerate(page_obj.object_list):
+        audio.display_no = (total_count - page_offset - idx) if is_desc else (page_offset + idx + 1)
 
     # 페이지네이션 전에 쿼리스트링을 만들어 템플릿에서 재사용
     query_params = request.GET.copy()

@@ -84,6 +84,35 @@ def _koreanize_common_english_tokens(text: str) -> str:
     return out
 
 
+def _strip_non_korean_scripts(text: str) -> str:
+    """Remove non-Korean scripts (e.g., Japanese Kana/Kanji, CJK ideographs) from transcripts.
+
+    Goal: keep outputs Hangul-only (plus whitespace/punctuation) for UI/storage.
+
+    - Strips characters in Japanese Hiragana/Katakana ranges and common CJK ideograph ranges.
+    - Drops lines that end up with no Hangul at all.
+    """
+    if not text:
+        return text
+
+    # Hiragana/Katakana + halfwidth kana + CJK ideographs (incl. Extension A + compatibility)
+    foreign_re = re.compile(r"[\u3040-\u30ff\u31f0-\u31ff\uff66-\uff9d\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+    hangul_re = re.compile(r"[\uac00-\ud7a3]")
+
+    cleaned_lines: List[str] = []
+    for raw_line in str(text).splitlines():
+        line = foreign_re.sub("", raw_line)
+        line = re.sub(r"\s+", " ", line).strip()
+        if not line:
+            continue
+        # 한글이 전혀 없는 라인은 제거(외국어/기호-only 라인 제거 목적)
+        if not hangul_re.search(line):
+            continue
+        cleaned_lines.append(line)
+
+    return "\n".join(cleaned_lines).strip()
+
+
 def _scrub_prompt_leakage(text: str) -> str:
     """Remove known prompt/instruction phrases when they leak into model outputs.
 
@@ -318,9 +347,11 @@ def transcribe_audio(audio_path):
                 text = (result.get('text') or '').strip()
             except Exception:
                 pass
-        # 최종적으로 짧은 영어 토큰을 한글화 (예: "Good" -> "좋아")
+        # 최종적으로 짧은 영어 토큰을 한글화
         text = _koreanize_common_english_tokens(text)
         text = _scrub_prompt_leakage(text)
+        # 일본어/한자 등 비한글 스크립트 제거(한글-only 표시/저장)
+        text = _strip_non_korean_scripts(text)
 
         elapsed = time.time() - start
         logger.info("[Whisper] Transcription completed in %.2f seconds", elapsed)
@@ -761,6 +792,7 @@ def transcribe_and_align_whisperx(audio_path):
 
         transcription = _koreanize_common_english_tokens(transcription)
         transcription = _scrub_prompt_leakage(transcription)
+        transcription = _strip_non_korean_scripts(transcription)
         
         # 4. Forced alignment 수행
         result = whisperx.align(result["segments"], model_a, metadata, audio, device, return_char_alignments=False)
@@ -774,6 +806,7 @@ def transcribe_and_align_whisperx(audio_path):
                 seg_text = segment.get('text', '')
                 seg_text = _koreanize_common_english_tokens(seg_text)
                 seg_text = _scrub_prompt_leakage(seg_text)
+                seg_text = _strip_non_korean_scripts(seg_text)
                 seg_data = {
                     'start': segment.get('start', 0),
                     'end': segment.get('end', 0),

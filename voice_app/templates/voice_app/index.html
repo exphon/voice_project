@@ -19,9 +19,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    {% if user.is_authenticated %}
+                    {% if user.is_authenticated and audio_download_size_mb != None %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/api/list">음성 데이터</a>
+                            <a class="nav-link" href="/voice/download/audio/">데이터 다운로드{% if audio_download_size_mb != None %} ({{ audio_download_size_mb }}MB){% endif %}</a>
                         </li>
                     {% endif %}
                 </ul>

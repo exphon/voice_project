@@ -290,7 +290,9 @@
       
       <!-- Whisper 전사 버튼과 상태 표시 -->
       <div style="margin-top: 15px;">
-        <a href="{{ audio.audio_file.url }}" download class="btn btn-primary">💾 다운로드</a>
+        {% if user.is_superuser %}
+          <a href="{{ audio.audio_file.url }}" download class="btn btn-primary">💾 다운로드</a>
+        {% endif %}
         
         {% if audio.status == 'processing' %}
           <button class="btn btn-warning" disabled>

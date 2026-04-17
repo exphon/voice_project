@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Analysis</title>
+    <style>
+        :root {
+            --bg: #f7f1e8;
+            --panel: #fffaf2;
+            --ink: #1f2937;
+            --accent: #0f766e;
+            --accent-soft: #99f6e4;
+            --line: #d6c7b6;
+            --danger: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Pretendard", "Noto Sans KR", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+                linear-gradient(135deg, #f8efe2 0%, var(--bg) 45%, #efe7dc 100%);
+        }
+
+        .page {
+            width: min(1080px, calc(100vw - 32px));
+            margin: 40px auto;
+            padding: 32px;
+            border: 1px solid rgba(214, 199, 182, 0.8);
+            border-radius: 28px;
+            background: rgba(255, 250, 242, 0.92);
+            box-shadow: 0 24px 80px rgba(31, 41, 55, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            letter-spacing: -0.04em;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .intro {
+            max-width: 720px;
+            margin-bottom: 28px;
+        }
+
+        .upload-panel,
+        .result-panel {
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: var(--panel);
+        }
+
+        .upload-panel {
+            display: grid;
+            gap: 16px;
+        }
+
+        .file-input {
+            display: grid;
+            gap: 8px;
+        }
+
+        .slider-input {
+            display: grid;
+            gap: 8px;
+        }
+
+        .slider-input .slider-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .slider-input output {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .file-input input {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: white;
+        }
+
+        button {
+            width: fit-content;
+            padding: 14px 20px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--accent);
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            filter: brightness(0.95);
+        }
+
+        .error {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(185, 28, 28, 0.08);
+            color: var(--danger);
+        }
+
+        .result-panel {
+            margin-top: 24px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .file-badge {
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            font-weight: 700;
+            max-width: min(55vw, 420px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin: 20px 0 24px;
+        }
+
+        .stat {
+            padding: 16px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid var(--line);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 0.85rem;
+            color: #5b6470;
+            margin-bottom: 8px;
+        }
+
+        .stat span {
+            font-size: 1.35rem;
+            font-weight: 800;
+        }
+
+        .chart-wrap {
+            padding: 18px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid var(--line);
+        }
+
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin: 0 0 18px;
+        }
+
+        .chart-controls[hidden] {
+            display: none;
+        }
+
+        .ghost-button {
+            background: white;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .range-group {
+            display: grid;
+            gap: 6px;
+            min-width: min(360px, 100%);
+            flex: 1;
+        }
+
+        .range-group input {
+            width: 100%;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 3px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .peak-list {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+        }
+
+        .peak-list code {
+            display: inline-block;
+            margin: 0 8px 8px 0;
+            padding: 8px 10px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .peak-list code:hover {
+            border-color: #0f766e;
+        }
+
+        .peak-list .hint {
+            margin-top: 8px;
+            color: #5b6470;
+            font-size: 0.9rem;
+        }
+
+        .ghost-inline {
+            margin-left: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .periodicity-panel {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .periodicity-panel h3 {
+            margin: 0 0 12px;
+            font-size: 1.05rem;
+        }
+
+        .periodicity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .help-link {
+            display: inline-block;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .periodicity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .periodicity-item {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: #fffaf6;
+        }
+
+        .periodicity-item strong {
+            display: block;
+            font-size: 0.8rem;
+            color: #5b6470;
+            margin-bottom: 6px;
+        }
+
+        .periodicity-item span {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .audio-playback {
+            margin: 0 0 16px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .audio-playback audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .audio-segment-controls {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .audio-segment-controls .ghost-inline {
+            margin-left: 0;
+        }
+
+        .selection-label {
+            font-weight: 700;
+            color: #5b6470;
+        }
+
+        .transcription-panel {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .transcription-panel pre {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin: 10px 0 0;
+            font-family: "Noto Sans KR", sans-serif;
+        }
+
+        .token-summary {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .token-summary span {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .retranscribe-form {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .retranscribe-form small {
+            color: #5b6470;
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                width: calc(100vw - 20px);
+                margin: 12px auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="intro">
+            <h1>Voice Envelope Analysis</h1>
+            <p>음성 파일을 업로드하면 서버에서 librosa로 waveform envelope를 계산하고, 감지된 envelope peak 개수를 함께 표시합니다.</p>
+        </section>
+
+        <section class="upload-panel">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label class="file-input">
+                    <span>오디오 파일 선택</span>
+                    <input type="file" name="audio_file" accept=".wav,.mp3,.m4a,.flac,.ogg,.webm,.mp4,audio/*" required>
+                </label>
+                <label class="slider-input" for="peak-sensitivity">
+                    <span class="slider-header">
+                        <span>Peak 검출 민감도</span>
+                        <output id="peak-sensitivity-output">{{ peak_sensitivity }}</output>
+                    </span>
+                    <input
+                        type="range"
+                        id="peak-sensitivity"
+                        name="peak_sensitivity"
+                        min="0.05"
+                        max="1"
+                        step="0.05"
+                        value="{{ peak_sensitivity }}"
+                    >
+                </label>
+                <label class="slider-input" for="merge-window-ms">
+                    <span class="slider-header">
+                        <span>병합 시간 창 (ms)</span>
+                        <output id="merge-window-output">{{ merge_window_ms }}</output>
+                    </span>
+                    <input
+                        type="range"
+                        id="merge-window-ms"
+                        name="merge_window_ms"
+                        min="40"
+                        max="240"
+                        step="5"
+                        value="{{ merge_window_ms }}"
+                    >
+                </label>
+                <label class="slider-input" for="valley-ratio">
+                    <span class="slider-header">
+                        <span>Valley 기준 비율</span>
+                        <output id="valley-ratio-output">{{ valley_ratio }}</output>
+                    </span>
+                    <input
+                        type="range"
+                        id="valley-ratio"
+                        name="valley_ratio"
+                        min="0.30"
+                        max="0.95"
+                        step="0.01"
+                        value="{{ valley_ratio }}"
+                    >
+                </label>
+                <label class="checkbox-row" for="run-transcription">
+                    <input
+                        type="checkbox"
+                        id="run-transcription"
+                        name="run_transcription"
+                        {% if run_transcription %}checked{% endif %}
+                    >
+                    <span>Whisper 전사 실행 (퍼/터/커/퍼터커 반복 전사 포함)</span>
+                </label>
+                <button type="submit">분석 실행</button>
+            </form>
+
+            {% if error_message %}
+                <div class="error">{{ error_message }}</div>
+            {% endif %}
+        </section>
+
+        {% if analysis_result %}
+            <section class="result-panel">
+                <div class="result-header">
+                    <h2>분석 결과</h2>
+                    <div class="file-badge" title="{{ analysis_result.file_name }}">{{ analysis_result.file_name }}</div>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <strong>샘플레이트</strong>
+                        <span>{{ analysis_result.sample_rate }} Hz</span>
+                    </div>
+                    <div class="stat">
+                        <strong>재생 길이</strong>
+                        <span>{{ analysis_result.duration_seconds }} s</span>
+                    </div>
+                    <div class="stat">
+                        <strong>Envelope Peak 개수</strong>
+                        <span id="total-peak-count">{{ analysis_result.peak_count }}</span>
+                    </div>
+                    <div class="stat">
+                        <strong>Peak 민감도</strong>
+                        <span id="active-peak-sensitivity">{{ analysis_result.peak_sensitivity }}</span>
+                    </div>
+                    <div class="stat">
+                        <strong>병합 시간 창</strong>
+                        <span id="active-merge-window">{{ analysis_result.merge_window_ms }} ms</span>
+                    </div>
+                    <div class="stat">
+                        <strong>Valley 기준</strong>
+                        <span id="active-valley-ratio">{{ analysis_result.valley_ratio }}</span>
+                    </div>
+                    <div class="stat">
+                        <strong>현재 확대 구간 Peak</strong>
+                        <span id="visible-peak-count">{{ analysis_result.peak_count }}</span>
+                    </div>
+                </div>
+
+                <div class="transcription-panel">
+                    <strong>화자 정보</strong>
+                    {% if analysis_result.speaker_info %}
+                        <div class="token-summary">
+                            <span>이름: {{ analysis_result.speaker_info.name|default:"-" }}</span>
+                            <span>Identifier: {{ analysis_result.speaker_info.identifier|default:"-" }}</span>
+                            <span>카테고리: {{ analysis_result.speaker_info.category|default:"-" }}</span>
+                            <span>성별: {{ analysis_result.speaker_info.gender|default:"-" }}</span>
+                            <span>생년월일: {{ analysis_result.speaker_info.birth_date|default:"-" }}</span>
+                            <span>나이: {{ analysis_result.speaker_info.age|default:"-" }}</span>
+                            <span>지역: {{ analysis_result.speaker_info.region|default:"-" }}</span>
+                            <span>녹음 장소: {{ analysis_result.speaker_info.recording_location|default:"-" }}</span>
+                            <span>진단명: {{ analysis_result.speaker_info.diagnosis|default:"-" }}</span>
+                        </div>
+                    {% else %}
+                        <p>파일명으로 매칭된 화자 정보가 없습니다.</p>
+                    {% endif %}
+                </div>
+
+                {% if analysis_result.audio_preview_url %}
+                    <div class="audio-playback">
+                        <strong>Waveform 재생</strong>
+                        <audio id="waveform-player" controls preload="metadata" src="{{ analysis_result.audio_preview_url }}"></audio>
+                        <div class="audio-segment-controls">
+                            <button type="button" class="ghost-inline" id="play-selection">선택 구간 재생</button>
+                            <button type="button" class="ghost-inline" id="clear-selection">선택 해제</button>
+                            <span class="selection-label" id="selection-range-label">선택 없음</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="chart-wrap">
+                    {% if analysis_result.zoom_enabled %}
+                        <div class="chart-controls" id="zoom-controls">
+                            <button type="button" class="ghost-button" id="zoom-in">Zoom In</button>
+                            <button type="button" class="ghost-button" id="zoom-out">Zoom Out</button>
+                            <label class="range-group" for="window-offset">
+                                <span id="window-label">현재 구간</span>
+                                <input type="range" id="window-offset" min="0" max="0" value="0" step="0.1">
+                            </label>
+                        </div>
+                    {% endif %}
+                    <div class="legend">
+                        <span><i style="background:#64748b"></i>Original waveform</span>
+                        <span><i style="background:#0f766e"></i>Amplitude envelope</span>
+                        <span><i style="background:#dc2626"></i>Envelope peaks</span>
+                    </div>
+                    <canvas id="envelope-chart" width="1000" height="360"></canvas>
+                </div>
+
+                <div class="peak-list">
+                    <strong>감지된 Peak 시점</strong>
+                    <button type="button" class="ghost-inline" id="reset-removed-peaks">삭제 초기화</button>
+                    <div id="peak-time-list">
+                        {% for peak in analysis_result.peak_points|slice:":20" %}
+                            <code>{{ peak.time }}s</code>
+                        {% empty %}
+                            <span>감지된 peak가 없습니다.</span>
+                        {% endfor %}
+                    </div>
+                    <div class="hint">불필요한 시간을 클릭하거나 차트의 빨간 점을 클릭하면 해당 peak가 차트와 계산에서 즉시 제외됩니다.</div>
+                </div>
+
+                <div class="periodicity-panel">
+                    <div class="periodicity-header">
+                        <h3>현재 확대 구간 Periodicity</h3>
+                        <a class="help-link" href="{% url 'voice_analysis:help_periodicity' %}">Help</a>
+                    </div>
+                    <div class="periodicity-grid">
+                        <div class="periodicity-item">
+                            <strong>대표 주기 T</strong>
+                            <span id="periodicity-period">-</span>
+                        </div>
+                        <div class="periodicity-item">
+                            <strong>반복률 (1/T)</strong>
+                            <span id="periodicity-rate">-</span>
+                        </div>
+                        <div class="periodicity-item">
+                            <strong>IPI CV</strong>
+                            <span id="periodicity-cv">-</span>
+                        </div>
+                        <div class="periodicity-item">
+                            <strong>규칙성 등급</strong>
+                            <span id="periodicity-grade">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transcription-panel">
+                    <strong>Whisper 전사 결과</strong>
+                    {% if analysis_result.transcription_enabled %}
+                        {% if analysis_result.transcript_text %}
+                            <pre>{{ analysis_result.transcript_text }}</pre>
+                            {% if analysis_result.transcript_summary %}
+                                <div class="token-summary">
+                                    {% for token, count in analysis_result.transcript_summary.items %}
+                                        <span>{{ token }}: {{ count }}회</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p>전사 결과가 비어 있거나 Whisper 처리에 실패했습니다.</p>
+                        {% endif %}
+
+                        <form class="retranscribe-form" method="post" id="retranscribe-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="retranscribe">
+                            <input type="hidden" name="audio_preview_url" value="{{ analysis_result.audio_preview_url }}">
+                            <input type="hidden" name="peak_sensitivity" id="retranscribe-peak-sensitivity" value="{{ peak_sensitivity }}">
+                            <input type="hidden" name="merge_window_ms" id="retranscribe-merge-window" value="{{ merge_window_ms }}">
+                            <input type="hidden" name="valley_ratio" id="retranscribe-valley-ratio" value="{{ valley_ratio }}">
+                            <input type="hidden" name="target_peak_count" id="retranscribe-target-peak" value="{{ analysis_result.target_peak_count|default:analysis_result.peak_count }}">
+                            <input type="hidden" name="run_transcription" value="on">
+                            <button type="submit" class="ghost-button">현재 확대 구간 Peak 기준 재전사</button>
+                            <small>현재 확대 구간 Peak 수를 전사 토큰 개수 제약으로 사용합니다.</small>
+                        </form>
+                    {% else %}
+                        <p>Whisper 전사를 선택하지 않아 결과를 표시하지 않습니다.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            {{ analysis_result|json_script:"analysis-data" }}
+            <script>
+                (function () {
+                    const analysisNode = document.getElementById("analysis-data");
+                    if (!analysisNode) {
+                        return;
+                    }
+
+                    const analysis = JSON.parse(analysisNode.textContent);
+                    const canvas = document.getElementById("envelope-chart");
+                    const sensitivityInput = document.getElementById("peak-sensitivity");
+                    const sensitivityOutput = document.getElementById("peak-sensitivity-output");
+                    const mergeWindowInput = document.getElementById("merge-window-ms");
+                    const mergeWindowOutput = document.getElementById("merge-window-output");
+                    const valleyRatioInput = document.getElementById("valley-ratio");
+                    const valleyRatioOutput = document.getElementById("valley-ratio-output");
+                    if (!canvas) {
+                        return;
+                    }
+
+                    const context = canvas.getContext("2d");
+                    const width = canvas.width;
+                    const height = canvas.height;
+                    const padding = { top: 24, right: 24, bottom: 40, left: 52 };
+                    const plotWidth = width - padding.left - padding.right;
+                    const plotHeight = height - padding.top - padding.bottom;
+                    const waveformValues = analysis.waveform_points || [];
+                    const waveformTimes = analysis.waveform_times || [];
+                    const envelopeValues = analysis.envelope_points || [];
+                    const envelopeTimes = analysis.envelope_times || [];
+                    const peaks = analysis.peak_points || [];
+                    const zoomInButton = document.getElementById("zoom-in");
+                    const zoomOutButton = document.getElementById("zoom-out");
+                    const offsetSlider = document.getElementById("window-offset");
+                    const windowLabel = document.getElementById("window-label");
+                    const visiblePeakCount = document.getElementById("visible-peak-count");
+                    const totalPeakCount = document.getElementById("total-peak-count");
+                    const activePeakSensitivity = document.getElementById("active-peak-sensitivity");
+                    const activeMergeWindow = document.getElementById("active-merge-window");
+                    const activeValleyRatio = document.getElementById("active-valley-ratio");
+                    const peakTimeList = document.getElementById("peak-time-list");
+                    const resetRemovedPeaksButton = document.getElementById("reset-removed-peaks");
+                    const waveformPlayer = document.getElementById("waveform-player");
+                    const playSelectionButton = document.getElementById("play-selection");
+                    const clearSelectionButton = document.getElementById("clear-selection");
+                    const selectionRangeLabel = document.getElementById("selection-range-label");
+                    const periodicityPeriod = document.getElementById("periodicity-period");
+                    const periodicityRate = document.getElementById("periodicity-rate");
+                    const periodicityCv = document.getElementById("periodicity-cv");
+                    const periodicityGrade = document.getElementById("periodicity-grade");
+                    const retranscribeTargetPeak = document.getElementById("retranscribe-target-peak");
+                    const retranscribePeakSensitivity = document.getElementById("retranscribe-peak-sensitivity");
+                    const retranscribeMergeWindow = document.getElementById("retranscribe-merge-window");
+                    const retranscribeValleyRatio = document.getElementById("retranscribe-valley-ratio");
+                    const totalDuration = analysis.duration_seconds || 0;
+                    const zoomEnabled = Boolean(analysis.zoom_enabled);
+                    const averageEnvelopeStep = envelopeTimes.length > 1
+                        ? Math.max(envelopeTimes[1] - envelopeTimes[0], 0.0001)
+                        : 0.0001;
+                    let visibleDuration = zoomEnabled ? Math.min(10, totalDuration) : totalDuration;
+                    let windowStart = 0;
+                    let activePeaks = Array.isArray(peaks) ? peaks.slice() : [];
+                    const suppressedPeakKeys = new Set();
+                    let renderedPeakHitAreas = [];
+                    let selectionStart = null;
+                    let selectionEnd = null;
+                    let isSelecting = false;
+                    let dragMoved = false;
+                    let suppressNextCanvasClick = false;
+                    let segmentPlayStart = null;
+                    let segmentPlayEnd = null;
+                    let segmentAudioContext = null;
+                    let segmentAudioBuffer = null;
+                    let segmentAudioSource = null;
+                    let segmentAudioLoadPromise = null;
+
+                    function peakKey(peak) {
+                        return `${Number(peak.time).toFixed(4)}|${peak.index}`;
+                    }
+
+                    function applySuppressedPeaks(peaksToFilter) {
+                        return peaksToFilter.filter((peak) => !suppressedPeakKeys.has(peakKey(peak)));
+                    }
+
+                    if (!waveformValues.length || !waveformTimes.length || !envelopeValues.length || !envelopeTimes.length) {
+                        return;
+                    }
+
+                    if (!zoomEnabled) {
+                        visibleDuration = totalDuration || 1;
+                    }
+
+                    function setSliderBounds() {
+                        if (!offsetSlider) {
+                            return;
+                        }
+
+                        const maxOffset = Math.max(totalDuration - visibleDuration, 0);
+                        offsetSlider.max = String(maxOffset);
+                        offsetSlider.value = String(Math.min(windowStart, maxOffset));
+                        offsetSlider.disabled = maxOffset <= 0;
+                    }
+
+                    function getVisibleSeries(times, values) {
+                        const windowEnd = windowStart + visibleDuration;
+                        const filtered = [];
+
+                        for (let index = 0; index < times.length; index += 1) {
+                            const time = times[index];
+                            if (time >= windowStart && time <= windowEnd) {
+                                filtered.push({ time, value: values[index] });
+                            }
+                        }
+
+                        return filtered;
+                    }
+
+                    function xForTime(time) {
+                        return padding.left + ((time - windowStart) / visibleDuration) * plotWidth;
+                    }
+
+                    function timeForX(x) {
+                        const clampedX = Math.min(Math.max(x, padding.left), width - padding.right);
+                        const ratio = (clampedX - padding.left) / Math.max(plotWidth, 1);
+                        return windowStart + (ratio * visibleDuration);
+                    }
+
+                    function yForWaveform(value) {
+                        return padding.top + plotHeight / 2 - value * (plotHeight * 0.44);
+                    }
+
+                    function yForEnvelope(value) {
+                        return padding.top + plotHeight / 2 - value * (plotHeight * 0.44);
+                    }
+
+                    function drawAxes() {
+                        context.strokeStyle = "#c9b79f";
+                        context.lineWidth = 1;
+                        context.beginPath();
+                        context.moveTo(padding.left, padding.top);
+                        context.lineTo(padding.left, height - padding.bottom);
+                        context.lineTo(width - padding.right, height - padding.bottom);
+                        context.moveTo(padding.left, padding.top + plotHeight / 2);
+                        context.lineTo(width - padding.right, padding.top + plotHeight / 2);
+                        context.stroke();
+                    }
+
+                    function drawSeries(series, color, yMapper, lineWidth) {
+                        if (!series.length) {
+                            return;
+                        }
+
+                        context.save();
+                        context.strokeStyle = color;
+                        context.lineWidth = lineWidth;
+                        context.beginPath();
+
+                        series.forEach((point, index) => {
+                            const x = xForTime(point.time);
+                            const y = yMapper(point.value);
+                            if (index === 0) {
+                                context.moveTo(x, y);
+                            } else {
+                                context.lineTo(x, y);
+                            }
+                        });
+
+                        context.stroke();
+                        context.restore();
+                    }
+
+                    function getPeakParameters(sensitivity) {
+                        const peakHeightRatio = Math.max(0.08, 0.8 - (sensitivity * 0.7));
+                        const peakSpacingSeconds = Math.max(0.03, 0.22 - (sensitivity * 0.16));
+                        const minDistancePoints = Math.max(1, Math.round(peakSpacingSeconds / averageEnvelopeStep));
+                        const mergeWindowMs = Math.min(Math.max(Number(mergeWindowInput?.value || analysis.merge_window_ms || 120), 40), 240);
+                        const mergeWindowSeconds = mergeWindowMs / 1000;
+                        const valleyRatio = Math.min(Math.max(Number(valleyRatioInput?.value || analysis.valley_ratio || 0.58), 0.30), 0.95);
+
+                        return { peakHeightRatio, minDistancePoints, mergeWindowSeconds, valleyRatio, mergeWindowMs };
+                    }
+
+                    function mergeNearbyPeaks(peakItems, sensitivity) {
+                        if (peakItems.length <= 1) {
+                            return peakItems;
+                        }
+
+                        const { mergeWindowSeconds, valleyRatio } = getPeakParameters(sensitivity);
+                        const merged = [peakItems[0]];
+
+                        for (let index = 1; index < peakItems.length; index += 1) {
+                            const currentPeak = peakItems[index];
+                            const previousPeak = merged[merged.length - 1];
+                            const peakDistance = currentPeak.time - previousPeak.time;
+
+                            if (peakDistance > mergeWindowSeconds) {
+                                merged.push(currentPeak);
+                                continue;
+                            }
+
+                            const start = Math.min(previousPeak.index, currentPeak.index);
+                            const end = Math.max(previousPeak.index, currentPeak.index);
+                            let valley = Infinity;
+                            for (let cursor = start; cursor <= end; cursor += 1) {
+                                valley = Math.min(valley, envelopeValues[cursor]);
+                            }
+
+                            const valleyThreshold = valleyRatio * Math.min(previousPeak.value, currentPeak.value);
+                            if (valley >= valleyThreshold) {
+                                if (currentPeak.value > previousPeak.value) {
+                                    merged[merged.length - 1] = currentPeak;
+                                }
+                            } else {
+                                merged.push(currentPeak);
+                            }
+                        }
+
+                        return merged;
+                    }
+
+                    function recomputePeaks(sensitivity) {
+                        if (!envelopeValues.length || !envelopeTimes.length) {
+                            return [];
+                        }
+
+                        const normalizedSensitivity = Math.min(Math.max(Number(sensitivity) || 0.5, 0.05), 1);
+                        const maxEnvelopeValue = Math.max(...envelopeValues, 0);
+                        const { peakHeightRatio, minDistancePoints } = getPeakParameters(normalizedSensitivity);
+                        const peakThreshold = maxEnvelopeValue * peakHeightRatio;
+                        const detectedPeaks = [];
+
+                        for (let index = 1; index < envelopeValues.length - 1; index += 1) {
+                            const currentValue = envelopeValues[index];
+                            const previousValue = envelopeValues[index - 1];
+                            const nextValue = envelopeValues[index + 1];
+
+                            if (currentValue < peakThreshold) {
+                                continue;
+                            }
+
+                            if (currentValue < previousValue || currentValue < nextValue) {
+                                continue;
+                            }
+
+                            const lastPeak = detectedPeaks[detectedPeaks.length - 1];
+                            if (lastPeak && (index - lastPeak.index) < minDistancePoints) {
+                                if (currentValue > lastPeak.value) {
+                                    detectedPeaks[detectedPeaks.length - 1] = {
+                                        index,
+                                        time: envelopeTimes[index],
+                                        value: currentValue,
+                                    };
+                                }
+                                continue;
+                            }
+
+                            detectedPeaks.push({
+                                index,
+                                time: envelopeTimes[index],
+                                value: currentValue,
+                            });
+                        }
+
+                        return mergeNearbyPeaks(detectedPeaks, normalizedSensitivity);
+                    }
+
+                    function renderPeakList(peakItems) {
+                        if (!peakTimeList) {
+                            return;
+                        }
+
+                        peakTimeList.innerHTML = "";
+
+                        if (!peakItems.length) {
+                            const emptyNode = document.createElement("span");
+                            emptyNode.textContent = "감지된 peak가 없습니다.";
+                            peakTimeList.appendChild(emptyNode);
+                            return;
+                        }
+
+                        peakItems.forEach((peak) => {
+                            const peakNode = document.createElement("code");
+                            peakNode.textContent = `${peak.time.toFixed(4)}s`;
+                            peakNode.title = "클릭하면 peak 제외";
+                            peakNode.addEventListener("click", () => {
+                                suppressedPeakKeys.add(peakKey(peak));
+                                syncPeakUI();
+                                renderChart();
+                            });
+                            peakTimeList.appendChild(peakNode);
+                        });
+                    }
+
+                    function getSelectionRange() {
+                        if (selectionStart === null || selectionEnd === null) {
+                            return null;
+                        }
+
+                        const start = Math.max(0, Math.min(selectionStart, selectionEnd));
+                        const end = Math.min(totalDuration, Math.max(selectionStart, selectionEnd));
+                        if ((end - start) < 0.02) {
+                            return null;
+                        }
+
+                        return { start, end };
+                    }
+
+                    function stopSegmentPlayback(resetPosition = false) {
+                        if (segmentAudioSource) {
+                            segmentAudioSource.onended = null;
+                            segmentAudioSource.stop();
+                            segmentAudioSource.disconnect();
+                            segmentAudioSource = null;
+                        }
+
+                        if (waveformPlayer) {
+                            waveformPlayer.pause();
+                            if (resetPosition && segmentPlayStart !== null) {
+                                waveformPlayer.currentTime = segmentPlayStart;
+                            }
+                        }
+
+                        segmentPlayStart = null;
+                        segmentPlayEnd = null;
+                    }
+
+                    function getSegmentAudioContext() {
+                        if (segmentAudioContext) {
+                            return segmentAudioContext;
+                        }
+
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioContextClass) {
+                            return null;
+                        }
+
+                        segmentAudioContext = new AudioContextClass();
+                        return segmentAudioContext;
+                    }
+
+                    async function loadSegmentAudioBuffer() {
+                        if (segmentAudioBuffer) {
+                            return segmentAudioBuffer;
+                        }
+
+                        if (segmentAudioLoadPromise) {
+                            return segmentAudioLoadPromise;
+                        }
+
+                        const sourceUrl = waveformPlayer?.currentSrc || waveformPlayer?.src;
+                        if (!sourceUrl) {
+                            throw new Error("Audio source not found");
+                        }
+
+                        const audioContext = getSegmentAudioContext();
+                        if (!audioContext) {
+                            throw new Error("AudioContext unavailable");
+                        }
+
+                        segmentAudioLoadPromise = fetch(sourceUrl)
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error("Audio fetch failed");
+                                }
+                                return response.arrayBuffer();
+                            })
+                            .then((buffer) => audioContext.decodeAudioData(buffer))
+                            .then((decodedBuffer) => {
+                                segmentAudioBuffer = decodedBuffer;
+                                segmentAudioLoadPromise = null;
+                                return decodedBuffer;
+                            })
+                            .catch((error) => {
+                                segmentAudioLoadPromise = null;
+                                throw error;
+                            });
+
+                        return segmentAudioLoadPromise;
+                    }
+
+                    function updateSelectionLabel() {
+                        if (!selectionRangeLabel) {
+                            return;
+                        }
+
+                        const range = getSelectionRange();
+                        if (!range) {
+                            selectionRangeLabel.textContent = "선택 없음";
+                            return;
+                        }
+
+                        selectionRangeLabel.textContent = `${range.start.toFixed(3)}s - ${range.end.toFixed(3)}s`;
+                    }
+
+                    function drawSelectionOverlay() {
+                        const range = getSelectionRange();
+                        if (!range) {
+                            return;
+                        }
+
+                        const startX = xForTime(range.start);
+                        const endX = xForTime(range.end);
+                        const x = Math.max(Math.min(startX, endX), padding.left);
+                        const clampedEnd = Math.min(Math.max(startX, endX), width - padding.right);
+                        const w = Math.max(clampedEnd - x, 0);
+                        if (w <= 0) {
+                            return;
+                        }
+
+                        context.save();
+                        context.fillStyle = "rgba(15, 118, 110, 0.14)";
+                        context.fillRect(x, padding.top, w, plotHeight);
+                        context.strokeStyle = "rgba(15, 118, 110, 0.8)";
+                        context.lineWidth = 1.5;
+                        context.strokeRect(x, padding.top, w, plotHeight);
+                        context.restore();
+                    }
+
+                    function syncPeakUI() {
+                        const currentSensitivity = Math.min(Math.max(Number(sensitivityInput?.value || analysis.peak_sensitivity || 0.5), 0.05), 1);
+                        const currentMergeWindow = Math.min(Math.max(Number(mergeWindowInput?.value || analysis.merge_window_ms || 120), 40), 240);
+                        const currentValleyRatio = Math.min(Math.max(Number(valleyRatioInput?.value || analysis.valley_ratio || 0.58), 0.30), 0.95);
+                        activePeaks = applySuppressedPeaks(recomputePeaks(currentSensitivity));
+
+                        if (totalPeakCount) {
+                            totalPeakCount.textContent = String(activePeaks.length);
+                        }
+
+                        if (activePeakSensitivity) {
+                            activePeakSensitivity.textContent = currentSensitivity.toFixed(2);
+                        }
+
+                        if (activeMergeWindow) {
+                            activeMergeWindow.textContent = `${Math.round(currentMergeWindow)} ms`;
+                        }
+
+                        if (activeValleyRatio) {
+                            activeValleyRatio.textContent = currentValleyRatio.toFixed(2);
+                        }
+
+                        if (retranscribePeakSensitivity) {
+                            retranscribePeakSensitivity.value = currentSensitivity.toFixed(2);
+                        }
+
+                        if (retranscribeMergeWindow) {
+                            retranscribeMergeWindow.value = String(Math.round(currentMergeWindow));
+                        }
+
+                        if (retranscribeValleyRatio) {
+                            retranscribeValleyRatio.value = currentValleyRatio.toFixed(2);
+                        }
+
+                        renderPeakList(activePeaks);
+                    }
+
+                    if (resetRemovedPeaksButton) {
+                        resetRemovedPeaksButton.addEventListener("click", () => {
+                            suppressedPeakKeys.clear();
+                            syncPeakUI();
+                            renderChart();
+                        });
+                    }
+
+                    function drawPeaks(windowEnd) {
+                        renderedPeakHitAreas = [];
+
+                        activePeaks.forEach((peak) => {
+                            if (peak.time < windowStart || peak.time > windowEnd) {
+                                return;
+                            }
+
+                            const x = xForTime(peak.time);
+                            const normalizedValue = Math.max(0, Math.min(1, peak.value));
+                            const y = yForEnvelope(normalizedValue);
+                            context.fillStyle = "#dc2626";
+                            context.beginPath();
+                            context.arc(x, y, 4, 0, Math.PI * 2);
+                            context.fill();
+
+                            renderedPeakHitAreas.push({
+                                x,
+                                y,
+                                radius: 8,
+                                peak,
+                            });
+                        });
+                    }
+
+                    function findHitPeak(canvasX, canvasY) {
+                        for (let index = 0; index < renderedPeakHitAreas.length; index += 1) {
+                            const area = renderedPeakHitAreas[index];
+                            const dx = canvasX - area.x;
+                            const dy = canvasY - area.y;
+                            const distance = Math.sqrt((dx * dx) + (dy * dy));
+                            if (distance <= area.radius) {
+                                return area.peak;
+                            }
+                        }
+                        return null;
+                    }
+
+                    function updateWindowLabel(windowEnd) {
+                        if (!windowLabel) {
+                            return;
+                        }
+
+                        windowLabel.textContent = `현재 구간 ${windowStart.toFixed(1)}s - ${windowEnd.toFixed(1)}s`;
+                    }
+
+                    function updateVisiblePeakCount(windowEnd) {
+                        if (!visiblePeakCount) {
+                            return;
+                        }
+
+                        const count = activePeaks.filter((peak) => peak.time >= windowStart && peak.time <= windowEnd).length;
+                        visiblePeakCount.textContent = String(count);
+                        if (retranscribeTargetPeak) {
+                            retranscribeTargetPeak.value = String(count);
+                        }
+                    }
+
+                    function median(values) {
+                        if (!values.length) {
+                            return 0;
+                        }
+
+                        const sorted = values.slice().sort((a, b) => a - b);
+                        const mid = Math.floor(sorted.length / 2);
+                        if (sorted.length % 2 === 0) {
+                            return (sorted[mid - 1] + sorted[mid]) / 2;
+                        }
+                        return sorted[mid];
+                    }
+
+                    function updatePeriodicity(windowEnd) {
+                        if (!periodicityPeriod || !periodicityRate || !periodicityCv || !periodicityGrade) {
+                            return;
+                        }
+
+                        const visiblePeaks = activePeaks
+                            .filter((peak) => peak.time >= windowStart && peak.time <= windowEnd)
+                            .map((peak) => peak.time)
+                            .sort((a, b) => a - b);
+
+                        if (visiblePeaks.length < 2) {
+                            periodicityPeriod.textContent = "-";
+                            periodicityRate.textContent = "-";
+                            periodicityCv.textContent = "-";
+                            periodicityGrade.textContent = "데이터 부족";
+                            return;
+                        }
+
+                        const intervals = [];
+                        for (let index = 0; index < visiblePeaks.length - 1; index += 1) {
+                            intervals.push(visiblePeaks[index + 1] - visiblePeaks[index]);
+                        }
+
+                        const mean = intervals.reduce((acc, value) => acc + value, 0) / intervals.length;
+                        if (mean <= 0) {
+                            periodicityPeriod.textContent = "-";
+                            periodicityRate.textContent = "-";
+                            periodicityCv.textContent = "-";
+                            periodicityGrade.textContent = "계산 불가";
+                            return;
+                        }
+
+                        const variance = intervals.reduce((acc, value) => acc + ((value - mean) ** 2), 0) / intervals.length;
+                        const std = Math.sqrt(variance);
+                        const cv = std / mean;
+                        const representativePeriod = median(intervals);
+                        const repetitionRate = representativePeriod > 0 ? 1 / representativePeriod : 0;
+
+                        let grade = "불규칙";
+                        if (cv < 0.1) {
+                            grade = "매우 규칙적";
+                        } else if (cv < 0.25) {
+                            grade = "중간 규칙성";
+                        }
+
+                        periodicityPeriod.textContent = `${representativePeriod.toFixed(3)} s`;
+                        periodicityRate.textContent = `${repetitionRate.toFixed(2)} Hz`;
+                        periodicityCv.textContent = cv.toFixed(3);
+                        periodicityGrade.textContent = grade;
+                    }
+
+                    function renderChart() {
+                        const windowEnd = Math.min(windowStart + visibleDuration, totalDuration || visibleDuration);
+                        const visibleWaveform = getVisibleSeries(waveformTimes, waveformValues);
+                        const visibleEnvelope = getVisibleSeries(envelopeTimes, envelopeValues);
+
+                        context.clearRect(0, 0, width, height);
+                        context.fillStyle = "#ffffff";
+                        context.fillRect(0, 0, width, height);
+
+                        drawAxes();
+                        drawSeries(visibleWaveform, "#64748b", yForWaveform, 1.1);
+                        drawSeries(visibleEnvelope, "#0f766e", yForEnvelope, 2.4);
+                        drawSelectionOverlay();
+                        drawPeaks(windowEnd);
+
+                        context.fillStyle = "#1f2937";
+                        context.font = "14px sans-serif";
+                        context.fillText("Waveform + amplitude envelope", padding.left, 18);
+                        context.fillText("Time (s)", width - padding.right - 56, height - 10);
+                        context.save();
+                        context.translate(18, height / 2 + 28);
+                        context.rotate(-Math.PI / 2);
+                        context.fillText("Normalized amplitude", 0, 0);
+                        context.restore();
+
+                        updateWindowLabel(windowEnd);
+                        updateVisiblePeakCount(windowEnd);
+                        updatePeriodicity(windowEnd);
+                        setSliderBounds();
+                        updateSelectionLabel();
+                    }
+
+                    if (zoomInButton) {
+                        zoomInButton.addEventListener("click", () => {
+                            if (!zoomEnabled) {
+                                return;
+                            }
+
+                            visibleDuration = Math.max(2.5, visibleDuration / 2);
+                            windowStart = Math.min(windowStart, Math.max(totalDuration - visibleDuration, 0));
+                            renderChart();
+                        });
+                    }
+
+                    if (zoomOutButton) {
+                        zoomOutButton.addEventListener("click", () => {
+                            if (!zoomEnabled) {
+                                return;
+                            }
+
+                            visibleDuration = Math.min(totalDuration, visibleDuration * 2);
+                            windowStart = Math.min(windowStart, Math.max(totalDuration - visibleDuration, 0));
+                            renderChart();
+                        });
+                    }
+
+                    if (offsetSlider) {
+                        offsetSlider.addEventListener("input", (event) => {
+                            windowStart = Number(event.target.value || 0);
+                            renderChart();
+                        });
+                    }
+
+                    if (sensitivityInput && sensitivityOutput) {
+                        sensitivityInput.addEventListener("input", (event) => {
+                            sensitivityOutput.textContent = Number(event.target.value).toFixed(2);
+                            syncPeakUI();
+                            renderChart();
+                        });
+                    }
+
+                    canvas.addEventListener("click", (event) => {
+                        if (suppressNextCanvasClick) {
+                            suppressNextCanvasClick = false;
+                            return;
+                        }
+
+                        const rect = canvas.getBoundingClientRect();
+                        const scaleX = canvas.width / rect.width;
+                        const scaleY = canvas.height / rect.height;
+                        const canvasX = (event.clientX - rect.left) * scaleX;
+                        const canvasY = (event.clientY - rect.top) * scaleY;
+                        const hitPeak = findHitPeak(canvasX, canvasY);
+
+                        if (!hitPeak) {
+                            return;
+                        }
+
+                        suppressedPeakKeys.add(peakKey(hitPeak));
+                        syncPeakUI();
+                        renderChart();
+                    });
+
+                    canvas.addEventListener("mousemove", (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const scaleX = canvas.width / rect.width;
+                        const scaleY = canvas.height / rect.height;
+                        const canvasX = (event.clientX - rect.left) * scaleX;
+                        const canvasY = (event.clientY - rect.top) * scaleY;
+
+                        if (isSelecting) {
+                            selectionEnd = timeForX(canvasX);
+                            dragMoved = true;
+                            renderChart();
+                            return;
+                        }
+
+                        const hitPeak = findHitPeak(canvasX, canvasY);
+                        const insidePlot = canvasX >= padding.left && canvasX <= (width - padding.right) && canvasY >= padding.top && canvasY <= (height - padding.bottom);
+                        canvas.style.cursor = hitPeak ? "pointer" : (insidePlot ? "crosshair" : "default");
+                    });
+
+                    canvas.addEventListener("mousedown", (event) => {
+                        if (event.button !== 0) {
+                            return;
+                        }
+
+                        const rect = canvas.getBoundingClientRect();
+                        const scaleX = canvas.width / rect.width;
+                        const scaleY = canvas.height / rect.height;
+                        const canvasX = (event.clientX - rect.left) * scaleX;
+                        const canvasY = (event.clientY - rect.top) * scaleY;
+                        const hitPeak = findHitPeak(canvasX, canvasY);
+                        if (hitPeak) {
+                            return;
+                        }
+
+                        const insidePlot = canvasX >= padding.left && canvasX <= (width - padding.right) && canvasY >= padding.top && canvasY <= (height - padding.bottom);
+                        if (!insidePlot) {
+                            return;
+                        }
+
+                        isSelecting = true;
+                        dragMoved = false;
+                        selectionStart = timeForX(canvasX);
+                        selectionEnd = selectionStart;
+                        renderChart();
+                    });
+
+                    window.addEventListener("mouseup", () => {
+                        if (!isSelecting) {
+                            return;
+                        }
+
+                        isSelecting = false;
+                        if (dragMoved) {
+                            suppressNextCanvasClick = true;
+                        }
+                        renderChart();
+                    });
+
+                    canvas.addEventListener("mouseleave", () => {
+                        canvas.style.cursor = "default";
+                    });
+
+                    if (playSelectionButton && waveformPlayer) {
+                        playSelectionButton.addEventListener("click", async () => {
+                            const range = getSelectionRange();
+                            if (!range) {
+                                return;
+                            }
+
+                            stopSegmentPlayback(false);
+                            segmentPlayStart = range.start;
+                            segmentPlayEnd = range.end;
+                            try {
+                                const audioContext = getSegmentAudioContext();
+                                const audioBuffer = await loadSegmentAudioBuffer();
+                                if (!audioContext || !audioBuffer) {
+                                    throw new Error("Segment playback unavailable");
+                                }
+
+                                await audioContext.resume();
+                                waveformPlayer.currentTime = range.start;
+
+                                const source = audioContext.createBufferSource();
+                                source.buffer = audioBuffer;
+                                source.connect(audioContext.destination);
+                                source.onended = () => {
+                                    if (segmentAudioSource === source) {
+                                        segmentAudioSource.disconnect();
+                                        segmentAudioSource = null;
+                                        if (waveformPlayer) {
+                                            waveformPlayer.currentTime = range.end;
+                                        }
+                                        segmentPlayStart = null;
+                                        segmentPlayEnd = null;
+                                    }
+                                };
+
+                                segmentAudioSource = source;
+                                source.start(0, range.start, Math.max(range.end - range.start, 0.01));
+                            } catch (_error) {
+                                stopSegmentPlayback(false);
+                            }
+                        });
+                    }
+
+                    if (waveformPlayer) {
+                        waveformPlayer.addEventListener("pause", () => {
+                            if (segmentAudioSource && !waveformPlayer.seeking) {
+                                stopSegmentPlayback(false);
+                            }
+                        });
+
+                        waveformPlayer.addEventListener("play", () => {
+                            if (segmentAudioSource) {
+                                stopSegmentPlayback(false);
+                            }
+                        });
+                    }
+
+                    if (clearSelectionButton) {
+                        clearSelectionButton.addEventListener("click", () => {
+                            selectionStart = null;
+                            selectionEnd = null;
+                            stopSegmentPlayback(false);
+                            renderChart();
+                        });
+                    }
+
+                    if (mergeWindowInput && mergeWindowOutput) {
+                        mergeWindowInput.addEventListener("input", (event) => {
+                            mergeWindowOutput.textContent = String(Math.round(Number(event.target.value)));
+                            syncPeakUI();
+                            renderChart();
+                        });
+                    }
+
+                    if (valleyRatioInput && valleyRatioOutput) {
+                        valleyRatioInput.addEventListener("input", (event) => {
+                            valleyRatioOutput.textContent = Number(event.target.value).toFixed(2);
+                            syncPeakUI();
+                            renderChart();
+                        });
+                    }
+
+                    syncPeakUI();
+                    renderChart();
+                }());
+            </script>
+        {% else %}
+            <script>
+                (function () {
+                    const sensitivityInput = document.getElementById("peak-sensitivity");
+                    const sensitivityOutput = document.getElementById("peak-sensitivity-output");
+                    const mergeWindowInput = document.getElementById("merge-window-ms");
+                    const mergeWindowOutput = document.getElementById("merge-window-output");
+                    const valleyRatioInput = document.getElementById("valley-ratio");
+                    const valleyRatioOutput = document.getElementById("valley-ratio-output");
+                    if (!sensitivityInput || !sensitivityOutput) {
+                        return;
+                    }
+
+                    sensitivityInput.addEventListener("input", (event) => {
+                        sensitivityOutput.textContent = Number(event.target.value).toFixed(2);
+                    });
+
+                    if (mergeWindowInput && mergeWindowOutput) {
+                        mergeWindowInput.addEventListener("input", (event) => {
+                            mergeWindowOutput.textContent = String(Math.round(Number(event.target.value)));
+                        });
+                    }
+
+                    if (valleyRatioInput && valleyRatioOutput) {
+                        valleyRatioInput.addEventListener("input", (event) => {
+                            valleyRatioOutput.textContent = Number(event.target.value).toFixed(2);
+                        });
+                    }
+                }());
+            </script>
+        {% endif %}
+    </main>
+</body>
+</html>

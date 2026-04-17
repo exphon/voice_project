@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20076,
+    "category": "senior",
+    "identifier": "S2602091050",
+    "audio_file": "audio/senior/S2602091050/2493245b84714ee696c00b0949316c31.wav",
+    "audio_file_url": "/media/audio/senior/S2602091050/2493245b84714ee696c00b0949316c31.wav",
+    "created_at": "2026-02-09T01:54:14.058604+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-09",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602091050",
+      "name": "김춘남",
+      "gender": "여",
+      "age": "74세 11개월",
+      "birthDate": "1951-02-14",
+      "recordingDate": "2026-02-09",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "7",
+      "voiceProblemNote": "약먹은 다음에 트이지 않고 노래가 잘 안 나옴 목소리가 안 좋아짐",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "899",
+      "birthYear": "1951",
+      "birthMonth": "02",
+      "birthDay": "14",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 0,
+      "item_text": "퍼",
+      "session_id": "senior_repeat_1770602052727_4wgb4trk1",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-09T01:54:12.727Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260209015412_김춘남_74세 11개월_여.mp4",
+      "metadata_filename": "senior_repeat_20260209015412_김춘남_74세 11개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

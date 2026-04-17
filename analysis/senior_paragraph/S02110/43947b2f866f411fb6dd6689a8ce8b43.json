@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 10395,
+    "category": "senior",
+    "identifier": "S02110",
+    "audio_file": "audio/senior/S02110/43947b2f866f411fb6dd6689a8ce8b43.wav",
+    "audio_file_url": "/media/audio/senior/S02110/43947b2f866f411fb6dd6689a8ce8b43.wav",
+    "created_at": "2025-12-06T11:20:06.326252+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-12-06",
+    "education": "19",
+    "education_years": "3",
+    "final_education": "19"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S02110",
+      "name": "김형진",
+      "gender": "남",
+      "birth_date": "1975-02-24",
+      "age": "50세 9개월",
+      "education": "19",
+      "finalEducation": "19",
+      "educationLevel": "대학원(석사)",
+      "educationYears": "3",
+      "place": "자택",
+      "noise": "보통",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-12-06",
+      "ageInMonths": "609",
+      "birthYear": "1975",
+      "birthMonth": "02",
+      "birthDay": "24",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1765020005930_qwt5hbr8q8g",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-06T11:20:05.930Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251206112005_김형진_50세 9개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251206112005_김형진_50세 9개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

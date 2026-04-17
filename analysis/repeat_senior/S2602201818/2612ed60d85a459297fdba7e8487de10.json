@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 21376,
+    "category": "senior",
+    "identifier": "S2602201818",
+    "audio_file": "audio/senior/S2602201818/2612ed60d85a459297fdba7e8487de10.wav",
+    "audio_file_url": "/media/audio/senior/S2602201818/2612ed60d85a459297fdba7e8487de10.wav",
+    "created_at": "2026-02-20T09:37:24.854144+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-20",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602201818",
+      "name": "김태호",
+      "gender": "남",
+      "age": "53세 7개월",
+      "birthDate": "1972-06-21",
+      "recordingDate": "2026-02-20",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "정상",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "자택",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "643",
+      "birthYear": "1972",
+      "birthMonth": "06",
+      "birthDay": "21",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 6,
+      "item_text": "퍼터커",
+      "session_id": "senior_repeat_1771580244607_u9r30s2is",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-20T09:37:24.607Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260220093724_김태호_53세 7개월_남.mp4",
+      "metadata_filename": "senior_repeat_20260220093724_김태호_53세 7개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

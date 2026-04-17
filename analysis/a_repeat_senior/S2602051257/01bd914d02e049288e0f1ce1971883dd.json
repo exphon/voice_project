@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 19459,
+    "category": "senior",
+    "identifier": "S2602051257",
+    "audio_file": "audio/senior/S2602051257/01bd914d02e049288e0f1ce1971883dd.wav",
+    "audio_file_url": "/media/audio/senior/S2602051257/01bd914d02e049288e0f1ce1971883dd.wav",
+    "created_at": "2026-02-05T03:59:24.381385+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "경상권",
+    "sentence_index": "1",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-05",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602051257",
+      "name": "우정남",
+      "gender": "여",
+      "age": "61세 9개월",
+      "ageInMonths": "741",
+      "birthDate": "1964-04-22",
+      "birthYear": "1964",
+      "birthMonth": "04",
+      "birthDay": "22",
+      "recordingDate": "2026-02-05",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "경상권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 1,
+      "sentence_text": "아~",
+      "session_id": "session_1770263964238_5em6hvaok2h",
+      "platform": "android",
+      "recording_timestamp": "2026-02-05T03:59:24.236Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-05T03:59:24.238Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260205035924_우정남_61세 9개월_여_s01.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-05T03:59:24.236Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

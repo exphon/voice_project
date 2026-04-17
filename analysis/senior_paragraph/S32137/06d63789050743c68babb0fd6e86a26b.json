@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 11573,
+    "category": "senior",
+    "identifier": "S32137",
+    "audio_file": "audio/senior/S32137/06d63789050743c68babb0fd6e86a26b.wav",
+    "audio_file_url": "/media/audio/senior/S32137/06d63789050743c68babb0fd6e86a26b.wav",
+    "created_at": "2025-12-14T03:34:22.977467+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-12-14",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S32137",
+      "name": "이상준",
+      "gender": "남",
+      "birth_date": "1965-11-11",
+      "age": "60세 1개월",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "place": "자택",
+      "noise": "조용",
+      "recordingLocation": "자택",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-12-14",
+      "ageInMonths": "721",
+      "birthYear": "1965",
+      "birthMonth": "11",
+      "birthDay": "11",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1765683260617_c98wd7c3esh",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-14T03:34:20.617Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251214033420_이상준_60세 1개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251214033420_이상준_60세 1개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

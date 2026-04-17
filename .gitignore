@@ -70,6 +70,7 @@ test_*.json
 # Temporary and backup files
 Untitled-*
 user.txt
+*.zip
 *.backup
 *.bak
 *.backup_*

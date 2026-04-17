@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 19126,
+    "category": "senior",
+    "identifier": "S2602021237",
+    "audio_file": "audio/senior/S2602021237/84b9ff7f0622415283419018e1be6366.wav",
+    "audio_file_url": "/media/audio/senior/S2602021237/84b9ff7f0622415283419018e1be6366.wav",
+    "created_at": "2026-02-02T03:41:18.015331+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "경상권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-02",
+    "education": "11",
+    "education_years": "2",
+    "final_education": "11",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602021237",
+      "name": "장월희",
+      "gender": "여",
+      "age": "70세 3개월",
+      "birthDate": "1955-10-14",
+      "recordingDate": "2026-02-02",
+      "education": "11",
+      "finalEducation": "11",
+      "educationLevel": "고등학교",
+      "educationYears": "2",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "시끄러움",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "경상권",
+      "place": "병원",
+      "noise": "시끄러움",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "843",
+      "birthYear": "1955",
+      "birthMonth": "10",
+      "birthDay": "14",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 6,
+      "item_text": "퍼터커",
+      "session_id": "senior_repeat_1770003680980_ct4q4sp43",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-02T03:41:20.980Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260202034120_장월희_70세 3개월_여.mp4",
+      "metadata_filename": "senior_repeat_20260202034120_장월희_70세 3개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

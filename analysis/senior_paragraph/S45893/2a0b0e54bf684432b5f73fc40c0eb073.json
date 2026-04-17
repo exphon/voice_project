@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 11861,
+    "category": "senior",
+    "identifier": "S45893",
+    "audio_file": "audio/senior/S45893/2a0b0e54bf684432b5f73fc40c0eb073.wav",
+    "audio_file_url": "/media/audio/senior/S45893/2a0b0e54bf684432b5f73fc40c0eb073.wav",
+    "created_at": "2025-12-17T12:33:57.273443+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-12-17",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S45893",
+      "name": "정희영",
+      "gender": "여",
+      "birth_date": "1969-11-17",
+      "age": "56세 1개월",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "place": "자택",
+      "noise": "보통",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "강원권",
+      "recording_date": "2025-12-17",
+      "ageInMonths": "673",
+      "birthYear": "1969",
+      "birthMonth": "11",
+      "birthDay": "17",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1765974837508_f30f5bjyr9i",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-17T12:33:57.508Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251217123357_정희영_56세 1개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20251217123357_정희영_56세 1개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

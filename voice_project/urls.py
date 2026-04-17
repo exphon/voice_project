@@ -24,6 +24,7 @@ urlpatterns = [
     path('audio/', include(('voice_app.urls_api', 'voice_app_api'), namespace='voice_app_audio')),
     # Web UI는 /voice/ 아래로 고정
     path('voice/', include(('voice_app.urls_web', 'voice_app'), namespace='voice_app')),
+    path('voice-analysis/', include(('voice_analysis.urls', 'voice_analysis'), namespace='voice_analysis')),
     path('accounts/', include('accounts.urls')),  # accounts 앱 URL 추가
 ]
 

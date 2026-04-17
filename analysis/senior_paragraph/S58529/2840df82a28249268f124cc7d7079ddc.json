@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 17833,
+    "category": "senior",
+    "identifier": "S58529",
+    "audio_file": "audio/senior/S58529/2840df82a28249268f124cc7d7079ddc.wav",
+    "audio_file_url": "/media/audio/senior/S58529/2840df82a28249268f124cc7d7079ddc.wav",
+    "created_at": "2026-01-29T03:54:57.882166+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "전라권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-01-29",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S58529",
+      "name": "조용우",
+      "gender": "남",
+      "birth_date": "1961-01-26",
+      "age": "65세",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "place": "병원",
+      "noise": "보통",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voice_problem_severity": "1",
+      "voice_problem_note": "",
+      "diagnosis": "없음",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "전라권",
+      "recording_date": "2026-01-29",
+      "ageInMonths": "780",
+      "birthYear": "1961",
+      "birthMonth": "01",
+      "birthDay": "26",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1769658884076_9uqsbfacc7m",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-29T03:54:44.076Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260129035444_조용우_65세_남.m4a",
+      "metadata_filename": "senior_paragraph_20260129035444_조용우_65세_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

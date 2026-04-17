@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20645,
+    "category": "senior",
+    "identifier": "S2602121309",
+    "audio_file": "audio/senior/S2602121309/dca3a26a578c4b26aa425d6337440494.wav",
+    "audio_file_url": "/media/audio/senior/S2602121309/dca3a26a578c4b26aa425d6337440494.wav",
+    "created_at": "2026-02-12T04:14:33.952392+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "경상권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-12",
+    "education": "9",
+    "education_years": "3",
+    "final_education": "9",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121309",
+      "name": "정현표",
+      "gender": "남",
+      "age": "71세 3개월",
+      "birthDate": "1954-11-04",
+      "recordingDate": "2026-02-12",
+      "education": "9",
+      "finalEducation": "9",
+      "educationLevel": "중학교",
+      "educationYears": "3",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "5",
+      "voiceProblemNote": "컨디션 안좋으면 쉰 목소리, 보호자가 목소리 힘 빠진다고 함\n",
+      "region": "경상권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "855",
+      "birthYear": "1954",
+      "birthMonth": "11",
+      "birthDay": "04",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 2,
+      "item_text": "터",
+      "session_id": "senior_repeat_1770869676323_d23sa2jc4",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T04:14:36.323Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260212041436_정현표_71세 3개월_남.mp4",
+      "metadata_filename": "senior_repeat_20260212041436_정현표_71세 3개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

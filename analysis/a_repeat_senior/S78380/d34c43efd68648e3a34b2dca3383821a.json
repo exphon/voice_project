@@ -1,0 +1,75 @@
+{
+  "audio": {
+    "id": 3378,
+    "category": "senior",
+    "identifier": "S78380",
+    "audio_file": "audio/senior/d34c43efd68648e3a34b2dca3383821a.wav",
+    "audio_file_url": "/media/audio/senior/d34c43efd68648e3a34b2dca3383821a.wav",
+    "created_at": "2025-10-29T11:57:37.956544+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "전라권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2025-10-29",
+    "education": "0",
+    "education_years": "0",
+    "final_education": "0"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S78380",
+      "name": "홍길동",
+      "gender": "남",
+      "age": "60세 9개월",
+      "birthDate": "1965-01-01",
+      "recordingDate": "2025-10-29",
+      "education": "0",
+      "finalEducation": "0",
+      "educationLevel": "무학",
+      "educationYears": "0",
+      "diagnosis": "정상",
+      "recordingLocation": "센터",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "전라권",
+      "place": "센터",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "729",
+      "birthYear": "1965",
+      "birthMonth": "01",
+      "birthDay": "01",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1761739058146_a1kxu2uu2wp",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-10-29T11:57:38.146Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20251029115738_홍길동_60세 9개월_남_s00.m4a",
+      "metadata_filename": "senior_a_repeat_20251029115738_홍길동_60세 9개월_남_s00_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

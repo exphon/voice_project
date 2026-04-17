@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 20468,
+    "category": "senior",
+    "identifier": "S2602121158",
+    "audio_file": "audio/senior/S2602121158/a7305c59195646ea8575d1aa5ce19d5c.wav",
+    "audio_file_url": "/media/audio/senior/S2602121158/a7305c59195646ea8575d1aa5ce19d5c.wav",
+    "created_at": "2026-02-12T03:00:28.049757+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-12",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121158",
+      "name": "임무언",
+      "gender": "남",
+      "age": "85세 4개월",
+      "ageInMonths": "1024",
+      "birthDate": "1940-09-26",
+      "birthYear": "1940",
+      "birthMonth": "09",
+      "birthDay": "26",
+      "recordingDate": "2026-02-12",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "8",
+      "voiceProblemNote": "약 먹으면 발음이 잘 안 됨, 목소리 작아지는 것 같음\n",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1770865229864_kwr5kcwi0e",
+      "platform": "android",
+      "recording_timestamp": "2026-02-12T03:00:29.863Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T03:00:29.864Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260212030029_임무언_85세 4개월_남_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-12T03:00:29.863Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

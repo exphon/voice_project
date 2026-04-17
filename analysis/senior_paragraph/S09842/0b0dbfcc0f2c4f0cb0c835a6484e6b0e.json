@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 17147,
+    "category": "senior",
+    "identifier": "S09842",
+    "audio_file": "audio/senior/S09842/0b0dbfcc0f2c4f0cb0c835a6484e6b0e.wav",
+    "audio_file_url": "/media/audio/senior/S09842/0b0dbfcc0f2c4f0cb0c835a6484e6b0e.wav",
+    "created_at": "2026-01-27T03:57:02.919103+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "경상권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-01-27",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S09842",
+      "name": "천경숙",
+      "gender": "여",
+      "birth_date": "1961-03-20",
+      "age": "64세 10개월",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "place": "기타",
+      "noise": "보통",
+      "recordingLocation": "기타",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "경상권",
+      "recording_date": "2026-01-27",
+      "ageInMonths": "778",
+      "birthYear": "1961",
+      "birthMonth": "03",
+      "birthDay": "20",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1769486221104_qb35scnktqm",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-27T03:57:01.104Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260127035701_천경숙_64세 10개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260127035701_천경숙_64세 10개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 9814,
+    "category": "senior",
+    "identifier": "S61773",
+    "audio_file": "audio/senior/S61773/ba44171eb10245bd91e6ab2b51454274.wav",
+    "audio_file_url": "/media/audio/senior/S61773/ba44171eb10245bd91e6ab2b51454274.wav",
+    "created_at": "2025-12-04T06:47:01.523732+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-12-04",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S61773",
+      "name": "김현숙",
+      "gender": "여",
+      "birth_date": "1959-12-05",
+      "age": "65세 11개월",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "place": "센터",
+      "noise": "조용",
+      "recordingLocation": "센터",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "강원권",
+      "recording_date": "2025-12-04",
+      "ageInMonths": "791",
+      "birthYear": "1959",
+      "birthMonth": "12",
+      "birthDay": "05",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1764830820869_ivciwxejxfs",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-04T06:47:00.869Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251204064700_김현숙_65세 11개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20251204064700_김현숙_65세 11개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

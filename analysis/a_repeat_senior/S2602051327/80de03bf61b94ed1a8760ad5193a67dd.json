@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 19515,
+    "category": "senior",
+    "identifier": "S2602051327",
+    "audio_file": "audio/senior/S2602051327/80de03bf61b94ed1a8760ad5193a67dd.wav",
+    "audio_file_url": "/media/audio/senior/S2602051327/80de03bf61b94ed1a8760ad5193a67dd.wav",
+    "created_at": "2026-02-05T04:30:00.436982+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "전라권",
+    "sentence_index": "1",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-05",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602051327",
+      "name": "김학수",
+      "gender": "남",
+      "age": "76세 5개월",
+      "ageInMonths": "917",
+      "birthDate": "1949-08-31",
+      "birthYear": "1949",
+      "birthMonth": "08",
+      "birthDay": "31",
+      "recordingDate": "2026-02-05",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "7",
+      "voiceProblemNote": "너무 작다",
+      "region": "전라권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 1,
+      "sentence_text": "아~",
+      "session_id": "session_1770265800737_la99yl71zjd",
+      "platform": "android",
+      "recording_timestamp": "2026-02-05T04:30:00.735Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-05T04:30:00.737Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260205043000_김학수_76세 5개월_남_s01.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-05T04:30:00.735Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

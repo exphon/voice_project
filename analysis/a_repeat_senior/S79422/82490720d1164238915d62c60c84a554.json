@@ -1,0 +1,78 @@
+{
+  "audio": {
+    "id": 7770,
+    "category": "senior",
+    "identifier": "S79422",
+    "audio_file": "audio/senior/S79422/82490720d1164238915d62c60c84a554.wav",
+    "audio_file_url": "/media/audio/senior/S79422/82490720d1164238915d62c60c84a554.wav",
+    "created_at": "2025-11-29T10:55:03.944623+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2025-11-29",
+    "education": "14",
+    "education_years": "2",
+    "final_education": "14"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S79422",
+      "name": "최은주",
+      "gender": "여",
+      "age": "52세 3개월",
+      "ageInMonths": "627",
+      "birthDate": "1973-08-13",
+      "birthYear": "1973",
+      "birthMonth": "08",
+      "birthDay": "13",
+      "recordingDate": "2025-11-29",
+      "education": "14",
+      "finalEducation": "14",
+      "educationLevel": "대학교",
+      "educationYears": "2",
+      "diagnosis": "정상",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "자택",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1764413703768_q7608yg0htp",
+      "platform": "android",
+      "recording_timestamp": "2025-11-29T10:55:03.766Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-11-29T10:55:03.768Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20251129105503_최은주_52세 3개월_여_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2025-11-29T10:55:03.766Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

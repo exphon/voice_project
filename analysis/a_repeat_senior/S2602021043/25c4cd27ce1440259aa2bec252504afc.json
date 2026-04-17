@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 19003,
+    "category": "senior",
+    "identifier": "S2602021043",
+    "audio_file": "audio/senior/S2602021043/25c4cd27ce1440259aa2bec252504afc.wav",
+    "audio_file_url": "/media/audio/senior/S2602021043/25c4cd27ce1440259aa2bec252504afc.wav",
+    "created_at": "2026-02-02T01:45:20.029930+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-02",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602021043",
+      "name": "박채옥",
+      "gender": "여",
+      "age": "70세 5개월",
+      "ageInMonths": "845",
+      "birthDate": "1955-08-15",
+      "birthYear": "1955",
+      "birthMonth": "08",
+      "birthDay": "15",
+      "recordingDate": "2026-02-02",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "7",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1769996722988_tg7z927uvv",
+      "platform": "android",
+      "recording_timestamp": "2026-02-02T01:45:22.986Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-02T01:45:22.988Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260202014522_박채옥_70세 5개월_여_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-02T01:45:22.986Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

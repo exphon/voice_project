@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 13183,
+    "category": "senior",
+    "identifier": "S20968",
+    "audio_file": "audio/senior/S20968/55391fcae5904b818a49e00eff3bca86.wav",
+    "audio_file_url": "/media/audio/senior/S20968/55391fcae5904b818a49e00eff3bca86.wav",
+    "created_at": "2025-12-27T12:22:13.586234+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "task_type": "repeat_senior",
+    "recording_date": "2025-12-27",
+    "education": "18",
+    "education_years": "2",
+    "final_education": "18"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S20968",
+      "name": "김권태",
+      "gender": "남",
+      "age": "50세 3개월",
+      "birthDate": "1975-09-12",
+      "recordingDate": "2025-12-27",
+      "education": "18",
+      "finalEducation": "18",
+      "educationLevel": "대학원(석사)",
+      "educationYears": "2",
+      "diagnosis": "정상",
+      "recordingLocation": "자택",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "강원권",
+      "place": "자택",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "603",
+      "birthYear": "1975",
+      "birthMonth": "09",
+      "birthDay": "12",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 4,
+      "item_text": "커",
+      "session_id": "senior_repeat_1766838132939_r5i6piyg5",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-27T12:22:12.939Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20251227122212_김권태_50세 3개월_남.mp4",
+      "metadata_filename": "senior_repeat_20251227122212_김권태_50세 3개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

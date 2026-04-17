@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 9499,
+    "category": "senior",
+    "identifier": "S56822",
+    "audio_file": "audio/senior/S56822/7a44e030f55345b08a55ef93ed9ca55d.wav",
+    "audio_file_url": "/media/audio/senior/S56822/7a44e030f55345b08a55ef93ed9ca55d.wav",
+    "created_at": "2025-12-03T06:38:44.795322+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "task_type": "repeat_senior",
+    "recording_date": "2025-12-03",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S56822",
+      "name": "목영순",
+      "gender": "여",
+      "age": "66세 11개월",
+      "birthDate": "1958-12-20",
+      "recordingDate": "2025-12-03",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "정상",
+      "recordingLocation": "센터",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "강원권",
+      "place": "센터",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "803",
+      "birthYear": "1958",
+      "birthMonth": "12",
+      "birthDay": "20",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 0,
+      "item_text": "퍼",
+      "session_id": "senior_repeat_1764743924346_gv0rrqoxo",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-03T06:38:44.346Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20251203063844_목영순_66세 11개월_여.mp4",
+      "metadata_filename": "senior_repeat_20251203063844_목영순_66세 11개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

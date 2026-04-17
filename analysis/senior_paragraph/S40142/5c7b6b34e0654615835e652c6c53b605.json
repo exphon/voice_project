@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 18702,
+    "category": "senior",
+    "identifier": "S40142",
+    "audio_file": "audio/senior/S40142/5c7b6b34e0654615835e652c6c53b605.wav",
+    "audio_file_url": "/media/audio/senior/S40142/5c7b6b34e0654615835e652c6c53b605.wav",
+    "created_at": "2026-01-30T13:04:00.407195+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-01-30",
+    "education": "18",
+    "education_years": "2",
+    "final_education": "18"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S40142",
+      "name": "김은숙",
+      "gender": "여",
+      "birth_date": "1971-05-24",
+      "age": "54세 8개월",
+      "education": "18",
+      "finalEducation": "18",
+      "educationLevel": "대학원(석사)",
+      "educationYears": "2",
+      "place": "자택",
+      "noise": "조용",
+      "recordingLocation": "자택",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-01-30",
+      "ageInMonths": "656",
+      "birthYear": "1971",
+      "birthMonth": "05",
+      "birthDay": "24",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1769778239588_52tydiwrwo8",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-30T13:03:59.588Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260130130359_김은숙_54세 8개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260130130359_김은숙_54세 8개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

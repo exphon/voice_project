@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 9987,
+    "category": "senior",
+    "identifier": "S92521",
+    "audio_file": "audio/senior/S92521/3c9d7605cd1246a1a32e3c50c4fe6010.wav",
+    "audio_file_url": "/media/audio/senior/S92521/3c9d7605cd1246a1a32e3c50c4fe6010.wav",
+    "created_at": "2025-12-05T11:55:11.969597+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-12-05",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S92521",
+      "name": "송대호",
+      "gender": "남",
+      "birth_date": "1962-07-07",
+      "age": "63세 4개월",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "place": "기타",
+      "noise": "시끄러움",
+      "recordingLocation": "기타",
+      "noiseLevel": "시끄러움",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-12-05",
+      "ageInMonths": "760",
+      "birthYear": "1962",
+      "birthMonth": "07",
+      "birthDay": "07",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1764935709418_60spfr8nupm",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-05T11:55:09.418Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251205115509_송대호_63세 4개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251205115509_송대호_63세 4개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustained Vowel Analysis</title>
+    <style>
+        :root {
+            --bg: #f7f1e8;
+            --panel: #fffaf2;
+            --ink: #1f2937;
+            --accent: #0f766e;
+            --line: #d6c7b6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Pretendard", "Noto Sans KR", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+                linear-gradient(135deg, #f8efe2 0%, var(--bg) 45%, #efe7dc 100%);
+        }
+
+        .page {
+            width: min(1080px, calc(100vw - 32px));
+            margin: 40px auto;
+            padding: 32px;
+            border: 1px solid rgba(214, 199, 182, 0.8);
+            border-radius: 28px;
+            background: rgba(255, 250, 242, 0.92);
+            box-shadow: 0 24px 80px rgba(31, 41, 55, 0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            letter-spacing: -0.04em;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .intro {
+            max-width: 720px;
+            margin-bottom: 28px;
+        }
+
+        .upload-panel,
+        .result-panel {
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: var(--panel);
+        }
+
+        .upload-panel {
+            display: grid;
+            gap: 16px;
+        }
+
+        .file-input {
+            display: grid;
+            gap: 8px;
+        }
+
+        .file-input input {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: white;
+        }
+
+        button {
+            width: fit-content;
+            padding: 14px 20px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--accent);
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            filter: brightness(0.95);
+        }
+
+        .error {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(185, 28, 28, 0.08);
+            color: #b91c1c;
+        }
+
+        .result-panel {
+            margin-top: 24px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .file-badge {
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            font-weight: 700;
+            max-width: min(55vw, 420px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin: 20px 0 24px;
+        }
+
+        .stat {
+            padding: 16px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid var(--line);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 0.85rem;
+            color: #5b6470;
+            margin-bottom: 8px;
+        }
+
+        .stat span {
+            font-size: 1.35rem;
+            font-weight: 800;
+        }
+
+        .chart-wrap {
+            padding: 18px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid var(--line);
+        }
+
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin: 0 0 18px;
+        }
+
+        .chart-controls[hidden] {
+            display: none;
+        }
+
+        .ghost-button {
+            background: white;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .range-group {
+            display: grid;
+            gap: 6px;
+            min-width: min(360px, 100%);
+            flex: 1;
+        }
+
+        .range-group input {
+            width: 100%;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 3px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .audio-playback {
+            margin: 0 0 16px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .audio-playback audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .audio-segment-controls {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .ghost-inline {
+            margin-left: 0;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .selection-label {
+            font-weight: 700;
+            color: #5b6470;
+        }
+
+        .transcription-panel {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .analysis-actions {
+            margin-top: 14px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #fff;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .analysis-actions .hint {
+            color: #5b6470;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            .page {
+                width: calc(100vw - 20px);
+                margin: 12px auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="intro">
+            <h1>Sustained Vowel Analysis</h1>
+            <p>지속 모음 /a/ 기반 분석 페이지입니다. 음성 파일을 업로드하면 waveform을 시각화합니다.</p>
+        </section>
+
+        <section class="upload-panel">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label class="file-input">
+                    <span>오디오 파일 선택</span>
+                    <input type="file" name="audio_file" accept=".wav,.mp3,.m4a,.flac,.ogg,.webm,.mp4,audio/*" required>
+                </label>
+                <button type="submit">분석 실행</button>
+            </form>
+
+            {% if error_message %}
+                <div class="error">{{ error_message }}</div>
+            {% endif %}
+        </section>
+
+        {% if analysis_result %}
+            <section class="result-panel">
+                <div class="result-header">
+                    <h2>분석 결과</h2>
+                    <div class="file-badge" title="{{ analysis_result.file_name }}">{{ analysis_result.file_name }}</div>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <strong>샘플레이트</strong>
+                        <span>{{ analysis_result.sample_rate }} Hz</span>
+                    </div>
+                    <div class="stat">
+                        <strong>재생 길이</strong>
+                        <span>{{ analysis_result.duration_seconds }} s</span>
+                    </div>
+                    <div class="stat">
+                        <strong>Waveform 포인트 수</strong>
+                        <span id="waveform-point-count">{{ analysis_result.waveform_points|length }}</span>
+                    </div>
+                </div>
+
+                <div class="transcription-panel">
+                    <strong>화자 정보</strong>
+                    {% if analysis_result.speaker_info %}
+                        <div class="stats">
+                            <div class="stat">
+                                <strong>이름</strong>
+                                <span>{{ analysis_result.speaker_info.name|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>Identifier</strong>
+                                <span>{{ analysis_result.speaker_info.identifier|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>성별</strong>
+                                <span>{{ analysis_result.speaker_info.gender|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>카테고리</strong>
+                                <span>{{ analysis_result.speaker_info.category|default:"-" }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p>파일명으로 매칭된 화자 정보가 없습니다.</p>
+                    {% endif %}
+                </div>
+
+                {% if analysis_result.audio_preview_url %}
+                    <div class="audio-playback">
+                        <strong>Waveform 재생</strong>
+                        <audio id="waveform-player" controls preload="metadata" src="{{ analysis_result.audio_preview_url }}"></audio>
+                        <div class="audio-segment-controls">
+                            <button type="button" class="ghost-inline" id="play-selection">선택 구간 재생</button>
+                            <button type="button" class="ghost-inline" id="clear-selection">선택 해제</button>
+                            <span class="selection-label" id="selection-range-label">선택 없음</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="chart-wrap">
+                    {% if analysis_result.zoom_enabled %}
+                        <div class="chart-controls" id="zoom-controls">
+                            <button type="button" class="ghost-button" id="zoom-in">Zoom In</button>
+                            <button type="button" class="ghost-button" id="zoom-out">Zoom Out</button>
+                            <label class="range-group" for="window-offset">
+                                <span id="window-label">현재 구간</span>
+                                <input type="range" id="window-offset" min="0" max="0" value="0" step="0.1">
+                            </label>
+                        </div>
+                    {% endif %}
+                    <div class="legend">
+                        <span><i style="background:#64748b"></i>Waveform</span>
+                    </div>
+                    <canvas id="waveform-chart" width="1000" height="360"></canvas>
+
+                    <form method="post" class="analysis-actions" id="segment-analysis-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="analyze_segment">
+                        <input type="hidden" name="audio_preview_url" value="{{ analysis_result.audio_preview_url }}">
+                        <input type="hidden" id="selection-start" name="selection_start" value="">
+                        <input type="hidden" id="selection-end" name="selection_end" value="">
+                        <button type="submit" class="ghost-button" id="start-segment-analysis" disabled>분석 시작</button>
+                        <span class="hint">마우스로 모음 구간 선택 후 버튼을 눌러 주세요.</span>
+                    </form>
+                </div>
+
+                {% if segment_result %}
+                    <div class="transcription-panel">
+                        <strong>선택 구간 분석 결과</strong>
+                        <div class="stats">
+                            <div class="stat">
+                                <strong>Duration (ms)</strong>
+                                <span>{{ segment_result.duration_ms }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>F1 (Hz)</strong>
+                                <span>{{ segment_result.f1_hz|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>F2 (Hz)</strong>
+                                <span>{{ segment_result.f2_hz|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>Shimmer (local)</strong>
+                                <span>{{ segment_result.shimmer_local|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>Jitter (local)</strong>
+                                <span>{{ segment_result.jitter_local|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>HNR (dB)</strong>
+                                <span>{{ segment_result.hnr_db|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>CPP</strong>
+                                <span>{{ segment_result.cpp|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <p>선택 구간: {{ segment_result.start_seconds }}s - {{ segment_result.end_seconds }}s</p>
+                    </div>
+                {% endif %}
+            </section>
+
+            {{ analysis_result|json_script:"analysis-data" }}
+            <script>
+                (function () {
+                    const analysisNode = document.getElementById("analysis-data");
+                    if (!analysisNode) {
+                        return;
+                    }
+
+                    const analysis = JSON.parse(analysisNode.textContent);
+                    const canvas = document.getElementById("waveform-chart");
+                    if (!canvas) {
+                        return;
+                    }
+
+                    const context = canvas.getContext("2d");
+                    const width = canvas.width;
+                    const height = canvas.height;
+                    const padding = { top: 24, right: 24, bottom: 40, left: 52 };
+                    const plotWidth = width - padding.left - padding.right;
+                    const plotHeight = height - padding.top - padding.bottom;
+                    const waveformValues = analysis.waveform_points || [];
+                    const waveformTimes = analysis.waveform_times || [];
+                    const zoomInButton = document.getElementById("zoom-in");
+                    const zoomOutButton = document.getElementById("zoom-out");
+                    const offsetSlider = document.getElementById("window-offset");
+                    const windowLabel = document.getElementById("window-label");
+                    const waveformPlayer = document.getElementById("waveform-player");
+                    const playSelectionButton = document.getElementById("play-selection");
+                    const clearSelectionButton = document.getElementById("clear-selection");
+                    const selectionRangeLabel = document.getElementById("selection-range-label");
+                    const selectionStartInput = document.getElementById("selection-start");
+                    const selectionEndInput = document.getElementById("selection-end");
+                    const startSegmentAnalysisButton = document.getElementById("start-segment-analysis");
+                    const totalDuration = analysis.duration_seconds || 0;
+                    const zoomEnabled = Boolean(analysis.zoom_enabled);
+                    let visibleDuration = zoomEnabled ? Math.min(10, totalDuration) : totalDuration;
+                    let windowStart = 0;
+                    let renderedPeakHitAreas = [];
+                    let selectionStart = null;
+                    let selectionEnd = null;
+                    let isSelecting = false;
+                    let dragMoved = false;
+                    let suppressNextCanvasClick = false;
+                    let segmentPlayStart = null;
+                    let segmentPlayEnd = null;
+                    let segmentAudioContext = null;
+                    let segmentAudioBuffer = null;
+                    let segmentAudioSource = null;
+                    let segmentAudioLoadPromise = null;
+
+                    if (!waveformValues.length || !waveformTimes.length) {
+                        return;
+                    }
+
+                    if (!zoomEnabled) {
+                        visibleDuration = totalDuration || 1;
+                    }
+
+                    function setSliderBounds() {
+                        if (!offsetSlider) {
+                            return;
+                        }
+
+                        const maxOffset = Math.max(totalDuration - visibleDuration, 0);
+                        offsetSlider.max = String(maxOffset);
+                        offsetSlider.value = String(Math.min(windowStart, maxOffset));
+                        offsetSlider.disabled = maxOffset <= 0;
+                    }
+
+                    function getVisibleSeries(times, values) {
+                        const windowEnd = windowStart + visibleDuration;
+                        const filtered = [];
+
+                        for (let index = 0; index < times.length; index += 1) {
+                            const time = times[index];
+                            if (time >= windowStart && time <= windowEnd) {
+                                filtered.push({ time, value: values[index] });
+                            }
+                        }
+
+                        return filtered;
+                    }
+
+                    function xForTime(time) {
+                        return padding.left + ((time - windowStart) / visibleDuration) * plotWidth;
+                    }
+
+                    function timeForX(x) {
+                        const clampedX = Math.min(Math.max(x, padding.left), width - padding.right);
+                        const ratio = (clampedX - padding.left) / Math.max(plotWidth, 1);
+                        return windowStart + (ratio * visibleDuration);
+                    }
+
+                    function yForWaveform(value) {
+                        return padding.top + plotHeight / 2 - value * (plotHeight * 0.44);
+                    }
+
+                    function drawAxes() {
+                        context.strokeStyle = "#c9b79f";
+                        context.lineWidth = 1;
+                        context.beginPath();
+                        context.moveTo(padding.left, padding.top);
+                        context.lineTo(padding.left, height - padding.bottom);
+                        context.lineTo(width - padding.right, height - padding.bottom);
+                        context.moveTo(padding.left, padding.top + plotHeight / 2);
+                        context.lineTo(width - padding.right, padding.top + plotHeight / 2);
+                        context.stroke();
+                    }
+
+                    function drawSeries(series, color, yMapper, lineWidth) {
+                        if (!series.length) {
+                            return;
+                        }
+
+                        context.save();
+                        context.strokeStyle = color;
+                        context.lineWidth = lineWidth;
+                        context.beginPath();
+
+                        series.forEach((point, index) => {
+                            const x = xForTime(point.time);
+                            const y = yMapper(point.value);
+                            if (index === 0) {
+                                context.moveTo(x, y);
+                            } else {
+                                context.lineTo(x, y);
+                            }
+                        });
+
+                        context.stroke();
+                        context.restore();
+                    }
+
+                    function getSegmentAudioContext() {
+                        if (segmentAudioContext) {
+                            return segmentAudioContext;
+                        }
+
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        if (!AudioContextClass) {
+                            return null;
+                        }
+
+                        segmentAudioContext = new AudioContextClass();
+                        return segmentAudioContext;
+                    }
+
+                    async function loadSegmentAudioBuffer() {
+                        if (segmentAudioBuffer) {
+                            return segmentAudioBuffer;
+                        }
+
+                        if (segmentAudioLoadPromise) {
+                            return segmentAudioLoadPromise;
+                        }
+
+                        const sourceUrl = waveformPlayer?.currentSrc || waveformPlayer?.src;
+                        if (!sourceUrl) {
+                            throw new Error("Audio source not found");
+                        }
+
+                        const audioContext = getSegmentAudioContext();
+                        if (!audioContext) {
+                            throw new Error("AudioContext unavailable");
+                        }
+
+                        segmentAudioLoadPromise = fetch(sourceUrl)
+                            .then((response) => {
+                                if (!response.ok) {
+                                    throw new Error("Audio fetch failed");
+                                }
+                                return response.arrayBuffer();
+                            })
+                            .then((buffer) => audioContext.decodeAudioData(buffer))
+                            .then((decodedBuffer) => {
+                                segmentAudioBuffer = decodedBuffer;
+                                segmentAudioLoadPromise = null;
+                                return decodedBuffer;
+                            })
+                            .catch((error) => {
+                                segmentAudioLoadPromise = null;
+                                throw error;
+                            });
+
+                        return segmentAudioLoadPromise;
+                    }
+
+                    function updateSelectionLabel() {
+                        if (!selectionRangeLabel) {
+                            return;
+                        }
+
+                        const range = getSelectionRange();
+                        if (!range) {
+                            selectionRangeLabel.textContent = "선택 없음";
+                            if (selectionStartInput) {
+                                selectionStartInput.value = "";
+                            }
+                            if (selectionEndInput) {
+                                selectionEndInput.value = "";
+                            }
+                            if (startSegmentAnalysisButton) {
+                                startSegmentAnalysisButton.disabled = true;
+                            }
+                            return;
+                        }
+
+                        selectionRangeLabel.textContent = `${range.start.toFixed(3)}s - ${range.end.toFixed(3)}s`;
+                        if (selectionStartInput) {
+                            selectionStartInput.value = range.start.toFixed(4);
+                        }
+                        if (selectionEndInput) {
+                            selectionEndInput.value = range.end.toFixed(4);
+                        }
+                        if (startSegmentAnalysisButton) {
+                            startSegmentAnalysisButton.disabled = false;
+                        }
+                    }
+
+                    function drawSelectionOverlay() {
+                        const range = getSelectionRange();
+                        if (!range) {
+                            return;
+                        }
+
+                        const startX = xForTime(range.start);
+                        const endX = xForTime(range.end);
+                        const x = Math.max(Math.min(startX, endX), padding.left);
+                        const clampedEnd = Math.min(Math.max(startX, endX), width - padding.right);
+                        const w = Math.max(clampedEnd - x, 0);
+                        if (w <= 0) {
+                            return;
+                        }
+
+                        context.save();
+                        context.fillStyle = "rgba(15, 118, 110, 0.14)";
+                        context.fillRect(x, padding.top, w, plotHeight);
+                        context.strokeStyle = "rgba(15, 118, 110, 0.8)";
+                        context.lineWidth = 1.5;
+                        context.strokeRect(x, padding.top, w, plotHeight);
+                        context.restore();
+                    }
+
+                    function stopSegmentPlayback(resetPosition = false) {
+                        if (segmentAudioSource) {
+                            segmentAudioSource.onended = null;
+                            segmentAudioSource.stop();
+                            segmentAudioSource.disconnect();
+                            segmentAudioSource = null;
+                        }
+
+                        if (waveformPlayer) {
+                            waveformPlayer.pause();
+                            if (resetPosition && segmentPlayStart !== null) {
+                                waveformPlayer.currentTime = segmentPlayStart;
+                            }
+                        }
+
+                        segmentPlayStart = null;
+                        segmentPlayEnd = null;
+                    }
+
+                    function getSelectionRange() {
+                        if (selectionStart === null || selectionEnd === null) {
+                            return null;
+                        }
+
+                        const start = Math.max(0, Math.min(selectionStart, selectionEnd));
+                        const end = Math.min(totalDuration, Math.max(selectionStart, selectionEnd));
+                        if ((end - start) < 0.02) {
+                            return null;
+                        }
+
+                        return { start, end };
+                    }
+
+                    function updateWindowLabel(windowEnd) {
+                        if (!windowLabel) {
+                            return;
+                        }
+
+                        windowLabel.textContent = `현재 구간 ${windowStart.toFixed(1)}s - ${windowEnd.toFixed(1)}s`;
+                    }
+
+                    function renderChart() {
+                        const windowEnd = Math.min(windowStart + visibleDuration, totalDuration || visibleDuration);
+                        const visibleWaveform = getVisibleSeries(waveformTimes, waveformValues);
+
+                        context.clearRect(0, 0, width, height);
+                        context.fillStyle = "#ffffff";
+                        context.fillRect(0, 0, width, height);
+
+                        drawAxes();
+                        drawSeries(visibleWaveform, "#64748b", yForWaveform, 1.1);
+                        drawSelectionOverlay();
+
+                        context.fillStyle = "#1f2937";
+                        context.font = "14px sans-serif";
+                        context.fillText("Waveform", padding.left, 18);
+                        context.fillText("Time (s)", width - padding.right - 56, height - 10);
+                        context.save();
+                        context.translate(18, height / 2 + 28);
+                        context.rotate(-Math.PI / 2);
+                        context.fillText("Normalized amplitude", 0, 0);
+                        context.restore();
+
+                        updateWindowLabel(windowEnd);
+                        setSliderBounds();
+                        updateSelectionLabel();
+                    }
+
+                    if (zoomInButton) {
+                        zoomInButton.addEventListener("click", () => {
+                            if (!zoomEnabled) {
+                                return;
+                            }
+
+                            visibleDuration = Math.max(2.5, visibleDuration / 2);
+                            windowStart = Math.min(windowStart, Math.max(totalDuration - visibleDuration, 0));
+                            renderChart();
+                        });
+                    }
+
+                    if (zoomOutButton) {
+                        zoomOutButton.addEventListener("click", () => {
+                            if (!zoomEnabled) {
+                                return;
+                            }
+
+                            visibleDuration = Math.min(totalDuration, visibleDuration * 2);
+                            windowStart = Math.min(windowStart, Math.max(totalDuration - visibleDuration, 0));
+                            renderChart();
+                        });
+                    }
+
+                    if (offsetSlider) {
+                        offsetSlider.addEventListener("input", (event) => {
+                            windowStart = Number(event.target.value || 0);
+                            renderChart();
+                        });
+                    }
+
+                    canvas.addEventListener("click", (event) => {
+                        if (suppressNextCanvasClick) {
+                            suppressNextCanvasClick = false;
+                            return;
+                        }
+                    });
+
+                    canvas.addEventListener("mousemove", (event) => {
+                        const rect = canvas.getBoundingClientRect();
+                        const scaleX = canvas.width / rect.width;
+                        const scaleY = canvas.height / rect.height;
+                        const canvasX = (event.clientX - rect.left) * scaleX;
+                        const canvasY = (event.clientY - rect.top) * scaleY;
+
+                        if (isSelecting) {
+                            selectionEnd = timeForX(canvasX);
+                            dragMoved = true;
+                            renderChart();
+                            return;
+                        }
+
+                        const insidePlot = canvasX >= padding.left && canvasX <= (width - padding.right) && canvasY >= padding.top && canvasY <= (height - padding.bottom);
+                        canvas.style.cursor = insidePlot ? "crosshair" : "default";
+                    });
+
+                    canvas.addEventListener("mousedown", (event) => {
+                        if (event.button !== 0) {
+                            return;
+                        }
+
+                        const rect = canvas.getBoundingClientRect();
+                        const scaleX = canvas.width / rect.width;
+                        const scaleY = canvas.height / rect.height;
+                        const canvasX = (event.clientX - rect.left) * scaleX;
+                        const canvasY = (event.clientY - rect.top) * scaleY;
+
+                        const insidePlot = canvasX >= padding.left && canvasX <= (width - padding.right) && canvasY >= padding.top && canvasY <= (height - padding.bottom);
+                        if (!insidePlot) {
+                            return;
+                        }
+
+                        isSelecting = true;
+                        dragMoved = false;
+                        selectionStart = timeForX(canvasX);
+                        selectionEnd = selectionStart;
+                        renderChart();
+                    });
+
+                    window.addEventListener("mouseup", () => {
+                        if (!isSelecting) {
+                            return;
+                        }
+
+                        isSelecting = false;
+                        if (dragMoved) {
+                            suppressNextCanvasClick = true;
+                        }
+                        renderChart();
+                    });
+
+                    canvas.addEventListener("mouseleave", () => {
+                        canvas.style.cursor = "default";
+                    });
+
+                    if (playSelectionButton && waveformPlayer) {
+                        playSelectionButton.addEventListener("click", async () => {
+                            const range = getSelectionRange();
+                            if (!range) {
+                                return;
+                            }
+
+                            stopSegmentPlayback(false);
+                            segmentPlayStart = range.start;
+                            segmentPlayEnd = range.end;
+                            try {
+                                const audioContext = getSegmentAudioContext();
+                                const audioBuffer = await loadSegmentAudioBuffer();
+                                if (!audioContext || !audioBuffer) {
+                                    throw new Error("Segment playback unavailable");
+                                }
+
+                                await audioContext.resume();
+                                waveformPlayer.currentTime = range.start;
+
+                                const source = audioContext.createBufferSource();
+                                source.buffer = audioBuffer;
+                                source.connect(audioContext.destination);
+                                source.onended = () => {
+                                    if (segmentAudioSource === source) {
+                                        segmentAudioSource.disconnect();
+                                        segmentAudioSource = null;
+                                        if (waveformPlayer) {
+                                            waveformPlayer.currentTime = range.end;
+                                        }
+                                        segmentPlayStart = null;
+                                        segmentPlayEnd = null;
+                                    }
+                                };
+
+                                segmentAudioSource = source;
+                                source.start(0, range.start, Math.max(range.end - range.start, 0.01));
+                            } catch (_error) {
+                                stopSegmentPlayback(false);
+                            }
+                        });
+                    }
+
+                    if (waveformPlayer) {
+                        waveformPlayer.addEventListener("pause", () => {
+                            if (segmentAudioSource && !waveformPlayer.seeking) {
+                                stopSegmentPlayback(false);
+                            }
+                        });
+
+                        waveformPlayer.addEventListener("play", () => {
+                            if (segmentAudioSource) {
+                                stopSegmentPlayback(false);
+                            }
+                        });
+                    }
+
+                    if (clearSelectionButton) {
+                        clearSelectionButton.addEventListener("click", () => {
+                            selectionStart = null;
+                            selectionEnd = null;
+                            stopSegmentPlayback(false);
+                            renderChart();
+                        });
+                    }
+
+                    renderChart();
+                }());
+            </script>
+        {% endif %}
+    </main>
+</body>
+</html>

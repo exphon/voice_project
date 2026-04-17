@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 19287,
+    "category": "senior",
+    "identifier": "S47959",
+    "audio_file": "audio/senior/S47959/a630aff5156241c58260db07f0b521a7.wav",
+    "audio_file_url": "/media/audio/senior/S47959/a630aff5156241c58260db07f0b521a7.wav",
+    "created_at": "2026-02-04T11:01:22.570089+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-04",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S47959",
+      "name": "윤선욱",
+      "gender": "여",
+      "age": "51세 6개월",
+      "ageInMonths": "618",
+      "birthDate": "1974-07-23",
+      "birthYear": "1974",
+      "birthMonth": "07",
+      "birthDay": "23",
+      "recordingDate": "2026-02-04",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "정상",
+      "recordingLocation": "자택",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "자택",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1770202881824_329y581xhhv",
+      "platform": "android",
+      "recording_timestamp": "2026-02-04T11:01:21.822Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-04T11:01:21.824Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260204110121_윤선욱_51세 6개월_여_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-04T11:01:21.822Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Periodicity Help</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --bg: #f7f1e8;
+            --panel: #fffaf2;
+            --ink: #1f2937;
+            --accent: #0f766e;
+            --line: #d6c7b6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Pretendard", "Noto Sans KR", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+                linear-gradient(135deg, #f8efe2 0%, var(--bg) 45%, #efe7dc 100%);
+        }
+
+        .page {
+            width: min(1000px, calc(100vw - 32px));
+            margin: 28px auto;
+            padding: 28px;
+            border: 1px solid rgba(214, 199, 182, 0.8);
+            border-radius: 24px;
+            background: rgba(255, 250, 242, 0.95);
+        }
+
+        h1, h2 {
+            margin: 0 0 10px;
+        }
+
+        p {
+            line-height: 1.65;
+            margin: 0 0 10px;
+        }
+
+        section {
+            margin-top: 20px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel);
+        }
+
+        ul, ol {
+            margin: 8px 0 0 18px;
+            line-height: 1.65;
+        }
+
+        .tip {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-left: 4px solid var(--accent);
+            background: #ffffff;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <h1>Periodicity Help</h1>
+        <p>감지된 Peak 시점 목록으로 시계열의 periodicity를 정량화하는 방법을 정리한 문서입니다. 현재 페이지의 "현재 확대 구간 Periodicity" 패널 구현 방식도 함께 설명합니다.</p>
+
+        <section>
+            <h2>현재 구현 요약</h2>
+            <p>현재 voice_analysis 화면은 peak 검출, 같은 모음 내부 이중 peak 병합, 확대 구간 periodicity 계산, 재전사 제약까지 하나의 흐름으로 연결되어 있습니다.</p>
+            <ol>
+                <li>Envelope 기반 peak를 민감도 슬라이더로 유연하게 검출합니다.</li>
+                <li>같은 모음 내부에서 2개로 잡힌 peak는 시간 간격 + valley 깊이 기준으로 1개로 병합합니다.</li>
+                <li>확대(zoom) 구간의 active peak만 사용해 IPI 기반 periodicity 지표를 계산합니다.</li>
+                <li>현재 확대 구간 peak 수를 재전사 버튼의 제약값으로 전달해 Whisper 전사 토큰 수를 맞춥니다.</li>
+            </ol>
+            <div class="tip">
+                구현 의도: 약한 모음 peak는 놓치지 않으면서(민감도 유지), 한 모음 내부의 과검출만 줄여 안정적인 periodicity 지표를 얻는 것입니다.
+            </div>
+        </section>
+
+        <section>
+            <h2>가장 실용적인 방법: IPI 분석</h2>
+            <ol>
+                <li>Peak 시점 배열 준비: \(t_1, t_2, \dots, t_n\)</li>
+                <li>간격 계산: \(d_i = t_{i+1} - t_i\)</li>
+                <li>대표 주기 추정: \(T \approx \mathrm{median}(d_i)\)</li>
+                <li>규칙성 점수 계산:
+                    <ul>
+                        <li>변동계수: \(CV = \frac{\mathrm{std}(d)}{\mathrm{mean}(d)}\)</li>
+                        <li>강건 대안: \(\mathrm{MAD}/\mathrm{median}(d)\)</li>
+                    </ul>
+                </li>
+            </ol>
+            <div class="tip">
+                해석 예시: \(CV < 0.1\) 매우 주기적, \(0.1 \sim 0.25\) 중간 규칙성, \(> 0.25\) 불규칙
+            </div>
+        </section>
+
+        <section>
+            <h2>정확도를 높이는 추가 방법</h2>
+            <ul>
+                <li>Autocorrelation: 첫 번째 큰 봉우리의 지연시간을 주기 \(T\)로 사용</li>
+                <li>FFT/Periodogram: 지배 주파수 \(f_0\)를 찾고 \(T = 1/f_0\)</li>
+                <li>Lomb-Scargle: peak time처럼 불규칙 샘플에서 유용</li>
+                <li>Vector Strength:
+                    <div>\(\phi_i = 2\pi \frac{t_i \bmod T}{T}\)</div>
+                    <div>\(R = \left| \frac{1}{n} \sum_{i=1}^{n} e^{j\phi_i} \right|\)</div>
+                    <div>\(R \to 1\)이면 매우 주기적, \(R \to 0\)이면 비주기적</div>
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>현재 구현 참고</h2>
+            <p>현재 확대 구간 Periodicity는 zoom 구간 내 peak들만 대상으로 계산합니다.</p>
+            <ul>
+                <li>대표 주기 \(T\): IPI의 median</li>
+                <li>반복률: \(1/T\) (Hz)</li>
+                <li>IPI CV: \(\mathrm{std}/\mathrm{mean}\)</li>
+                <li>규칙성 등급: CV 기준으로 "매우 규칙적/중간 규칙성/불규칙"</li>
+            </ul>
+            <div class="tip">
+                추천 워크플로우: (1) 줌 구간 기준 IPI + CV 계산, (2) 같은 구간 자기상관 기반 \(T\) 계산, (3) 두 결과가 일치하는지 확인
+            </div>
+        </section>
+
+        <section>
+            <h2>슬라이더 튜닝 가이드</h2>
+            <p>현재 화면에는 같은 모음 내부 이중 peak를 줄이기 위한 두 파라미터가 있습니다.</p>
+            <ul>
+                <li><strong>병합 시간 창 (ms)</strong>: 이 시간 안의 인접 peak를 같은 모음 후보로 봅니다.</li>
+                <li><strong>Valley 기준 비율</strong>: 두 peak 사이 valley가 이 비율보다 높으면 같은 모음으로 병합합니다.</li>
+            </ul>
+
+            <p><strong>상황별 권장 시작값</strong></p>
+            <ul>
+                <li><strong>빠른 발화</strong> (모음 간격 짧음): 병합 시간 창 70~110ms, Valley 기준 0.45~0.58</li>
+                <li><strong>보통 발화</strong>: 병합 시간 창 100~140ms, Valley 기준 0.55~0.68</li>
+                <li><strong>느린 발화</strong> (모음 간격 큼): 병합 시간 창 130~190ms, Valley 기준 0.62~0.78</li>
+                <li><strong>강한 진동/거친 음질</strong> (한 모음 내 과검출): 병합 시간 창 +20~40ms, Valley 기준 +0.05~0.10</li>
+                <li><strong>약한 모음 누락</strong> (병합 과도): 병합 시간 창 -15~30ms, Valley 기준 -0.05~0.10</li>
+            </ul>
+
+            <div class="tip">
+                빠르게 맞추는 순서: 1) Peak 검출 민감도로 약한 모음을 먼저 잡고, 2) 병합 시간 창으로 이중 peak 범위를 조정한 뒤,
+                3) Valley 기준 비율로 같은 모음 병합 강도를 미세 조정하세요.
+            </div>
+        </section>
+
+        <div class="actions">
+            <a class="btn" href="{% url 'voice_analysis:ddk_analysis' %}">분석 페이지로 돌아가기</a>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.renderMathInElement) {
+                window.renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+</body>
+</html>

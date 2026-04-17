@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 20175,
+    "category": "senior",
+    "identifier": "S2602091159",
+    "audio_file": "audio/senior/S2602091159/ad889b1fa83244ba8927abf3b4a1ed66.wav",
+    "audio_file_url": "/media/audio/senior/S2602091159/ad889b1fa83244ba8927abf3b4a1ed66.wav",
+    "created_at": "2026-02-09T03:00:46.247996+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "전라권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-09",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602091159",
+      "name": "이한섭",
+      "gender": "남",
+      "age": "69세",
+      "ageInMonths": "828",
+      "birthDate": "1957-01-30",
+      "birthYear": "1957",
+      "birthMonth": "01",
+      "birthDay": "30",
+      "recordingDate": "2026-02-09",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "전라권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1770606046160_ogir5szsy9",
+      "platform": "android",
+      "recording_timestamp": "2026-02-09T03:00:46.158Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-09T03:00:46.160Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260209030046_이한섭_69세_남_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-09T03:00:46.158Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

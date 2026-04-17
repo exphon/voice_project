@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20632,
+    "category": "senior",
+    "identifier": "S2602121246",
+    "audio_file": "audio/senior/S2602121246/d384c9256954407b8666b5a685b9a8d0.wav",
+    "audio_file_url": "/media/audio/senior/S2602121246/d384c9256954407b8666b5a685b9a8d0.wav",
+    "created_at": "2026-02-12T03:56:54.048041+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-02-12",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "문단 읽기 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121246",
+      "name": "이순임",
+      "gender": "여",
+      "birth_date": "1956-03-13",
+      "age": "69세 10개월",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "place": "병원",
+      "noise": "보통",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "파킨슨병",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-02-12",
+      "ageInMonths": "838",
+      "birthYear": "1956",
+      "birthMonth": "03",
+      "birthDay": "13",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1770868615376_99u1iqnso5",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T03:56:55.376Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260212035655_이순임_69세 10개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260212035655_이순임_69세 10개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

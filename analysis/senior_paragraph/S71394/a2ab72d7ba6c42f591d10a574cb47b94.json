@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 18080,
+    "category": "senior",
+    "identifier": "S71394",
+    "audio_file": "audio/senior/S71394/a2ab72d7ba6c42f591d10a574cb47b94.wav",
+    "audio_file_url": "/media/audio/senior/S71394/a2ab72d7ba6c42f591d10a574cb47b94.wav",
+    "created_at": "2026-01-30T00:59:40.811829+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-01-30",
+    "education": "13",
+    "education_years": "1",
+    "final_education": "13"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S71394",
+      "name": "전경애",
+      "gender": "남",
+      "birth_date": "1962-05-27",
+      "age": "63세 8개월",
+      "education": "13",
+      "finalEducation": "13",
+      "educationLevel": "대학교",
+      "educationYears": "1",
+      "place": "기타",
+      "noise": "조용",
+      "recordingLocation": "기타",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "강원권",
+      "recording_date": "2026-01-30",
+      "ageInMonths": "764",
+      "birthYear": "1962",
+      "birthMonth": "05",
+      "birthDay": "27",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1769734782595_6qe4eydzbq4",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-30T00:59:42.595Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260130005942_전경애_63세 8개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20260130005942_전경애_63세 8개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

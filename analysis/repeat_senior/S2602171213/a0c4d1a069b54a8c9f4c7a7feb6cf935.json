@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 21080,
+    "category": "senior",
+    "identifier": "S2602171213",
+    "audio_file": "audio/senior/S2602171213/a0c4d1a069b54a8c9f4c7a7feb6cf935.wav",
+    "audio_file_url": "/media/audio/senior/S2602171213/a0c4d1a069b54a8c9f4c7a7feb6cf935.wav",
+    "created_at": "2026-02-17T03:33:58.153971+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-17",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602171213",
+      "name": "정석영",
+      "gender": "남",
+      "age": "56세 2개월",
+      "birthDate": "1969-11-23",
+      "recordingDate": "2026-02-17",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "정상",
+      "recordingLocation": "병원",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "674",
+      "birthYear": "1969",
+      "birthMonth": "11",
+      "birthDay": "23",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 7,
+      "item_text": "퍼터커",
+      "session_id": "senior_repeat_1771299237262_zg21uzby8",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-17T03:33:57.262Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260217033357_정석영_56세 2개월_남.mp4",
+      "metadata_filename": "senior_repeat_20260217033357_정석영_56세 2개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

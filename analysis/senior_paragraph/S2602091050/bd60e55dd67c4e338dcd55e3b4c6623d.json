@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20122,
+    "category": "senior",
+    "identifier": "S2602091050",
+    "audio_file": "audio/senior/S2602091050/bd60e55dd67c4e338dcd55e3b4c6623d.wav",
+    "audio_file_url": "/media/audio/senior/S2602091050/bd60e55dd67c4e338dcd55e3b4c6623d.wav",
+    "created_at": "2026-02-09T02:03:26.984471+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-02-09",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "문단 읽기 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602091050",
+      "name": "김춘남",
+      "gender": "여",
+      "birth_date": "1951-02-14",
+      "age": "74세 11개월",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "place": "병원",
+      "noise": "보통",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voice_problem_severity": "7",
+      "voice_problem_note": "약먹은 다음에 트이지 않고 노래가 잘 안 나옴 목소리가 안 좋아짐",
+      "diagnosis": "없음",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-02-09",
+      "ageInMonths": "899",
+      "birthYear": "1951",
+      "birthMonth": "02",
+      "birthDay": "14",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1770602604233_7f5h6awp1bk",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-09T02:03:24.233Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260209020324_김춘남_74세 11개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260209020324_김춘남_74세 11개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

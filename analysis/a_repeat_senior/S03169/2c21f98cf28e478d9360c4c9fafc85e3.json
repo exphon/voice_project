@@ -1,0 +1,75 @@
+{
+  "audio": {
+    "id": 2490,
+    "category": "senior",
+    "identifier": "S03169",
+    "audio_file": "audio/senior/2c21f98cf28e478d9360c4c9fafc85e3.wav",
+    "audio_file_url": "/media/audio/senior/2c21f98cf28e478d9360c4c9fafc85e3.wav",
+    "created_at": "2025-10-24T11:28:42.818224+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "1",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2025-10-24",
+    "education": "14",
+    "education_years": "2",
+    "final_education": "14"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S03169",
+      "name": "김영수",
+      "gender": "남",
+      "age": "66세 11개월",
+      "birthDate": "1958-11-18",
+      "recordingDate": "2025-10-24",
+      "education": "14",
+      "finalEducation": "14",
+      "educationLevel": "대학교",
+      "educationYears": "2",
+      "diagnosis": "정상",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "자택",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "803",
+      "birthYear": "1958",
+      "birthMonth": "11",
+      "birthDay": "18",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 1,
+      "sentence_text": "아~",
+      "session_id": "session_1761305322604_jtboc66pyz",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-10-24T11:28:42.604Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20251024112842_김영수_66세 11개월_남_s01.m4a",
+      "metadata_filename": "senior_a_repeat_20251024112842_김영수_66세 11개월_남_s01_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

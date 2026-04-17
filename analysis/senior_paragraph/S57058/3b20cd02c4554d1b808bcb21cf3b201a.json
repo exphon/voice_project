@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 21166,
+    "category": "senior",
+    "identifier": "S57058",
+    "audio_file": "audio/senior/S57058/3b20cd02c4554d1b808bcb21cf3b201a.wav",
+    "audio_file_url": "/media/audio/senior/S57058/3b20cd02c4554d1b808bcb21cf3b201a.wav",
+    "created_at": "2026-02-17T06:11:29.883208+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-02-17",
+    "education": "6",
+    "education_years": "6",
+    "final_education": "6",
+    "task_description": "문단 읽기 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S57058",
+      "name": "나선진",
+      "gender": "여",
+      "birth_date": "1956-06-20",
+      "age": "69세 7개월",
+      "education": "6",
+      "finalEducation": "6",
+      "educationLevel": "초등학교",
+      "educationYears": "6",
+      "place": "자택",
+      "noise": "보통",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-02-17",
+      "ageInMonths": "835",
+      "birthYear": "1956",
+      "birthMonth": "06",
+      "birthDay": "20",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1771308690143_p9pr1bk7jyi",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-17T06:11:30.143Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260217061130_나선진_69세 7개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260217061130_나선진_69세 7개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

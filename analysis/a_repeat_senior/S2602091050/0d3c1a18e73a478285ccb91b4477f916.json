@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 20075,
+    "category": "senior",
+    "identifier": "S2602091050",
+    "audio_file": "audio/senior/S2602091050/0d3c1a18e73a478285ccb91b4477f916.wav",
+    "audio_file_url": "/media/audio/senior/S2602091050/0d3c1a18e73a478285ccb91b4477f916.wav",
+    "created_at": "2026-02-09T01:53:45.550505+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "1",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-09",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602091050",
+      "name": "김춘남",
+      "gender": "여",
+      "age": "74세 11개월",
+      "ageInMonths": "899",
+      "birthDate": "1951-02-14",
+      "birthYear": "1951",
+      "birthMonth": "02",
+      "birthDay": "14",
+      "recordingDate": "2026-02-09",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "7",
+      "voiceProblemNote": "약먹은 다음에 트이지 않고 노래가 잘 안 나옴 목소리가 안 좋아짐",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 1,
+      "sentence_text": "아~",
+      "session_id": "session_1770602024144_gzbbindvl5",
+      "platform": "android",
+      "recording_timestamp": "2026-02-09T01:53:44.141Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-09T01:53:44.144Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260209015344_김춘남_74세 11개월_여_s01.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-09T01:53:44.141Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

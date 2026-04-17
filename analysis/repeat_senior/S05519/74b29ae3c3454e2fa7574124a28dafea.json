@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 3004,
+    "category": "senior",
+    "identifier": "S05519",
+    "audio_file": "audio/senior/74b29ae3c3454e2fa7574124a28dafea.wav",
+    "audio_file_url": "/media/audio/senior/74b29ae3c3454e2fa7574124a28dafea.wav",
+    "created_at": "2025-10-26T05:49:18.976911+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2025-10-26",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S05519",
+      "name": "박미영",
+      "gender": "여",
+      "age": "52세 5개월",
+      "birthDate": "1973-05-02",
+      "recordingDate": "2025-10-26",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "정상",
+      "recordingLocation": "자택",
+      "noiseLevel": "매우 조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "자택",
+      "noise": "매우 조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "629",
+      "birthYear": "1973",
+      "birthMonth": "05",
+      "birthDay": "02",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 4,
+      "item_text": "커",
+      "session_id": "senior_repeat_1761457762132_mj3is4c42",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-10-26T05:49:22.132Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20251026054922_박미영_52세 5개월_여.mp4",
+      "metadata_filename": "senior_repeat_20251026054922_박미영_52세 5개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

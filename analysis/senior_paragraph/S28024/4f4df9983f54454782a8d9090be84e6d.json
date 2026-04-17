@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 5097,
+    "category": "senior",
+    "identifier": "S28024",
+    "audio_file": "audio/senior/4f4df9983f54454782a8d9090be84e6d.wav",
+    "audio_file_url": "/media/audio/senior/4f4df9983f54454782a8d9090be84e6d.wav",
+    "created_at": "2025-11-20T12:18:09.635241+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-11-20",
+    "education": "14",
+    "education_years": "2",
+    "final_education": "14"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S28024",
+      "name": "이동성",
+      "gender": "남",
+      "birth_date": "1975-04-21",
+      "age": "50세 6개월",
+      "education": "14",
+      "finalEducation": "14",
+      "educationLevel": "대학교",
+      "educationYears": "2",
+      "place": "기타",
+      "noise": "조용",
+      "recordingLocation": "기타",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-11-20",
+      "ageInMonths": "606",
+      "birthYear": "1975",
+      "birthMonth": "04",
+      "birthDay": "21",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1763641089133_g1ahw09jky",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-11-20T12:18:09.133Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251120121809_이동성_50세 6개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251120121809_이동성_50세 6개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

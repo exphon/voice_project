@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 7392,
+    "category": "senior",
+    "identifier": "S05701",
+    "audio_file": "audio/senior/S05701/69808434b72c4045b969222cfd5d0f46.wav",
+    "audio_file_url": "/media/audio/senior/S05701/69808434b72c4045b969222cfd5d0f46.wav",
+    "created_at": "2025-11-29T05:47:55.974214+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-11-29",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S05701",
+      "name": "민웅기",
+      "gender": "남",
+      "birth_date": "1973-03-07",
+      "age": "52세 8개월",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "place": "자택",
+      "noise": "보통",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-11-29",
+      "ageInMonths": "632",
+      "birthYear": "1973",
+      "birthMonth": "03",
+      "birthDay": "07",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1764395275612_yh1b30ptlw",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-11-29T05:47:55.612Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251129054755_민웅기_52세 8개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251129054755_민웅기_52세 8개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

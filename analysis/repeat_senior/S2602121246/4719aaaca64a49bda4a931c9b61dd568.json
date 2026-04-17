@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20592,
+    "category": "senior",
+    "identifier": "S2602121246",
+    "audio_file": "audio/senior/S2602121246/4719aaaca64a49bda4a931c9b61dd568.wav",
+    "audio_file_url": "/media/audio/senior/S2602121246/4719aaaca64a49bda4a931c9b61dd568.wav",
+    "created_at": "2026-02-12T03:50:21.251884+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-12",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121246",
+      "name": "이순임",
+      "gender": "여",
+      "age": "69세 10개월",
+      "birthDate": "1956-03-13",
+      "recordingDate": "2026-02-12",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "838",
+      "birthYear": "1956",
+      "birthMonth": "03",
+      "birthDay": "13",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 6,
+      "item_text": "퍼터커",
+      "session_id": "senior_repeat_1770868223504_cjmua5rhu",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T03:50:23.504Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260212035023_이순임_69세 10개월_여.mp4",
+      "metadata_filename": "senior_repeat_20260212035023_이순임_69세 10개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

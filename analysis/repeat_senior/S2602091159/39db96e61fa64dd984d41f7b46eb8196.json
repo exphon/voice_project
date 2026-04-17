@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20182,
+    "category": "senior",
+    "identifier": "S2602091159",
+    "audio_file": "audio/senior/S2602091159/39db96e61fa64dd984d41f7b46eb8196.wav",
+    "audio_file_url": "/media/audio/senior/S2602091159/39db96e61fa64dd984d41f7b46eb8196.wav",
+    "created_at": "2026-02-09T03:02:49.750341+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "전라권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-09",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602091159",
+      "name": "이한섭",
+      "gender": "남",
+      "age": "69세",
+      "birthDate": "1957-01-30",
+      "recordingDate": "2026-02-09",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "전라권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "828",
+      "birthYear": "1957",
+      "birthMonth": "01",
+      "birthDay": "30",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 5,
+      "item_text": "커",
+      "session_id": "senior_repeat_1770606169768_9wzse5c9l",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-09T03:02:49.768Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260209030249_이한섭_69세_남.mp4",
+      "metadata_filename": "senior_repeat_20260209030249_이한섭_69세_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

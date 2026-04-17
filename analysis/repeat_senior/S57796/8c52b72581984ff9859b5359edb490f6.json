@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 7717,
+    "category": "senior",
+    "identifier": "S57796",
+    "audio_file": "audio/senior/S57796/8c52b72581984ff9859b5359edb490f6.wav",
+    "audio_file_url": "/media/audio/senior/S57796/8c52b72581984ff9859b5359edb490f6.wav",
+    "created_at": "2025-11-29T08:05:54.433231+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2025-11-29",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S57796",
+      "name": "김미숙",
+      "gender": "남",
+      "age": "60세",
+      "birthDate": "1965-11-13",
+      "recordingDate": "2025-11-29",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "정상",
+      "recordingLocation": "병원",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "720",
+      "birthYear": "1965",
+      "birthMonth": "11",
+      "birthDay": "13",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 0,
+      "item_text": "퍼",
+      "session_id": "senior_repeat_1764403556009_60ysk8jvo",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-11-29T08:05:56.009Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20251129080556_김미숙_60세_남.mp4",
+      "metadata_filename": "senior_repeat_20251129080556_김미숙_60세_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

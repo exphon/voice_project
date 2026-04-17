@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20476,
+    "category": "senior",
+    "identifier": "S2602121158",
+    "audio_file": "audio/senior/S2602121158/2650cc4154c34303af25352e08ae562c.wav",
+    "audio_file_url": "/media/audio/senior/S2602121158/2650cc4154c34303af25352e08ae562c.wav",
+    "created_at": "2026-02-12T03:02:55.054806+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-12",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121158",
+      "name": "임무언",
+      "gender": "남",
+      "age": "85세 4개월",
+      "birthDate": "1940-09-26",
+      "recordingDate": "2026-02-12",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "8",
+      "voiceProblemNote": "약 먹으면 발음이 잘 안 됨, 목소리 작아지는 것 같음\n",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "1024",
+      "birthYear": "1940",
+      "birthMonth": "09",
+      "birthDay": "26",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 6,
+      "item_text": "퍼터커",
+      "session_id": "senior_repeat_1770865373522_bs9jkao0c",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T03:02:53.522Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260212030253_임무언_85세 4개월_남.mp4",
+      "metadata_filename": "senior_repeat_20260212030253_임무언_85세 4개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

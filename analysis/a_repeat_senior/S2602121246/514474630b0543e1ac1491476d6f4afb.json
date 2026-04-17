@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 20584,
+    "category": "senior",
+    "identifier": "S2602121246",
+    "audio_file": "audio/senior/S2602121246/514474630b0543e1ac1491476d6f4afb.wav",
+    "audio_file_url": "/media/audio/senior/S2602121246/514474630b0543e1ac1491476d6f4afb.wav",
+    "created_at": "2026-02-12T03:48:15.199888+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-12",
+    "education": "12",
+    "education_years": "3",
+    "final_education": "12",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121246",
+      "name": "이순임",
+      "gender": "여",
+      "age": "69세 10개월",
+      "ageInMonths": "838",
+      "birthDate": "1956-03-13",
+      "birthYear": "1956",
+      "birthMonth": "03",
+      "birthDay": "13",
+      "recordingDate": "2026-02-12",
+      "education": "12",
+      "finalEducation": "12",
+      "educationLevel": "고등학교",
+      "educationYears": "3",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1770868097441_yaopk320pf",
+      "platform": "android",
+      "recording_timestamp": "2026-02-12T03:48:17.439Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T03:48:17.441Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260212034817_이순임_69세 10개월_여_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-12T03:48:17.439Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

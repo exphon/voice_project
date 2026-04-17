@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 15271,
+    "category": "senior",
+    "identifier": "S73518",
+    "audio_file": "audio/senior/S73518/4721eed5aa9c4f18b1be91000deff5b6.wav",
+    "audio_file_url": "/media/audio/senior/S73518/4721eed5aa9c4f18b1be91000deff5b6.wav",
+    "created_at": "2026-01-14T04:08:21.881995+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-01-14",
+    "education": "19",
+    "education_years": "3",
+    "final_education": "19"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S73518",
+      "name": "이재석",
+      "gender": "남",
+      "birth_date": "1973-02-16",
+      "age": "52세 10개월",
+      "education": "19",
+      "finalEducation": "19",
+      "educationLevel": "대학원(석사)",
+      "educationYears": "3",
+      "place": "병원",
+      "noise": "조용",
+      "recordingLocation": "병원",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-01-14",
+      "ageInMonths": "634",
+      "birthYear": "1973",
+      "birthMonth": "02",
+      "birthDay": "16",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1768363700438_7l3jukx3g0d",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-14T04:08:20.438Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260114040820_이재석_52세 10개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20260114040820_이재석_52세 10개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

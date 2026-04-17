@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 7274,
+    "category": "senior",
+    "identifier": "S29329",
+    "audio_file": "audio/senior/S29329/1c07144f93b34c71a48622d568c7d8a7.wav",
+    "audio_file_url": "/media/audio/senior/S29329/1c07144f93b34c71a48622d568c7d8a7.wav",
+    "created_at": "2025-11-29T04:56:24.576563+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-11-29",
+    "education": "13",
+    "education_years": "1",
+    "final_education": "13"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S29329",
+      "name": "김은정",
+      "gender": "여",
+      "birth_date": "1972-09-20",
+      "age": "53세 2개월",
+      "education": "13",
+      "finalEducation": "13",
+      "educationLevel": "대학교",
+      "educationYears": "1",
+      "place": "기타",
+      "noise": "조용",
+      "recordingLocation": "기타",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-11-29",
+      "ageInMonths": "638",
+      "birthYear": "1972",
+      "birthMonth": "09",
+      "birthDay": "20",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1764392184230_4ioy5lxl7um",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-11-29T04:56:24.230Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251129045624_김은정_53세 2개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20251129045624_김은정_53세 2개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

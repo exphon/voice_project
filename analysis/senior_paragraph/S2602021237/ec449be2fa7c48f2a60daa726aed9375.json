@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 19166,
+    "category": "senior",
+    "identifier": "S2602021237",
+    "audio_file": "audio/senior/S2602021237/ec449be2fa7c48f2a60daa726aed9375.wav",
+    "audio_file_url": "/media/audio/senior/S2602021237/ec449be2fa7c48f2a60daa726aed9375.wav",
+    "created_at": "2026-02-02T03:48:40.570261+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "경상권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-02-02",
+    "education": "11",
+    "education_years": "2",
+    "final_education": "11",
+    "task_description": "문단 읽기 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602021237",
+      "name": "장월희",
+      "gender": "여",
+      "birth_date": "1955-10-14",
+      "age": "70세 3개월",
+      "education": "11",
+      "finalEducation": "11",
+      "educationLevel": "고등학교",
+      "educationYears": "2",
+      "place": "병원",
+      "noise": "시끄러움",
+      "recordingLocation": "병원",
+      "noiseLevel": "시끄러움",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "파킨슨병",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "경상권",
+      "recording_date": "2026-02-02",
+      "ageInMonths": "843",
+      "birthYear": "1955",
+      "birthMonth": "10",
+      "birthDay": "14",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1770004120307_yjzk628y9a",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-02T03:48:40.307Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260202034840_장월희_70세 3개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260202034840_장월희_70세 3개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

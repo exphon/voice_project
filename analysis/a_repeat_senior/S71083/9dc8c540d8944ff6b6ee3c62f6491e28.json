@@ -1,0 +1,78 @@
+{
+  "audio": {
+    "id": 16312,
+    "category": "senior",
+    "identifier": "S71083",
+    "audio_file": "audio/senior/S71083/9dc8c540d8944ff6b6ee3c62f6491e28.wav",
+    "audio_file_url": "/media/audio/senior/S71083/9dc8c540d8944ff6b6ee3c62f6491e28.wav",
+    "created_at": "2026-01-24T01:22:46.359999+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-01-24",
+    "education": "18",
+    "education_years": "2",
+    "final_education": "18"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S71083",
+      "name": "유민주",
+      "gender": "남",
+      "age": "64세 2개월",
+      "ageInMonths": "770",
+      "birthDate": "1961-11-04",
+      "birthYear": "1961",
+      "birthMonth": "11",
+      "birthDay": "04",
+      "recordingDate": "2026-01-24",
+      "education": "18",
+      "finalEducation": "18",
+      "educationLevel": "대학원(석사)",
+      "educationYears": "2",
+      "diagnosis": "정상",
+      "recordingLocation": "기타",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "기타",
+      "noise": "조용",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1769217769058_4hs1o4dw4f8",
+      "platform": "android",
+      "recording_timestamp": "2026-01-24T01:22:49.056Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-24T01:22:49.058Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260124012249_유민주_64세 2개월_남_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-01-24T01:22:49.056Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

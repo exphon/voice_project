@@ -1,0 +1,79 @@
+{
+  "audio": {
+    "id": 20410,
+    "category": "senior",
+    "identifier": "S2602121120",
+    "audio_file": "audio/senior/S2602121120/64b46bc1b2744f82a094f322c78a43f4.wav",
+    "audio_file_url": "/media/audio/senior/S2602121120/64b46bc1b2744f82a094f322c78a43f4.wav",
+    "created_at": "2026-02-12T02:23:41.729602+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-02-12",
+    "education": "0",
+    "education_years": "0",
+    "final_education": "0",
+    "task_description": "아 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121120",
+      "name": "강영희",
+      "gender": "여",
+      "age": "72세 10개월",
+      "ageInMonths": "874",
+      "birthDate": "1953-03-14",
+      "birthYear": "1953",
+      "birthMonth": "03",
+      "birthDay": "14",
+      "recordingDate": "2026-02-12",
+      "education": "0",
+      "finalEducation": "0",
+      "educationLevel": "무학",
+      "educationYears": "0",
+      "diagnosis": "파킨슨병",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1770863026213_5vv82aky963",
+      "platform": "android",
+      "recording_timestamp": "2026-02-12T02:23:46.212Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T02:23:46.213Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260212022346_강영희_72세 10개월_여_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-02-12T02:23:46.212Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

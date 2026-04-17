@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 16519,
+    "category": "senior",
+    "identifier": "S11049",
+    "audio_file": "audio/senior/S11049/5edb123794d343c9b3f7725f18c74d3d.wav",
+    "audio_file_url": "/media/audio/senior/S11049/5edb123794d343c9b3f7725f18c74d3d.wav",
+    "created_at": "2026-01-24T02:32:42.055068+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-01-24",
+    "education": "9",
+    "education_years": "3",
+    "final_education": "9"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S11049",
+      "name": "정락민",
+      "gender": "남",
+      "birth_date": "1949-05-12",
+      "age": "76세 8개월",
+      "education": "9",
+      "finalEducation": "9",
+      "educationLevel": "중학교",
+      "educationYears": "3",
+      "place": "자택",
+      "noise": "보통",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-01-24",
+      "ageInMonths": "920",
+      "birthYear": "1949",
+      "birthMonth": "05",
+      "birthDay": "12",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1769221960894_6wp54kwym64",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-24T02:32:40.894Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260124023240_정락민_76세 8개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20260124023240_정락민_76세 8개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

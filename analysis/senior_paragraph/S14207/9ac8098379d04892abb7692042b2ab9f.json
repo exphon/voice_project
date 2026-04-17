@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 11920,
+    "category": "senior",
+    "identifier": "S14207",
+    "audio_file": "audio/senior/S14207/9ac8098379d04892abb7692042b2ab9f.wav",
+    "audio_file_url": "/media/audio/senior/S14207/9ac8098379d04892abb7692042b2ab9f.wav",
+    "created_at": "2025-12-17T13:01:22.643666+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-12-17",
+    "education": "24",
+    "education_years": "6",
+    "final_education": "24"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S14207",
+      "name": "박은영",
+      "gender": "남",
+      "birth_date": "1970-01-31",
+      "age": "55세 10개월",
+      "education": "24",
+      "finalEducation": "24",
+      "educationLevel": "대학원(박사)",
+      "educationYears": "6",
+      "place": "자택",
+      "noise": "보통",
+      "recordingLocation": "자택",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "정상",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "강원권",
+      "recording_date": "2025-12-17",
+      "ageInMonths": "670",
+      "birthYear": "1970",
+      "birthMonth": "01",
+      "birthDay": "31",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1765976475122_vbmrevbrgmr",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-17T13:01:15.122Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251217130115_박은영_55세 10개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251217130115_박은영_55세 10개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

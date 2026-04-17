@@ -1,0 +1,73 @@
+{
+  "audio": {
+    "id": 3873,
+    "category": "senior",
+    "identifier": "S25936",
+    "audio_file": "audio/senior/aa27eedb4f1d4f77aa537914b5d3dff6.wav",
+    "audio_file_url": "/media/audio/senior/aa27eedb4f1d4f77aa537914b5d3dff6.wav",
+    "created_at": "2025-11-04T12:08:45.778625+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2025-11-04",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S25936",
+      "name": "송창식",
+      "gender": "남",
+      "birth_date": "1964-01-01",
+      "age": "61세 10개월",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "place": "자택",
+      "noise": "조용",
+      "recordingLocation": "자택",
+      "noiseLevel": "조용",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voice_problem_severity": "2",
+      "voice_problem_note": "",
+      "diagnosis": "없음",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2025-11-04",
+      "ageInMonths": "742",
+      "birthYear": "1964",
+      "birthMonth": "01",
+      "birthDay": "01",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1762258126583_ryryxjbu3zs",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-11-04T12:08:46.583Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20251104120846_송창식_61세 10개월_남.m4a",
+      "metadata_filename": "senior_paragraph_20251104120846_송창식_61세 10개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

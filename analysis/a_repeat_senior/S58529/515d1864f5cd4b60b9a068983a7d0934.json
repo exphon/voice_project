@@ -1,0 +1,78 @@
+{
+  "audio": {
+    "id": 17785,
+    "category": "senior",
+    "identifier": "S58529",
+    "audio_file": "audio/senior/S58529/515d1864f5cd4b60b9a068983a7d0934.wav",
+    "audio_file_url": "/media/audio/senior/S58529/515d1864f5cd4b60b9a068983a7d0934.wav",
+    "created_at": "2026-01-29T03:47:26.766098+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "전라권",
+    "sentence_index": "0",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2026-01-29",
+    "education": "16",
+    "education_years": "4",
+    "final_education": "16"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S58529",
+      "name": "조용우",
+      "gender": "남",
+      "age": "65세",
+      "ageInMonths": "780",
+      "birthDate": "1961-01-26",
+      "birthYear": "1961",
+      "birthMonth": "01",
+      "birthDay": "26",
+      "recordingDate": "2026-01-29",
+      "education": "16",
+      "finalEducation": "16",
+      "educationLevel": "대학교",
+      "educationYears": "4",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "1",
+      "voiceProblemNote": "",
+      "region": "전라권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 0,
+      "sentence_text": "아~",
+      "session_id": "session_1769658446301_nl3p3hzj9g",
+      "platform": "android",
+      "recording_timestamp": "2026-01-29T03:47:26.299Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-01-29T03:47:26.301Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20260129034726_조용우_65세_남_s00.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2026-01-29T03:47:26.299Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

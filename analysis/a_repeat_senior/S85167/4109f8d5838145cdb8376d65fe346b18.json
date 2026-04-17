@@ -1,0 +1,78 @@
+{
+  "audio": {
+    "id": 11057,
+    "category": "senior",
+    "identifier": "S85167",
+    "audio_file": "audio/senior/S85167/4109f8d5838145cdb8376d65fe346b18.wav",
+    "audio_file_url": "/media/audio/senior/S85167/4109f8d5838145cdb8376d65fe346b18.wav",
+    "created_at": "2025-12-13T02:16:36.800288+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "강원권",
+    "sentence_index": "1",
+    "sentence_text": "아~",
+    "task_type": "a_repeat_senior",
+    "recording_date": "2025-12-13",
+    "education": "18",
+    "education_years": "2",
+    "final_education": "18"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S85167",
+      "name": "김지연",
+      "gender": "여",
+      "age": "53세",
+      "ageInMonths": "636",
+      "birthDate": "1972-11-22",
+      "birthYear": "1972",
+      "birthMonth": "11",
+      "birthDay": "22",
+      "recordingDate": "2025-12-13",
+      "education": "18",
+      "finalEducation": "18",
+      "educationLevel": "대학원(석사)",
+      "educationYears": "2",
+      "diagnosis": "정상",
+      "recordingLocation": "기타",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voiceProblemSeverity": "",
+      "voiceProblemNote": "",
+      "region": "강원권",
+      "place": "기타",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "a_repeat_senior",
+      "task_description": "아 반복 발음 과제 (어르신)",
+      "sentence_index": 1,
+      "sentence_text": "아~",
+      "session_id": "session_1765592195949_vpstn0tasgg",
+      "platform": "android",
+      "recording_timestamp": "2025-12-13T02:16:35.946Z"
+    },
+    "upload_info": {
+      "upload_timestamp": "2025-12-13T02:16:35.949Z",
+      "file_format": "m4a",
+      "audio_filename": "senior_a_repeat_20251213021635_김지연_53세_여_s01.m4a",
+      "subjectiveScore": "",
+      "subjectiveNote": "",
+      "recording_timestamp": "2025-12-13T02:16:35.946Z"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

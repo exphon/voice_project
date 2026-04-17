@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 19965,
+    "category": "senior",
+    "identifier": "S2602090928",
+    "audio_file": "audio/senior/S2602090928/a68ba458ace641e58d951a97a1ec665c.wav",
+    "audio_file_url": "/media/audio/senior/S2602090928/a68ba458ace641e58d951a97a1ec665c.wav",
+    "created_at": "2026-02-09T00:46:37.654934+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "repeat_senior",
+    "recording_date": "2026-02-09",
+    "education": "15",
+    "education_years": "3",
+    "final_education": "15",
+    "task_description": "퍼터커 반복 발음 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602090928",
+      "name": "최윤락",
+      "gender": "남",
+      "age": "75세 5개월",
+      "birthDate": "1950-08-29",
+      "recordingDate": "2026-02-09",
+      "education": "15",
+      "finalEducation": "15",
+      "educationLevel": "대학교",
+      "educationYears": "3",
+      "diagnosis": "없음",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "있음",
+      "voiceProblemSeverity": "2",
+      "voiceProblemNote": "작은 느낌이 든다",
+      "region": "수도권",
+      "place": "병원",
+      "noise": "보통",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "ageInMonths": "905",
+      "birthYear": "1950",
+      "birthMonth": "08",
+      "birthDay": "29",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "repeat_senior",
+      "task_description": "퍼터커 반복 발음 과제 (어르신)",
+      "item_index": 1,
+      "item_text": "퍼",
+      "session_id": "senior_repeat_1770597997677_l9lng6cl1",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-09T00:46:37.677Z",
+      "file_format": "mp4",
+      "audio_filename": "senior_repeat_20260209004637_최윤락_75세 5개월_남.mp4",
+      "metadata_filename": "senior_repeat_20260209004637_최윤락_75세 5개월_남_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

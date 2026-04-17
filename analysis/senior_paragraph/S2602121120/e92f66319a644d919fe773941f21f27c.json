@@ -1,0 +1,74 @@
+{
+  "audio": {
+    "id": 20458,
+    "category": "senior",
+    "identifier": "S2602121120",
+    "audio_file": "audio/senior/S2602121120/e92f66319a644d919fe773941f21f27c.wav",
+    "audio_file_url": "/media/audio/senior/S2602121120/e92f66319a644d919fe773941f21f27c.wav",
+    "created_at": "2026-02-12T02:34:17.574539+00:00",
+    "status": "unprocessed"
+  },
+  "category_data": {
+    "region": "수도권",
+    "task_type": "paragraph_reading_senior",
+    "recording_date": "2026-02-12",
+    "education": "0",
+    "education_years": "0",
+    "final_education": "0",
+    "task_description": "문단 읽기 과제 (어르신)"
+  },
+  "client_metadata": {
+    "metainfo_senior": {
+      "identifier": "S2602121120",
+      "name": "강영희",
+      "gender": "여",
+      "birth_date": "1953-03-14",
+      "age": "72세 10개월",
+      "education": "0",
+      "finalEducation": "0",
+      "educationLevel": "무학",
+      "educationYears": "0",
+      "place": "병원",
+      "noise": "보통",
+      "recordingLocation": "병원",
+      "noiseLevel": "보통",
+      "deviceType": "갤럭시 탭",
+      "hasMicrophone": "없음",
+      "hasVoiceProblem": "없음",
+      "voice_problem_severity": "",
+      "voice_problem_note": "",
+      "diagnosis": "파킨슨병",
+      "device": "갤럭시 탭",
+      "mic": "없음",
+      "region": "수도권",
+      "recording_date": "2026-02-12",
+      "ageInMonths": "874",
+      "birthYear": "1953",
+      "birthMonth": "03",
+      "birthDay": "14",
+      "cognitiveDecline": "",
+      "subjectiveScore": "",
+      "subjectiveNote": ""
+    },
+    "task_info": {
+      "task_type": "paragraph_reading_senior",
+      "task_description": "가을 문단 읽기 과제 (어르신)",
+      "task_text": "가을 문단 읽기",
+      "session_id": "session_1770863661764_dqihc9b9y4",
+      "platform": "android"
+    },
+    "upload_info": {
+      "upload_timestamp": "2026-02-12T02:34:21.764Z",
+      "upload_url": "http://210.125.93.241:8010/api/senior/upload/",
+      "file_format": "m4a",
+      "audio_filename": "senior_paragraph_20260212023421_강영희_72세 10개월_여.m4a",
+      "metadata_filename": "senior_paragraph_20260212023421_강영희_72세 10개월_여_metadata.json"
+    },
+    "recording_info": {
+      "duration_seconds": "variable",
+      "sample_rate": 44100,
+      "channels": 1,
+      "bit_depth": 16
+    }
+  }
+}

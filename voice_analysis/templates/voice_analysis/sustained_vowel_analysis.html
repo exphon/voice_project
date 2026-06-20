@@ -427,6 +427,9 @@
                         <input type="hidden" id="form-marker-onset" name="marker_onset" value="">
                         <input type="hidden" id="form-marker-offset" name="marker_offset" value="">
                         <button type="submit" class="ghost-button" id="start-segment-analysis" disabled>분석 시작</button>
+                        {% if segment_result %}
+                            <button type="button" class="ghost-button" id="save-analysis-csv">분석 저장 (CSV)</button>
+                        {% endif %}
                         <span class="hint">마우스로 모음 구간 선택 후 버튼을 눌러 주세요.</span>
                     </form>
                 </div>
@@ -473,6 +476,56 @@
                             </div>
                         </div>
                         <p>선택 구간: {{ segment_result.start_seconds }}s - {{ segment_result.end_seconds }}s</p>
+
+                        {% if segment_result.disvoice_phonation %}
+                            <div class="cepstral-wrap">
+                                <h3>DisVoice Phonation 분석</h3>
+                                <p style="margin-bottom:14px;color:#5b6470;font-size:0.9rem;">
+                                    선택한 모음 구간에 대해 DisVoice로 추출한 발성(phonation) 특징입니다.
+                                    DF0/DDF0는 기본주파수 변화량, Jitter/Shimmer는 주기·진폭 섭동,
+                                    apq/ppq는 진폭·주기 섭동 지수, logE는 로그 에너지를 의미합니다.
+                                </p>
+                                <div class="stats">
+                                    <div class="stat"><strong>avg DF0</strong><span>{{ segment_result.disvoice_phonation.avg_df0|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg DDF0</strong><span>{{ segment_result.disvoice_phonation.avg_ddf0|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg Jitter</strong><span>{{ segment_result.disvoice_phonation.avg_jitter|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg Shimmer</strong><span>{{ segment_result.disvoice_phonation.avg_shimmer|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg apq</strong><span>{{ segment_result.disvoice_phonation.avg_apq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg ppq</strong><span>{{ segment_result.disvoice_phonation.avg_ppq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg logE</strong><span>{{ segment_result.disvoice_phonation.avg_log_energy|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std DF0</strong><span>{{ segment_result.disvoice_phonation.std_df0|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std DDF0</strong><span>{{ segment_result.disvoice_phonation.std_ddf0|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std Jitter</strong><span>{{ segment_result.disvoice_phonation.std_jitter|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std Shimmer</strong><span>{{ segment_result.disvoice_phonation.std_shimmer|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std apq</strong><span>{{ segment_result.disvoice_phonation.std_apq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std ppq</strong><span>{{ segment_result.disvoice_phonation.std_ppq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std logE</strong><span>{{ segment_result.disvoice_phonation.std_log_energy|default:"-" }}</span></div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if segment_result.disvoice_glottal %}
+                            <div class="cepstral-wrap">
+                                <h3>DisVoice Glottal 분석</h3>
+                                <p style="margin-bottom:14px;color:#5b6470;font-size:0.9rem;">
+                                    선택한 모음 구간에 대해 DisVoice로 추출한 성문(glottal) 소스 특징입니다.
+                                    NAQ는 정규화 진폭 지수, QOQ는 개방 지수, H1H2는 1·2 배음 차,
+                                    HRF는 고조파 풍부도, var GCI는 성문 폐쇄 시점 변동을 의미합니다.
+                                    (성문 주기별 평균값 기준)
+                                </p>
+                                <div class="stats">
+                                    <div class="stat"><strong>avg NAQ</strong><span>{{ segment_result.disvoice_glottal.avg_naq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std NAQ</strong><span>{{ segment_result.disvoice_glottal.std_naq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg QOQ</strong><span>{{ segment_result.disvoice_glottal.avg_qoq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std QOQ</strong><span>{{ segment_result.disvoice_glottal.std_qoq|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg H1H2</strong><span>{{ segment_result.disvoice_glottal.avg_h1h2|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std H1H2</strong><span>{{ segment_result.disvoice_glottal.std_h1h2|default:"-" }}</span></div>
+                                    <div class="stat"><strong>avg HRF</strong><span>{{ segment_result.disvoice_glottal.avg_hrf|default:"-" }}</span></div>
+                                    <div class="stat"><strong>std HRF</strong><span>{{ segment_result.disvoice_glottal.std_hrf|default:"-" }}</span></div>
+                                    <div class="stat"><strong>var GCI</strong><span>{{ segment_result.disvoice_glottal.var_gci|default:"-" }}</span></div>
+                                </div>
+                            </div>
+                        {% endif %}
 
                         {% if segment_result.cepstrum_profile.quefrency_ms %}
                             <div class="cepstral-wrap">
@@ -1412,6 +1465,97 @@
                             stopSegmentPlayback(false);
                             renderChart();
                         });
+                    }
+
+                    // ── 분석 결과 CSV 저장 ────────────────────────────────────────
+                    const saveAnalysisCsvButton = document.getElementById("save-analysis-csv");
+                    if (saveAnalysisCsvButton && segmentData) {
+                        saveAnalysisCsvButton.addEventListener("click", () => {
+                            const phon = segmentData.disvoice_phonation || {};
+                            const glot = segmentData.disvoice_glottal || {};
+                            const ceps = segmentData.cepstrum_profile || {};
+
+                            const rows = [
+                                ["File", analysis.file_name || ""],
+                                ["Selection start (s)", segmentData.start_seconds],
+                                ["Selection end (s)", segmentData.end_seconds],
+                                ["Duration (ms)", segmentData.duration_ms],
+                                ["F1 (Hz)", segmentData.f1_hz],
+                                ["F2 (Hz)", segmentData.f2_hz],
+                                ["Jitter (local)", segmentData.jitter_local],
+                                ["Shimmer (local)", segmentData.shimmer_local],
+                                ["HNR (dB)", segmentData.hnr_db],
+                                ["CPP (Praat, dB)", segmentData.cpp],
+                                ["Peak Period (ms)", ceps.peak_period_ms],
+                                ["Estimated F0 (Hz)", ceps.peak_frequency_hz],
+                                ["CPP prominence (librosa, dB)", ceps.cpp_prominence_db],
+                                ["DisVoice Phonation - avg DF0", phon.avg_df0],
+                                ["DisVoice Phonation - avg DDF0", phon.avg_ddf0],
+                                ["DisVoice Phonation - avg Jitter", phon.avg_jitter],
+                                ["DisVoice Phonation - avg Shimmer", phon.avg_shimmer],
+                                ["DisVoice Phonation - avg apq", phon.avg_apq],
+                                ["DisVoice Phonation - avg ppq", phon.avg_ppq],
+                                ["DisVoice Phonation - avg logE", phon.avg_log_energy],
+                                ["DisVoice Phonation - std DF0", phon.std_df0],
+                                ["DisVoice Phonation - std DDF0", phon.std_ddf0],
+                                ["DisVoice Phonation - std Jitter", phon.std_jitter],
+                                ["DisVoice Phonation - std Shimmer", phon.std_shimmer],
+                                ["DisVoice Phonation - std apq", phon.std_apq],
+                                ["DisVoice Phonation - std ppq", phon.std_ppq],
+                                ["DisVoice Phonation - std logE", phon.std_log_energy],
+                                ["DisVoice Glottal - avg NAQ", glot.avg_naq],
+                                ["DisVoice Glottal - std NAQ", glot.std_naq],
+                                ["DisVoice Glottal - avg QOQ", glot.avg_qoq],
+                                ["DisVoice Glottal - std QOQ", glot.std_qoq],
+                                ["DisVoice Glottal - avg H1H2", glot.avg_h1h2],
+                                ["DisVoice Glottal - std H1H2", glot.std_h1h2],
+                                ["DisVoice Glottal - avg HRF", glot.avg_hrf],
+                                ["DisVoice Glottal - std HRF", glot.std_hrf],
+                                ["DisVoice Glottal - var GCI", glot.var_gci],
+                            ];
+
+                            function csvCell(value) {
+                                if (value === null || value === undefined) {
+                                    return "";
+                                }
+                                const text = String(value);
+                                return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+                            }
+
+                            const csvBody = [["Metric", "Value"]]
+                                .concat(rows)
+                                .map((row) => row.map(csvCell).join(","))
+                                .join("\r\n");
+
+                            // UTF-8 BOM for Excel 한글 호환
+                            const blob = new Blob(["﻿" + csvBody], { type: "text/csv;charset=utf-8;" });
+                            const baseName = (analysis.file_name || "sustained_vowel")
+                                .replace(/\.[^/.]+$/, "")
+                                .replace(/[^\w가-힣.-]+/g, "_");
+                            const startLabel = (segmentData.start_seconds ?? "").toString().replace(".", "p");
+                            const endLabel = (segmentData.end_seconds ?? "").toString().replace(".", "p");
+                            const fileName = `${baseName}_${startLabel}-${endLabel}s_analysis.csv`;
+
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = fileName;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        });
+                    }
+
+                    // 자동 감지(또는 저장)된 모음 마커가 있으면 초기 선택 구간으로 적용해
+                    // 드래그 없이도 바로 "분석 시작" 버튼이 활성화되도록 한다.
+                    if (currentVowelOnset !== null && currentVowelOffset !== null) {
+                        selectionStart = Math.min(currentVowelOnset, currentVowelOffset);
+                        selectionEnd   = Math.max(currentVowelOnset, currentVowelOffset);
+                        const initOnset  = document.getElementById("form-marker-onset");
+                        const initOffset = document.getElementById("form-marker-offset");
+                        if (initOnset)  { initOnset.value  = currentVowelOnset.toFixed(4); }
+                        if (initOffset) { initOffset.value = currentVowelOffset.toFixed(4); }
                     }
 
                     renderChart();

@@ -341,6 +341,126 @@ def _safe_number(value):
     return numeric
 
 
+# disvoice Phonation feature labels mapped to friendly keys for the template.
+# The static extractor returns 28 values (avg/std/skewness/kurtosis × 7 measures);
+# we surface the avg/std subset that is most interpretable for sustained vowels.
+_DISVOICE_PHONATION_FIELDS = [
+    ("avg DF0", "avg_df0"),
+    ("avg DDF0", "avg_ddf0"),
+    ("avg Jitter", "avg_jitter"),
+    ("avg Shimmer", "avg_shimmer"),
+    ("avg apq", "avg_apq"),
+    ("avg ppq", "avg_ppq"),
+    ("avg logE", "avg_log_energy"),
+    ("std DF0", "std_df0"),
+    ("std DDF0", "std_ddf0"),
+    ("std Jitter", "std_jitter"),
+    ("std Shimmer", "std_shimmer"),
+    ("std apq", "std_apq"),
+    ("std ppq", "std_ppq"),
+    ("std logE", "std_log_energy"),
+]
+
+
+def _compute_disvoice_phonation(segment) -> dict:
+    """Run disvoice's Phonation static feature extraction on a parselmouth segment.
+
+    The segment is saved to a temporary WAV file because disvoice reads from disk.
+    Returns a dict keyed by friendly names, or {} if extraction is unavailable.
+    The heavy import is done lazily so module import stays fast.
+    """
+    try:
+        from disvoice.phonation import Phonation
+    except Exception:
+        return {}
+
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+            temp_path = temp_file.name
+        segment.save(temp_path, "WAV")
+
+        phonation = Phonation()
+        features = phonation.extract_features_file(
+            temp_path, static=True, plots=False, fmt="dataframe"
+        )
+        if features is None or features.empty:
+            return {}
+
+        row = features.to_dict("records")[0]
+        result = {}
+        for source_key, friendly_key in _DISVOICE_PHONATION_FIELDS:
+            value = _safe_number(row.get(source_key))
+            result[friendly_key] = round(value, 6) if value is not None else None
+        return result
+    except Exception:
+        return {}
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+
+# disvoice Glottal feature labels mapped to friendly keys for the template.
+# The static extractor returns 36 values (avg/std/skewness/kurtosis × 9 measures);
+# we surface the "global avg" subset (the mean across glottal cycles) which is the
+# most interpretable view of glottal source behaviour for a sustained vowel.
+_DISVOICE_GLOTTAL_FIELDS = [
+    ("global avg var GCI", "var_gci"),
+    ("global avg avg NAQ", "avg_naq"),
+    ("global avg std NAQ", "std_naq"),
+    ("global avg avg QOQ", "avg_qoq"),
+    ("global avg std QOQ", "std_qoq"),
+    ("global avg avg H1H2", "avg_h1h2"),
+    ("global avg std H1H2", "std_h1h2"),
+    ("global avg avg HRF", "avg_hrf"),
+    ("global avg std HRF", "std_hrf"),
+]
+
+
+def _compute_disvoice_glottal(segment) -> dict:
+    """Run disvoice's Glottal static feature extraction on a parselmouth segment.
+
+    The segment is saved to a temporary WAV file because disvoice reads from disk.
+    Returns a dict keyed by friendly names, or {} if extraction is unavailable.
+    The heavy import is done lazily so module import stays fast.
+    """
+    try:
+        from disvoice.glottal import Glottal
+    except Exception:
+        return {}
+
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+            temp_path = temp_file.name
+        segment.save(temp_path, "WAV")
+
+        glottal = Glottal()
+        features = glottal.extract_features_file(
+            temp_path, static=True, plots=False, fmt="dataframe"
+        )
+        if features is None or features.empty:
+            return {}
+
+        row = features.to_dict("records")[0]
+        result = {}
+        for source_key, friendly_key in _DISVOICE_GLOTTAL_FIELDS:
+            value = _safe_number(row.get(source_key))
+            result[friendly_key] = round(value, 6) if value is not None else None
+        return result
+    except Exception:
+        return {}
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+
 def _compute_cepstral_profile(samples: np.ndarray, sample_rate: int) -> dict:
     if sample_rate <= 0 or samples.size == 0:
         return {}
@@ -598,6 +718,8 @@ def analyze_sustained_vowel_segment(
     )
     segment_samples = np.asarray(segment.values[0], dtype=np.float64)
     cepstral_profile = _compute_cepstral_profile(segment_samples, int(segment.sampling_frequency))
+    disvoice_phonation = _compute_disvoice_phonation(segment)
+    disvoice_glottal = _compute_disvoice_glottal(segment)
 
     return {
         "start_seconds": round(float(safe_start), 4),
@@ -610,6 +732,8 @@ def analyze_sustained_vowel_segment(
         "hnr_db": round(_safe_number(hnr_value), 3) if _safe_number(hnr_value) is not None else None,
         "cpp": round(_safe_number(cpp_value), 3) if _safe_number(cpp_value) is not None else None,
         "cepstrum_profile": cepstral_profile,
+        "disvoice_phonation": disvoice_phonation,
+        "disvoice_glottal": disvoice_glottal,
     }
 
 

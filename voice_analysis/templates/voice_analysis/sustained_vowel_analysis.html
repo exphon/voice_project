@@ -278,6 +278,19 @@
             font-size: 0.9rem;
         }
 
+        .cepstral-wrap {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid var(--line);
+        }
+
+        .cepstral-wrap h3 {
+            margin: 0 0 14px;
+            font-size: 1.05rem;
+        }
+
         @media (max-width: 640px) {
             .page {
                 width: calc(100vw - 20px);
@@ -290,7 +303,11 @@
 <body>
     <main class="page">
         <section class="intro">
-            <h1>Sustained Vowel Analysis</h1>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <h1 style="margin:0;">Sustained Vowel Analysis</h1>
+                <a href="{% url 'voice_analysis:help_sustained_vowel_analysis' %}" target="_blank" title="도움말"
+                   style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:8px;font-size:0.95rem;font-weight:600;text-decoration:none;white-space:nowrap;">❓ 도움말</a>
+            </div>
             <p>지속 모음 /a/ 기반 분석 페이지입니다. 음성 파일을 업로드하면 waveform을 시각화합니다.</p>
         </section>
 
@@ -381,8 +398,25 @@
                     {% endif %}
                     <div class="legend">
                         <span><i style="background:#64748b"></i>Waveform</span>
+                        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:18px;height:0;border-top:2.5px dashed #16a34a;"></span>모음 시작</span>
+                        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:18px;height:0;border-top:2.5px dashed #dc2626;"></span>모음 종료</span>
                     </div>
                     <canvas id="waveform-chart" width="1000" height="360"></canvas>
+
+                    <div class="legend" style="margin-top: 14px;">
+                        <span style="font-weight:700;font-size:0.95rem;">Spectrogram (0–8 kHz)</span>
+                        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:90px;height:14px;border-radius:4px;background:linear-gradient(to right,#44015a,#3a5289,#208d8d,#5dc963,#fde725);"></span>Low → High</span>
+                    </div>
+                    <canvas id="spectrogram-chart" width="1000" height="200"></canvas>
+
+                    <div id="marker-time-display" style="margin:10px 0;font-size:0.9rem;color:#5b6470;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                        <span style="color:#16a34a;font-weight:700;">▎ 모음 시작</span>
+                        <span id="marker-onset-label" style="font-weight:700;">-</span>
+                        <span style="color:#dc2626;font-weight:700;">▎ 모음 종료</span>
+                        <span id="marker-offset-label" style="font-weight:700;">-</span>
+                        <button type="button" class="ghost-inline" id="apply-markers-btn">마커 구간으로 선택 적용</button>
+                        <button type="button" class="ghost-inline" id="reset-markers-btn">자동 위치로 초기화</button>
+                    </div>
 
                     <form method="post" class="analysis-actions" id="segment-analysis-form">
                         {% csrf_token %}
@@ -390,6 +424,8 @@
                         <input type="hidden" name="audio_preview_url" value="{{ analysis_result.audio_preview_url }}">
                         <input type="hidden" id="selection-start" name="selection_start" value="">
                         <input type="hidden" id="selection-end" name="selection_end" value="">
+                        <input type="hidden" id="form-marker-onset" name="marker_onset" value="">
+                        <input type="hidden" id="form-marker-offset" name="marker_offset" value="">
                         <button type="submit" class="ghost-button" id="start-segment-analysis" disabled>분석 시작</button>
                         <span class="hint">마우스로 모음 구간 선택 후 버튼을 눌러 주세요.</span>
                     </form>
@@ -427,13 +463,34 @@
                                 <strong>CPP</strong>
                                 <span>{{ segment_result.cpp|default:"-" }}</span>
                             </div>
+                            <div class="stat">
+                                <strong>Peak Period (ms)</strong>
+                                <span>{{ segment_result.cepstrum_profile.peak_period_ms|default:"-" }}</span>
+                            </div>
+                            <div class="stat">
+                                <strong>Estimated F0 (Hz)</strong>
+                                <span>{{ segment_result.cepstrum_profile.peak_frequency_hz|default:"-" }}</span>
+                            </div>
                         </div>
                         <p>선택 구간: {{ segment_result.start_seconds }}s - {{ segment_result.end_seconds }}s</p>
+
+                        {% if segment_result.cepstrum_profile.quefrency_ms %}
+                            <div class="cepstral-wrap">
+                                <h3>Cepstral Analysis</h3>
+                                <div class="legend">
+                                    <span><i style="background:#64748b"></i>Cepstrum</span>
+                                    <span><i style="background:#dc2626"></i>Regression line</span>
+                                    <span><i style="background:#0f766e"></i>CPP peak</span>
+                                </div>
+                                <canvas id="cepstral-chart" width="1000" height="320"></canvas>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
             </section>
 
             {{ analysis_result|json_script:"analysis-data" }}
+            {{ segment_result|json_script:"segment-data" }}
             <script>
                 (function () {
                     const analysisNode = document.getElementById("analysis-data");
@@ -442,6 +499,8 @@
                     }
 
                     const analysis = JSON.parse(analysisNode.textContent);
+                    const segmentNode = document.getElementById("segment-data");
+                    const segmentData = segmentNode ? JSON.parse(segmentNode.textContent) : null;
                     const canvas = document.getElementById("waveform-chart");
                     if (!canvas) {
                         return;
@@ -468,7 +527,7 @@
                     const startSegmentAnalysisButton = document.getElementById("start-segment-analysis");
                     const totalDuration = analysis.duration_seconds || 0;
                     const zoomEnabled = Boolean(analysis.zoom_enabled);
-                    let visibleDuration = zoomEnabled ? Math.min(10, totalDuration) : totalDuration;
+                    let visibleDuration = totalDuration || 1;
                     let windowStart = 0;
                     let renderedPeakHitAreas = [];
                     let selectionStart = null;
@@ -482,6 +541,225 @@
                     let segmentAudioBuffer = null;
                     let segmentAudioSource = null;
                     let segmentAudioLoadPromise = null;
+
+                    // ── Mutable marker state ──────────────────────────────────────
+                    // Server provides DB-saved markers (or auto-detected if none saved).
+                    // localStorage is a fallback for when audio_record_id is unavailable.
+                    const MARKER_STORAGE_KEY = "sva_markers_fallback_" + (analysis.file_name || "");
+                    const audioRecordId = analysis.audio_record_id || null;
+
+                    function getCsrfToken() {
+                        const cookies = document.cookie.split(";");
+                        for (const cookie of cookies) {
+                            const trimmed = cookie.trim();
+                            if (trimmed.startsWith("csrftoken=")) {
+                                return decodeURIComponent(trimmed.slice("csrftoken=".length));
+                            }
+                        }
+                        return "";
+                    }
+
+                    function saveMarkers() {
+                        if (audioRecordId) {
+                            fetch("{% url 'voice_analysis:save_vowel_markers' %}", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+                                body: JSON.stringify({
+                                    audio_record_id: audioRecordId,
+                                    onset: currentVowelOnset,
+                                    offset: currentVowelOffset,
+                                    duration_ms: (currentVowelOnset !== null && currentVowelOffset !== null)
+                                        ? Math.round((currentVowelOffset - currentVowelOnset) * 1000 * 10) / 10
+                                        : null,
+                                }),
+                            }).catch(() => {});
+                        } else {
+                            try {
+                                localStorage.setItem(MARKER_STORAGE_KEY, JSON.stringify({ onset: currentVowelOnset, offset: currentVowelOffset }));
+                            } catch (_) {}
+                        }
+                    }
+
+                    function clearSavedMarkers() {
+                        if (audioRecordId) {
+                            fetch("{% url 'voice_analysis:reset_vowel_markers' %}", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrfToken() },
+                                body: JSON.stringify({ audio_record_id: audioRecordId }),
+                            }).catch(() => {});
+                        } else {
+                            try { localStorage.removeItem(MARKER_STORAGE_KEY); } catch (_) {}
+                        }
+                    }
+
+                    // Server already applied DB-saved markers into vowel_onset/vowel_offset.
+                    // For no-DB-match case, fall back to localStorage.
+                    (function applyLocalStorageFallback() {
+                        if (audioRecordId) { return; }
+                        try {
+                            const raw = localStorage.getItem(MARKER_STORAGE_KEY);
+                            if (!raw) { return; }
+                            const parsed = JSON.parse(raw);
+                            if (typeof parsed.onset === "number" && typeof parsed.offset === "number") {
+                                analysis.vowel_onset  = parsed.onset;
+                                analysis.vowel_offset = parsed.offset;
+                            }
+                        } catch (_) {}
+                    }());
+
+                    let currentVowelOnset  = (analysis.vowel_onset  !== undefined) ? analysis.vowel_onset  : null;
+                    let currentVowelOffset = (analysis.vowel_offset !== undefined) ? analysis.vowel_offset : null;
+                    let draggingMarker = null; // null | 'onset' | 'offset'
+
+                    function updateMarkerDisplay() {
+                        const onsetLabel  = document.getElementById("marker-onset-label");
+                        const offsetLabel = document.getElementById("marker-offset-label");
+                        if (onsetLabel)  { onsetLabel.textContent  = currentVowelOnset  !== null ? `${currentVowelOnset.toFixed(3)} s`  : "-"; }
+                        if (offsetLabel) { offsetLabel.textContent = currentVowelOffset !== null ? `${currentVowelOffset.toFixed(3)} s` : "-"; }
+                    }
+
+                    function hitTestMarker(canvasX) {
+                        const HIT = 8;
+                        if (currentVowelOnset  !== null && Math.abs(canvasX - xForTime(currentVowelOnset))  <= HIT) { return 'onset'; }
+                        if (currentVowelOffset !== null && Math.abs(canvasX - xForTime(currentVowelOffset)) <= HIT) { return 'offset'; }
+                        return null;
+                    }
+
+                    function drawCepstralChart() {
+                        const cepstralCanvas = document.getElementById("cepstral-chart");
+                        const profile = segmentData?.cepstrum_profile;
+                        if (!cepstralCanvas || !profile || !profile.quefrency_ms || !profile.quefrency_ms.length) {
+                            return;
+                        }
+
+                        const cepstralContext = cepstralCanvas.getContext("2d");
+                        const chartWidth = cepstralCanvas.width;
+                        const chartHeight = cepstralCanvas.height;
+                        const chartPadding = { top: 24, right: 24, bottom: 42, left: 60 };
+                        const innerWidth = chartWidth - chartPadding.left - chartPadding.right;
+                        const innerHeight = chartHeight - chartPadding.top - chartPadding.bottom;
+                        const quefrency = profile.quefrency_ms;
+                        const magnitude = profile.magnitude_db;
+                        const regression = profile.regression_db;
+                        const allYValues = magnitude.concat(regression);
+                        const minX = Math.min(...quefrency);
+                        const maxX = Math.max(...quefrency);
+                        const minY = Math.min(...allYValues);
+                        const maxY = Math.max(...allYValues);
+                        const yRange = Math.max(maxY - minY, 1);
+
+                        function xForValue(value) {
+                            return chartPadding.left + ((value - minX) / Math.max(maxX - minX, 0.001)) * innerWidth;
+                        }
+
+                        function yForValue(value) {
+                            return chartPadding.top + innerHeight - (((value - minY) / yRange) * innerHeight);
+                        }
+
+                        function drawLine(values, color, widthValue) {
+                            cepstralContext.save();
+                            cepstralContext.strokeStyle = color;
+                            cepstralContext.lineWidth = widthValue;
+                            cepstralContext.beginPath();
+                            values.forEach((value, index) => {
+                                const x = xForValue(quefrency[index]);
+                                const y = yForValue(value);
+                                if (index === 0) {
+                                    cepstralContext.moveTo(x, y);
+                                } else {
+                                    cepstralContext.lineTo(x, y);
+                                }
+                            });
+                            cepstralContext.stroke();
+                            cepstralContext.restore();
+                        }
+
+                        cepstralContext.clearRect(0, 0, chartWidth, chartHeight);
+                        cepstralContext.fillStyle = "#ffffff";
+                        cepstralContext.fillRect(0, 0, chartWidth, chartHeight);
+                        cepstralContext.strokeStyle = "#c9b79f";
+                        cepstralContext.lineWidth = 1;
+                        cepstralContext.beginPath();
+                        cepstralContext.moveTo(chartPadding.left, chartPadding.top);
+                        cepstralContext.lineTo(chartPadding.left, chartHeight - chartPadding.bottom);
+                        cepstralContext.lineTo(chartWidth - chartPadding.right, chartHeight - chartPadding.bottom);
+                        cepstralContext.stroke();
+
+                        drawLine(magnitude, "#64748b", 2);
+                        drawLine(regression, "#dc2626", 2);
+
+                        const peakX = xForValue(profile.peak_quefrency_ms);
+                        const peakY = yForValue(profile.peak_magnitude_db);
+                        const regPeakY = yForValue(profile.regression_at_peak_db);
+                        cepstralContext.save();
+                        cepstralContext.strokeStyle = "#0f766e";
+                        cepstralContext.setLineDash([5, 4]);
+                        cepstralContext.beginPath();
+                        cepstralContext.moveTo(peakX, peakY);
+                        cepstralContext.lineTo(peakX, regPeakY);
+                        cepstralContext.stroke();
+                        cepstralContext.setLineDash([]);
+                        cepstralContext.fillStyle = "#0f766e";
+                        cepstralContext.beginPath();
+                        cepstralContext.arc(peakX, peakY, 4.5, 0, Math.PI * 2);
+                        cepstralContext.fill();
+
+                        // Peak label near the dot
+                        const peakLabel = `${Number(profile.peak_quefrency_ms).toFixed(2)} ms\n${Number(profile.peak_magnitude_db).toFixed(2)} dB`;
+                        cepstralContext.font = "bold 12px 'SFMono-Regular', Consolas, monospace";
+                        const peakLabelLines = peakLabel.split("\n");
+                        const lineH = 15;
+                        const labelW = Math.max(...peakLabelLines.map(l => cepstralContext.measureText(l).width));
+                        const labelPad = 5;
+                        // Flip to left if too close to right edge
+                        const labelX = (peakX + labelPad + labelW + 6 > chartWidth - chartPadding.right)
+                            ? peakX - labelPad - labelW - 4
+                            : peakX + labelPad + 4;
+                        const labelY = Math.max(peakY - lineH, chartPadding.top + lineH);
+                        cepstralContext.fillStyle = "rgba(255,255,255,0.82)";
+                        cepstralContext.fillRect(labelX - 3, labelY - lineH + 2, labelW + 6, lineH * peakLabelLines.length + 4);
+                        cepstralContext.fillStyle = "#0f766e";
+                        peakLabelLines.forEach((line, i) => {
+                            cepstralContext.fillText(line, labelX, labelY + i * lineH);
+                        });
+                        cepstralContext.restore();
+
+                        cepstralContext.fillStyle = "#1f2937";
+                        cepstralContext.font = "14px sans-serif";
+                        cepstralContext.fillText("Quefrency (ms)", chartWidth - chartPadding.right - 96, chartHeight - 10);
+                        cepstralContext.save();
+                        cepstralContext.translate(20, chartHeight / 2 + 34);
+                        cepstralContext.rotate(-Math.PI / 2);
+                        cepstralContext.fillText("Magnitude (dB)", 0, 0);
+                        cepstralContext.restore();
+
+                        // CPP label — top-left
+                        cepstralContext.fillText(
+                            `CPP ${Number(profile.cpp_prominence_db).toFixed(2)} dB`,
+                            chartPadding.left,
+                            18,
+                        );
+
+                        // Regression formula — top-right
+                        if (profile.regression_slope !== undefined && profile.regression_intercept !== undefined) {
+                            const slope = Number(profile.regression_slope);
+                            const intercept = Number(profile.regression_intercept);
+                            const slopeStr = slope.toFixed(4);
+                            const interceptSign = intercept >= 0 ? "+" : "-";
+                            const interceptStr = Math.abs(intercept).toFixed(2);
+                            const formula = `y = ${slopeStr}x ${interceptSign} ${interceptStr}`;
+                            cepstralContext.save();
+                            cepstralContext.font = "13px 'SFMono-Regular', Consolas, monospace";
+                            cepstralContext.fillStyle = "#dc2626";
+                            const textWidth = cepstralContext.measureText(formula).width;
+                            cepstralContext.fillText(
+                                formula,
+                                chartWidth - chartPadding.right - textWidth,
+                                18,
+                            );
+                            cepstralContext.restore();
+                        }
+                    }
 
                     if (!waveformValues.length || !waveformTimes.length) {
                         return;
@@ -717,6 +995,177 @@
                         windowLabel.textContent = `현재 구간 ${windowStart.toFixed(1)}s - ${windowEnd.toFixed(1)}s`;
                     }
 
+                    // ── Spectrogram offscreen canvas ──────────────────────────────
+                    const spectrogramData = analysis.spectrogram || null;
+                    let offscreenSpecCanvas = null;
+
+                    if (spectrogramData && spectrogramData.data && spectrogramData.data.length) {
+                        const numFreqBins   = spectrogramData.data.length;
+                        const numTimeFrames = spectrogramData.data[0].length;
+                        offscreenSpecCanvas = document.createElement("canvas");
+                        offscreenSpecCanvas.width  = numTimeFrames;
+                        offscreenSpecCanvas.height = numFreqBins;
+                        const offCtx    = offscreenSpecCanvas.getContext("2d");
+                        const imageData = offCtx.createImageData(numTimeFrames, numFreqBins);
+
+                        // Viridis-inspired colormap stops [r, g, b]
+                        const cmStops = [
+                            [ 68,   1,  84],
+                            [ 59,  82, 139],
+                            [ 33, 145, 140],
+                            [ 94, 201,  98],
+                            [253, 231,  37],
+                        ];
+                        function spectrogramColormap(val) {
+                            const v = Math.max(0, Math.min(1, val));
+                            const n = cmStops.length - 1;
+                            const idx = v * n;
+                            const lo = Math.floor(idx);
+                            const hi = Math.min(lo + 1, n);
+                            const t  = idx - lo;
+                            const [r1, g1, b1] = cmStops[lo];
+                            const [r2, g2, b2] = cmStops[hi];
+                            return [
+                                Math.round(r1 + (r2 - r1) * t),
+                                Math.round(g1 + (g2 - g1) * t),
+                                Math.round(b1 + (b2 - b1) * t),
+                            ];
+                        }
+
+                        for (let f = 0; f < numFreqBins; f++) {
+                            const canvasRow = numFreqBins - 1 - f; // 저주파를 아래에
+                            for (let t = 0; t < numTimeFrames; t++) {
+                                const val = spectrogramData.data[f][t];
+                                const [r, g, b] = spectrogramColormap(val);
+                                const pi = (canvasRow * numTimeFrames + t) * 4;
+                                imageData.data[pi]     = r;
+                                imageData.data[pi + 1] = g;
+                                imageData.data[pi + 2] = b;
+                                imageData.data[pi + 3] = 255;
+                            }
+                        }
+                        offCtx.putImageData(imageData, 0, 0);
+                    }
+
+                    // ── Vowel marker vertical bars (waveform canvas) ──────────────
+                    function drawVowelMarkers() {
+                        const windowEnd = windowStart + visibleDuration;
+
+                        function drawMarker(time, color, label) {
+                            if (time === null || time === undefined) { return; }
+                            if (time < windowStart || time > windowEnd) { return; }
+                            const x = xForTime(time);
+                            const isActive = draggingMarker === (label === '시작' ? 'onset' : 'offset');
+                            context.save();
+                            context.strokeStyle = color;
+                            context.lineWidth = isActive ? 3 : 2;
+                            context.globalAlpha = isActive ? 1.0 : 0.85;
+                            context.setLineDash([6, 4]);
+                            context.beginPath();
+                            context.moveTo(x, padding.top);
+                            context.lineTo(x, height - padding.bottom);
+                            context.stroke();
+                            context.setLineDash([]);
+                            // handle circle for drag affordance
+                            context.globalAlpha = 1;
+                            context.fillStyle = color;
+                            context.beginPath();
+                            context.arc(x, padding.top + plotHeight / 2, isActive ? 6 : 4, 0, Math.PI * 2);
+                            context.fill();
+                            context.font = "bold 11px sans-serif";
+                            const textX = (x + 34 < width - padding.right) ? x + 5 : x - 30;
+                            context.fillText(label, textX, padding.top + 16);
+                            context.restore();
+                        }
+
+                        drawMarker(currentVowelOnset,  "#16a34a", "시작");
+                        drawMarker(currentVowelOffset, "#dc2626", "종료");
+                    }
+
+                    // ── Spectrogram canvas renderer ───────────────────────────────
+                    function drawSpectrogramChart() {
+                        const specCanvas = document.getElementById("spectrogram-chart");
+                        if (!specCanvas) { return; }
+
+                        const specCtx = specCanvas.getContext("2d");
+                        const specW   = specCanvas.width;
+                        const specH   = specCanvas.height;
+                        const sp      = { top: 10, right: 24, bottom: 32, left: 52 };
+                        const spPlotW = specW - sp.left - sp.right;
+                        const spPlotH = specH - sp.top  - sp.bottom;
+
+                        specCtx.clearRect(0, 0, specW, specH);
+                        specCtx.fillStyle = "#ffffff";
+                        specCtx.fillRect(0, 0, specW, specH);
+                        specCtx.fillStyle = "#111111";
+                        specCtx.fillRect(sp.left, sp.top, spPlotW, spPlotH);
+
+                        if (offscreenSpecCanvas && spectrogramData) {
+                            const specTimes = spectrogramData.times;
+                            const lastTime  = specTimes[specTimes.length - 1] || totalDuration;
+                            const windowEnd = windowStart + visibleDuration;
+                            const startRatio = Math.max(0, windowStart / lastTime);
+                            const endRatio   = Math.min(1, windowEnd   / lastTime);
+                            const srcX = startRatio * offscreenSpecCanvas.width;
+                            const srcW = Math.max(1, (endRatio - startRatio) * offscreenSpecCanvas.width);
+
+                            specCtx.drawImage(
+                                offscreenSpecCanvas,
+                                srcX, 0, srcW, offscreenSpecCanvas.height,
+                                sp.left, sp.top, spPlotW, spPlotH,
+                            );
+
+                            // Vowel markers on spectrogram
+                            function xSpecForTime(time) {
+                                return sp.left + ((time - windowStart) / visibleDuration) * spPlotW;
+                            }
+                            function drawSpecMarker(time, color) {
+                                if (time === null || time === undefined) { return; }
+                                const wEnd = windowStart + visibleDuration;
+                                if (time < windowStart || time > wEnd) { return; }
+                                const x = xSpecForTime(time);
+                                specCtx.save();
+                                specCtx.strokeStyle = color;
+                                specCtx.lineWidth = 2;
+                                specCtx.setLineDash([6, 4]);
+                                specCtx.beginPath();
+                                specCtx.moveTo(x, sp.top);
+                                specCtx.lineTo(x, specH - sp.bottom);
+                                specCtx.stroke();
+                                specCtx.setLineDash([]);
+                                specCtx.restore();
+                            }
+                            drawSpecMarker(currentVowelOnset,  "#16a34a");
+                            drawSpecMarker(currentVowelOffset, "#dc2626");
+                        }
+
+                        // Axes
+                        specCtx.strokeStyle = "#c9b79f";
+                        specCtx.lineWidth = 1;
+                        specCtx.beginPath();
+                        specCtx.moveTo(sp.left, sp.top);
+                        specCtx.lineTo(sp.left, specH - sp.bottom);
+                        specCtx.lineTo(specW - sp.right, specH - sp.bottom);
+                        specCtx.stroke();
+
+                        // Y-axis frequency labels
+                        const freqs = spectrogramData?.freqs || [];
+                        const maxFreqLabel = freqs.length ? freqs[freqs.length - 1] : 8000;
+                        specCtx.fillStyle = "#5b6470";
+                        specCtx.font = "11px sans-serif";
+                        [0, 2000, 4000, 6000, 8000].forEach((freq) => {
+                            if (freq <= maxFreqLabel + 1) {
+                                const y = sp.top + spPlotH * (1 - freq / maxFreqLabel);
+                                specCtx.fillText(`${freq}`, 4, y + 4);
+                            }
+                        });
+                        specCtx.save();
+                        specCtx.translate(12, sp.top + spPlotH / 2 + 24);
+                        specCtx.rotate(-Math.PI / 2);
+                        specCtx.fillText("Freq (Hz)", 0, 0);
+                        specCtx.restore();
+                    }
+
                     function renderChart() {
                         const windowEnd = Math.min(windowStart + visibleDuration, totalDuration || visibleDuration);
                         const visibleWaveform = getVisibleSeries(waveformTimes, waveformValues);
@@ -728,6 +1177,7 @@
                         drawAxes();
                         drawSeries(visibleWaveform, "#64748b", yForWaveform, 1.1);
                         drawSelectionOverlay();
+                        drawVowelMarkers();
 
                         context.fillStyle = "#1f2937";
                         context.font = "14px sans-serif";
@@ -742,6 +1192,7 @@
                         updateWindowLabel(windowEnd);
                         setSliderBounds();
                         updateSelectionLabel();
+                        drawSpectrogramChart();
                     }
 
                     if (zoomInButton) {
@@ -789,6 +1240,18 @@
                         const canvasX = (event.clientX - rect.left) * scaleX;
                         const canvasY = (event.clientY - rect.top) * scaleY;
 
+                        if (draggingMarker !== null) {
+                            const clampedTime = Math.max(0, Math.min(totalDuration, timeForX(canvasX)));
+                            if (draggingMarker === 'onset') {
+                                currentVowelOnset = clampedTime;
+                            } else {
+                                currentVowelOffset = clampedTime;
+                            }
+                            updateMarkerDisplay();
+                            renderChart();
+                            return;
+                        }
+
                         if (isSelecting) {
                             selectionEnd = timeForX(canvasX);
                             dragMoved = true;
@@ -797,7 +1260,8 @@
                         }
 
                         const insidePlot = canvasX >= padding.left && canvasX <= (width - padding.right) && canvasY >= padding.top && canvasY <= (height - padding.bottom);
-                        canvas.style.cursor = insidePlot ? "crosshair" : "default";
+                        const nearMarker = insidePlot ? hitTestMarker(canvasX) : null;
+                        canvas.style.cursor = nearMarker ? "ew-resize" : (insidePlot ? "crosshair" : "default");
                     });
 
                     canvas.addEventListener("mousedown", (event) => {
@@ -816,6 +1280,13 @@
                             return;
                         }
 
+                        const nearMarker = hitTestMarker(canvasX);
+                        if (nearMarker) {
+                            draggingMarker = nearMarker;
+                            event.preventDefault();
+                            return;
+                        }
+
                         isSelecting = true;
                         dragMoved = false;
                         selectionStart = timeForX(canvasX);
@@ -824,6 +1295,13 @@
                     });
 
                     window.addEventListener("mouseup", () => {
+                        if (draggingMarker !== null) {
+                            draggingMarker = null;
+                            saveMarkers();
+                            renderChart();
+                            return;
+                        }
+
                         if (!isSelecting) {
                             return;
                         }
@@ -836,8 +1314,39 @@
                     });
 
                     canvas.addEventListener("mouseleave", () => {
-                        canvas.style.cursor = "default";
+                        if (draggingMarker === null) {
+                            canvas.style.cursor = "default";
+                        }
                     });
+
+                    // 마커 구간으로 선택 적용 버튼
+                    const applyMarkersBtn = document.getElementById("apply-markers-btn");
+                    if (applyMarkersBtn) {
+                        applyMarkersBtn.addEventListener("click", () => {
+                            if (currentVowelOnset === null || currentVowelOffset === null) { return; }
+                            selectionStart = Math.min(currentVowelOnset, currentVowelOffset);
+                            selectionEnd   = Math.max(currentVowelOnset, currentVowelOffset);
+                            const formOnset  = document.getElementById("form-marker-onset");
+                            const formOffset = document.getElementById("form-marker-offset");
+                            if (formOnset)  { formOnset.value  = currentVowelOnset.toFixed(4); }
+                            if (formOffset) { formOffset.value = currentVowelOffset.toFixed(4); }
+                            saveMarkers();
+                            updateSelectionLabel();
+                            renderChart();
+                        });
+                    }
+
+                    // 초기화 버튼
+                    const resetMarkersBtn = document.getElementById("reset-markers-btn");
+                    if (resetMarkersBtn) {
+                        resetMarkersBtn.addEventListener("click", () => {
+                            clearSavedMarkers();
+                            currentVowelOnset  = (analysis.vowel_onset  !== undefined) ? analysis.vowel_onset  : null;
+                            currentVowelOffset = (analysis.vowel_offset !== undefined) ? analysis.vowel_offset : null;
+                            updateMarkerDisplay();
+                            renderChart();
+                        });
+                    }
 
                     if (playSelectionButton && waveformPlayer) {
                         playSelectionButton.addEventListener("click", async () => {
@@ -906,6 +1415,8 @@
                     }
 
                     renderChart();
+                    updateMarkerDisplay();
+                    drawCepstralChart();
                 }());
             </script>
         {% endif %}

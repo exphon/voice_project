@@ -121,6 +121,10 @@ class VoiceAnalysisViewTests(TestCase):
         self.assertContains(segment_response, "Jitter (local)")
         self.assertContains(segment_response, "HNR (dB)")
         self.assertContains(segment_response, "CPP")
+        self.assertContains(segment_response, "Peak Period (ms)")
+        self.assertContains(segment_response, "Estimated F0 (Hz)")
+        self.assertContains(segment_response, "Cepstral Analysis")
+        self.assertContains(segment_response, "cepstral-chart")
 
     def test_ddk_analysis_page_renders_analysis_template(self):
         response = self.client.get(reverse("voice_analysis:ddk_analysis"))
@@ -197,6 +201,25 @@ class VoiceAnalysisViewTests(TestCase):
         self.assertContains(response, "S12345")
         self.assertContains(response, "서울")
         self.assertContains(response, "2010-01-09")
+
+    def test_ddk_analysis_accepts_audio_preview_url_without_upload(self):
+        uploaded_file = SimpleUploadedFile(
+            "source.wav",
+            build_wav_file_bytes(duration_seconds=1.2),
+            content_type="audio/wav",
+        )
+        initial_result = analyze_waveform_only(uploaded_file)
+
+        response = self.client.post(
+            reverse("voice_analysis:ddk_analysis"),
+            {
+                "audio_preview_url": initial_result["audio_preview_url"],
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Envelope Peak 개수")
+        self.assertContains(response, "voice_analysis_preview")
 
     def test_index_page_uses_requested_peak_sensitivity(self):
         audio_file = SimpleUploadedFile(
@@ -445,3 +468,9 @@ class WaveformEnvelopeAnalysisTests(TestCase):
         self.assertIn("shimmer_local", segment_result)
         self.assertIn("hnr_db", segment_result)
         self.assertIn("cpp", segment_result)
+        self.assertIn("cepstrum_profile", segment_result)
+        self.assertTrue(segment_result["cepstrum_profile"].get("quefrency_ms"))
+        self.assertTrue(segment_result["cepstrum_profile"].get("magnitude_db"))
+        self.assertTrue(segment_result["cepstrum_profile"].get("regression_db"))
+        self.assertIsNotNone(segment_result["cepstrum_profile"].get("peak_period_ms"))
+        self.assertIsNotNone(segment_result["cepstrum_profile"].get("peak_frequency_hz"))

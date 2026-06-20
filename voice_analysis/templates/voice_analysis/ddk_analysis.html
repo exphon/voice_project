@@ -493,6 +493,8 @@
                     <span>Whisper 전사 실행 (퍼/터/커/퍼터커 반복 전사 포함)</span>
                 </label>
                 <button type="submit">분석 실행</button>
+                <button type="button" id="save-ddk-btn" disabled>분석 저장</button>
+                <span id="save-ddk-status" class="save-status"></span>
             </form>
 
             {% if error_message %}
@@ -506,6 +508,51 @@
                     <h2>분석 결과</h2>
                     <div class="file-badge" title="{{ analysis_result.file_name }}">{{ analysis_result.file_name }}</div>
                 </div>
+
+                {% if analysis_result.audio_preview_url %}
+                    <div class="audio-playback">
+                        <strong>Waveform 재생</strong>
+                        <audio id="waveform-player" controls preload="metadata" src="{{ analysis_result.audio_preview_url }}"></audio>
+                        <div class="audio-segment-controls">
+                            <button type="button" class="ghost-inline" id="play-selection">선택 구간 재생</button>
+                            <button type="button" class="ghost-inline" id="clear-selection">선택 해제</button>
+                            <span class="selection-label" id="selection-range-label">선택 없음</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="chart-wrap">
+                    {% if analysis_result.zoom_enabled %}
+                        <div class="chart-controls" id="zoom-controls">
+                            <button type="button" class="ghost-button" id="zoom-in">Zoom In</button>
+                            <button type="button" class="ghost-button" id="zoom-out">Zoom Out</button>
+                            <label class="range-group" for="window-offset">
+                                <span id="window-label">현재 구간</span>
+                                <input type="range" id="window-offset" min="0" max="0" value="0" step="0.1">
+                            </label>
+                        </div>
+                    {% endif %}
+                    <div class="legend">
+                        <span><i style="background:#64748b"></i>Original waveform</span>
+                        <span><i style="background:#0f766e"></i>Amplitude envelope</span>
+                        <span><i style="background:#dc2626"></i>Envelope peaks</span>
+                    </div>
+                    <canvas id="envelope-chart" width="1000" height="360"></canvas>
+                </div>
+
+                <div class="peak-list">
+                    <strong>감지된 Peak 시점</strong>
+                    <button type="button" class="ghost-inline" id="reset-removed-peaks">삭제 초기화</button>
+                    <div id="peak-time-list">
+                        {% for peak in analysis_result.peak_points|slice:":20" %}
+                            <code>{{ peak.time }}s</code>
+                        {% empty %}
+                            <span>감지된 peak가 없습니다.</span>
+                        {% endfor %}
+                    </div>
+                    <div class="hint">불필요한 시간을 클릭하거나 차트의 빨간 점을 클릭하면 해당 peak가 차트와 계산에서 즉시 제외됩니다.</div>
+                </div>
+
                 <div class="stats">
                     <div class="stat">
                         <strong>샘플레이트</strong>
@@ -556,49 +603,7 @@
                     {% endif %}
                 </div>
 
-                {% if analysis_result.audio_preview_url %}
-                    <div class="audio-playback">
-                        <strong>Waveform 재생</strong>
-                        <audio id="waveform-player" controls preload="metadata" src="{{ analysis_result.audio_preview_url }}"></audio>
-                        <div class="audio-segment-controls">
-                            <button type="button" class="ghost-inline" id="play-selection">선택 구간 재생</button>
-                            <button type="button" class="ghost-inline" id="clear-selection">선택 해제</button>
-                            <span class="selection-label" id="selection-range-label">선택 없음</span>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <div class="chart-wrap">
-                    {% if analysis_result.zoom_enabled %}
-                        <div class="chart-controls" id="zoom-controls">
-                            <button type="button" class="ghost-button" id="zoom-in">Zoom In</button>
-                            <button type="button" class="ghost-button" id="zoom-out">Zoom Out</button>
-                            <label class="range-group" for="window-offset">
-                                <span id="window-label">현재 구간</span>
-                                <input type="range" id="window-offset" min="0" max="0" value="0" step="0.1">
-                            </label>
-                        </div>
-                    {% endif %}
-                    <div class="legend">
-                        <span><i style="background:#64748b"></i>Original waveform</span>
-                        <span><i style="background:#0f766e"></i>Amplitude envelope</span>
-                        <span><i style="background:#dc2626"></i>Envelope peaks</span>
-                    </div>
-                    <canvas id="envelope-chart" width="1000" height="360"></canvas>
-                </div>
-
-                <div class="peak-list">
-                    <strong>감지된 Peak 시점</strong>
-                    <button type="button" class="ghost-inline" id="reset-removed-peaks">삭제 초기화</button>
-                    <div id="peak-time-list">
-                        {% for peak in analysis_result.peak_points|slice:":20" %}
-                            <code>{{ peak.time }}s</code>
-                        {% empty %}
-                            <span>감지된 peak가 없습니다.</span>
-                        {% endfor %}
-                    </div>
-                    <div class="hint">불필요한 시간을 클릭하거나 차트의 빨간 점을 클릭하면 해당 peak가 차트와 계산에서 즉시 제외됩니다.</div>
-                </div>
+                
 
                 <div class="periodicity-panel">
                     <div class="periodicity-header">
@@ -1483,6 +1488,80 @@
 
                     syncPeakUI();
                     renderChart();
+
+                    // 분석 저장 버튼
+                    const saveDdkButton = document.getElementById("save-ddk-btn");
+                    const saveDdkStatus = document.getElementById("save-ddk-status");
+
+                    function getCsrfToken() {
+                        const cookies = document.cookie.split(";");
+                        for (const cookie of cookies) {
+                            const trimmed = cookie.trim();
+                            if (trimmed.startsWith("csrftoken=")) {
+                                return decodeURIComponent(trimmed.slice("csrftoken=".length));
+                            }
+                        }
+                        return "";
+                    }
+
+                    if (saveDdkButton && analysis.audio_preview_url) {
+                        saveDdkButton.disabled = false;
+                        let savedAnalysisId = null;
+
+                        function doSaveDdk() {
+                            const currentSensitivity = Number(sensitivityInput?.value ?? analysis.peak_sensitivity ?? 0.8);
+                            const currentMergeWindow = Number(mergeWindowInput?.value ?? analysis.merge_window_ms ?? 120);
+                            const currentValleyRatio = Number(valleyRatioInput?.value ?? analysis.valley_ratio ?? 0.58);
+                            const currentPeakCount = activePeaks.length;
+
+                            saveDdkButton.disabled = true;
+                            if (saveDdkStatus) { saveDdkStatus.textContent = "저장 중..."; }
+
+                            fetch("{% url 'voice_analysis:save_ddk_analysis' %}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": getCsrfToken(),
+                                },
+                                body: JSON.stringify({
+                                    file_name: analysis.file_name,
+                                    audio_preview_url: analysis.audio_preview_url,
+                                    peak_count: currentPeakCount,
+                                    peak_sensitivity: currentSensitivity,
+                                    merge_window_ms: currentMergeWindow,
+                                    valley_ratio: currentValleyRatio,
+                                    overwrite_id: savedAnalysisId,
+                                }),
+                            })
+                            .then((response) => response.json())
+                            .then((data) => {
+                                saveDdkButton.disabled = false;
+                                if (data.success) {
+                                    savedAnalysisId = data.id;
+                                    if (saveDdkStatus) {
+                                        saveDdkStatus.textContent = `저장 완료 (ID: ${data.id})`;
+                                    }
+                                } else {
+                                    if (saveDdkStatus) {
+                                        saveDdkStatus.textContent = `저장 실패: ${data.error}`;
+                                    }
+                                }
+                            })
+                            .catch(() => {
+                                saveDdkButton.disabled = false;
+                                if (saveDdkStatus) { saveDdkStatus.textContent = "저장 중 오류가 발생했습니다."; }
+                            });
+                        }
+
+                        saveDdkButton.addEventListener("click", () => {
+                            if (savedAnalysisId !== null) {
+                                if (!window.confirm("이미 저장된 분석 결과가 있습니다. 현재 값으로 덮어쓸까요?")) {
+                                    return;
+                                }
+                            }
+                            doSaveDdk();
+                        });
+                    }
                 }());
             </script>
         {% else %}

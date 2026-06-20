@@ -1,13 +1,61 @@
 from django.urls import path
 
-from .views import ddk_analysis, help_periodicity, index, sustained_vowel_analysis
-
+from .views import (
+    apac_storytelling_analysis,
+    apac_storytelling_align,
+    storytelling_analysis,
+    storytelling_align,
+    ddk_analysis,
+    help_apac_storytelling_analysis,
+    help_number_counting_analysis,
+    help_paragraph_reading_senior_analysis,
+    help_periodicity,
+    help_picture_button_analysis,
+    help_sentence_reading_senior_analysis,
+    help_storytelling_analysis,
+    help_sustained_vowel_analysis,
+    index,
+    number_counting_analysis,
+    number_counting_align,
+    paragraph_reading_senior_analysis,
+    paragraph_reading_senior_align,
+    picture_button_analysis,
+    picture_button_align,
+    reset_vowel_markers,
+    save_ddk_analysis,
+    save_vowel_markers,
+    sentence_reading_senior_analysis,
+    sentence_reading_senior_align,
+    sustained_vowel_analysis,
+)
 
 app_name = "voice_analysis"
 
 urlpatterns = [
     path("", index, name="index"),
     path("sustained-vowel/", sustained_vowel_analysis, name="sustained_vowel_analysis"),
+    path("sustained-vowel/markers/save/", save_vowel_markers, name="save_vowel_markers"),
+    path("sustained-vowel/markers/reset/", reset_vowel_markers, name="reset_vowel_markers"),
+    path("sustained-vowel/help/", help_sustained_vowel_analysis, name="help_sustained_vowel_analysis"),
+    path("number-counting/", number_counting_analysis, name="number_counting_analysis"),
+    path("number-counting/align/", number_counting_align, name="number_counting_align"),
+    path("number-counting/help/", help_number_counting_analysis, name="help_number_counting_analysis"),
     path("ddk/", ddk_analysis, name="ddk_analysis"),
+    path("ddk/save/", save_ddk_analysis, name="save_ddk_analysis"),
     path("help/periodicity/", help_periodicity, name="help_periodicity"),
+    path("sentence-reading-senior/", sentence_reading_senior_analysis, name="sentence_reading_senior_analysis"),
+    path("sentence-reading-senior/align/", sentence_reading_senior_align, name="sentence_reading_senior_align"),
+    path("sentence-reading-senior/help/", help_sentence_reading_senior_analysis, name="help_sentence_reading_senior_analysis"),
+    path("paragraph-reading-senior/", paragraph_reading_senior_analysis, name="paragraph_reading_senior_analysis"),
+    path("paragraph-reading-senior/align/", paragraph_reading_senior_align, name="paragraph_reading_senior_align"),
+    path("paragraph-reading-senior/help/", help_paragraph_reading_senior_analysis, name="help_paragraph_reading_senior_analysis"),
+    path("picture-button/", picture_button_analysis, name="picture_button_analysis"),
+    path("picture-button/align/", picture_button_align, name="picture_button_align"),
+    path("picture-button/help/", help_picture_button_analysis, name="help_picture_button_analysis"),
+    path("apac-storytelling/", apac_storytelling_analysis, name="apac_storytelling_analysis"),
+    path("apac-storytelling/align/", apac_storytelling_align, name="apac_storytelling_align"),
+    path("apac-storytelling/help/", help_apac_storytelling_analysis, name="help_apac_storytelling_analysis"),
+    path("storytelling/", storytelling_analysis, name="storytelling_analysis"),
+    path("storytelling/align/", storytelling_align, name="storytelling_align"),
+    path("storytelling/help/", help_storytelling_analysis, name="help_storytelling_analysis"),
 ]

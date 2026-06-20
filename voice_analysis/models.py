@@ -11,6 +11,8 @@ class VoiceAnalysis(models.Model):
         ("snr", "SNR 분석"),
         ("alignment", "정렬 분석"),
         ("diarization", "화자 분리 분석"),
+        ("ddk", "DDK 분석"),
+        ("vowel_marker", "모음 마커"),
         ("custom", "사용자 정의 분석"),
     ]
 

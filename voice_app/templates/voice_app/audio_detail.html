@@ -539,6 +539,70 @@
               <button type="submit" class="btn btn-success" id="transcribeBtn">🧠 Whisper 전사</button>
             </form>
           {% endif %}
+
+          {% if is_repeat_senior_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:ddk_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-primary">📈 DDK 분석</button>
+            </form>
+          {% endif %}
+
+          {% if is_a_repeat_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:sustained_vowel_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-info">🎤 아 발화 분석</button>
+            </form>
+          {% endif %}
+
+          {% if is_number_counting_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:number_counting_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-warning">🔢 숫자 세기 분석</button>
+            </form>
+          {% endif %}
+
+          {% if is_sentence_reading_senior_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:sentence_reading_senior_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-primary">📝 문장 분석하기</button>
+            </form>
+          {% endif %}
+
+          {% if is_paragraph_reading_senior_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:paragraph_reading_senior_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-primary">📝 문단 분석하기</button>
+            </form>
+          {% endif %}
+
+          {% if is_picture_button_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:picture_button_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-success">🖼️ 그림 단어 분석하기</button>
+            </form>
+          {% endif %}
+
+          {% if is_apac_storytelling_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:apac_storytelling_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-secondary">📖 동찬이 이야기 분석하기</button>
+            </form>
+          {% endif %}
+
+          {% if is_storytelling_task and audio.audio_file %}
+            <form method="POST" action="{% url 'voice_analysis:storytelling_analysis' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="audio_preview_url" value="{{ audio.audio_file.url }}">
+              <button type="submit" class="btn btn-secondary">📖 이야기 분석하기</button>
+            </form>
+          {% endif %}
           
           <!-- 전사 상태 표시 -->
           {% if audio.status == 'completed' %}

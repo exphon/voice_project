@@ -2944,6 +2944,16 @@ def audio_detail(request, audio_id):
         'next_audio_url': next_audio_url,
     }
 
+    normalized_task_type = (task_info.get('task_type') or (audio.category_specific_data or {}).get('task_type') or '').strip().lower()
+    context['is_repeat_senior_task'] = normalized_task_type in {'repeat_senior', 'repeat'}
+    context['is_a_repeat_task'] = normalized_task_type in {'a_repeat_senior', 'a_repeat'}
+    context['is_number_counting_task'] = normalized_task_type == 'number_counting'
+    context['is_sentence_reading_senior_task'] = normalized_task_type in {'sentence_reading_senior', 'sentence', 'sentences'}
+    context['is_paragraph_reading_senior_task'] = normalized_task_type == 'paragraph_reading_senior'
+    context['is_picture_button_task'] = normalized_task_type in {'picture_button', 'picture_button_senior'}
+    context['is_apac_storytelling_task'] = 'apac_storytelling' in normalized_task_type
+    context['is_storytelling_task'] = normalized_task_type.startswith('storytelling_')
+
     # 자동 전사(Whisper) 표시용: diarization 라벨/프롬프트 유출 제거
     context['auto_transcript_display'] = _clean_transcript_for_display(audio.transcript)
     context['transcript_display'] = context['auto_transcript_display']

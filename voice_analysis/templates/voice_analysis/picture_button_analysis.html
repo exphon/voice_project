@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>그림 단어 분석</title>
+    <style>
+        :root {
+            --bg: #f0f4ff;
+            --panel: #f8faff;
+            --ink: #1f2937;
+            --accent: #1d4ed8;
+            --accent-light: #3b82f6;
+            --line: #c7d2e8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Pretendard", "Noto Sans KR", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.10), transparent 28%),
+                linear-gradient(135deg, #e8f0fe 0%, var(--bg) 45%, #dce8fc 100%);
+        }
+
+        .page {
+            width: min(1080px, calc(100vw - 32px));
+            margin: 40px auto;
+            padding: 32px;
+            border: 1px solid rgba(199, 210, 232, 0.8);
+            border-radius: 28px;
+            background: rgba(248, 250, 255, 0.95);
+            box-shadow: 0 24px 80px rgba(29, 78, 216, 0.07);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            letter-spacing: -0.04em;
+            color: var(--accent);
+        }
+
+        p { margin: 0; line-height: 1.6; }
+
+        .intro { max-width: 720px; margin-bottom: 28px; }
+
+        .upload-panel,
+        .result-panel {
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: var(--panel);
+        }
+
+        .upload-panel { display: grid; gap: 16px; }
+
+        .file-input { display: grid; gap: 8px; }
+
+        .file-input input {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: white;
+        }
+
+        button {
+            width: fit-content;
+            padding: 14px 20px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--accent);
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover { filter: brightness(0.93); }
+
+        .ghost-button {
+            background: white;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .ghost-inline {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(185, 28, 28, 0.08);
+            color: #b91c1c;
+        }
+
+        .result-panel { margin-top: 24px; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin: 12px 0 0;
+        }
+
+        .stat {
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: var(--bg);
+            border: 1px solid var(--line);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 0.82rem;
+            color: #5b6470;
+            margin-bottom: 6px;
+        }
+
+        .stat span {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .chart-wrap {
+            padding: 18px;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid var(--line);
+        }
+
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .range-group {
+            display: grid;
+            gap: 6px;
+            min-width: min(360px, 100%);
+            flex: 1;
+        }
+
+        .range-group input { width: 100%; }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 3px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .audio-playback {
+            margin: 0 0 16px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .audio-playback audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .audio-segment-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .audio-segment-controls .ghost-inline {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .selection-label {
+            font-size: 0.9rem;
+            color: #374151;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .speaker-panel {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .align-panel {
+            margin-top: 20px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            border: 1px solid #a5b4fc;
+            background: #eef2ff;
+        }
+
+        .align-panel h3 {
+            margin: 0 0 12px;
+            font-size: 1rem;
+            color: var(--accent);
+        }
+
+        .align-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .align-status { font-size: 0.9rem; color: #1d4ed8; font-weight: 600; }
+
+        .align-result-inner { display: none; margin-top: 14px; }
+
+        .align-transcription {
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #c7d2e8;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-bottom: 14px;
+            word-break: break-all;
+        }
+
+        .counting-duration {
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+            color: #065f46;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .counting-duration .cd-value { font-size: 1.25rem; }
+        .counting-duration .cd-sub { font-weight: 500; color: #047857; font-size: 0.85rem; }
+
+        .accuracy-box {
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+            margin-bottom: 14px;
+        }
+        .accuracy-box .ref-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 6px;
+        }
+        .accuracy-box .ref-input {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .accuracy-result {
+            margin-top: 10px;
+            font-size: 1.0rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        .accuracy-result .acc-value { font-size: 1.2rem; }
+        .accuracy-result .acc-sub { font-weight: 500; color: #2563eb; font-size: 0.83rem; }
+
+        .word-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .word-table th {
+            text-align: left;
+            padding: 7px 10px;
+            background: #e0e7ff;
+            font-weight: 700;
+            border-bottom: 2px solid #c7d2e8;
+        }
+
+        .word-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .word-table tbody tr:hover { background: #f0f4ff; }
+
+        .word-table td.editable-time {
+            cursor: text;
+            border-bottom: 1px dashed #a5b4fc;
+            min-width: 60px;
+            outline: none;
+        }
+
+        .word-table td.editable-time:focus {
+            background: #e0e7ff;
+            border-bottom: 2px solid #6366f1;
+        }
+
+        @media (max-width: 640px) {
+            .page { width: calc(100vw - 20px); margin: 12px auto; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="intro">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <h1 style="margin:0;">그림 단어 분석</h1>
+                <a href="{% url 'voice_analysis:help_picture_button_analysis' %}" target="_blank" title="도움말"
+                   style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#2563eb;color:#fff;border-radius:8px;font-size:0.95rem;font-weight:600;text-decoration:none;">❓ 도움말</a>
+            </div>
+            <p>그림 단어(picture button) 과제 음성 파일을 업로드하면 파형과 스펙트로그램을 시각화하고 강제 정렬(Forced Alignment)로 단어 경계를 분석합니다.</p>
+        </section>
+
+        <section class="upload-panel">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label class="file-input">
+                    <span>오디오 파일 선택</span>
+                    <input type="file" name="audio_file" accept=".wav,.mp3,.m4a,.flac,.ogg,.webm,.mp4,audio/*" required>
+                </label>
+                <button type="submit">분석 실행</button>
+            </form>
+
+            {% if error_message %}
+                <div class="error">{{ error_message }}</div>
+            {% endif %}
+        </section>
+
+        {% if analysis_result %}
+            <section class="result-panel">
+                <div class="speaker-panel">
+                    <strong>화자 정보</strong>
+                    {% if analysis_result.speaker_info %}
+                        <div class="stats">
+                            <div class="stat"><strong>이름</strong><span>{{ analysis_result.speaker_info.name|default:"-" }}</span></div>
+                            <div class="stat"><strong>Identifier</strong><span>{{ analysis_result.speaker_info.identifier|default:"-" }}</span></div>
+                            <div class="stat"><strong>성별</strong><span>{{ analysis_result.speaker_info.gender|default:"-" }}</span></div>
+                            <div class="stat"><strong>카테고리</strong><span>{{ analysis_result.speaker_info.category|default:"-" }}</span></div>
+                        </div>
+                    {% else %}
+                        <p style="margin-top:8px;color:#6b7280;">파일명으로 매칭된 화자 정보가 없습니다.</p>
+                    {% endif %}
+                </div>
+
+                {% if analysis_result.audio_preview_url %}
+                    <div class="audio-playback" style="margin-top:18px;">
+                        <strong>파형 재생</strong>
+                        <audio id="waveform-player" controls preload="metadata" src="{{ analysis_result.audio_preview_url }}"></audio>
+                        <div class="audio-segment-controls">
+                            <button type="button" class="ghost-inline" id="play-selection">선택 구간 재생</button>
+                            <button type="button" class="ghost-inline" id="clear-selection">선택 해제</button>
+                            <span class="selection-label" id="selection-range-label">선택 없음</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="chart-wrap" style="margin-top:16px;">
+                    <div class="chart-controls" id="zoom-controls">
+                        <button type="button" class="ghost-button" id="zoom-in">Zoom In</button>
+                        <button type="button" class="ghost-button" id="zoom-out">Zoom Out</button>
+                        <label class="range-group" for="window-offset">
+                            <span id="window-label">현재 구간</span>
+                            <input type="range" id="window-offset" min="0" max="0" value="0" step="0.1">
+                        </label>
+                    </div>
+
+                    <div class="legend">
+                        <span><i style="background:#64748b"></i>Waveform</span>
+                        <span><i style="background:#93c5fd"></i>Envelope</span>
+                    </div>
+                    <canvas id="waveform-chart" width="1000" height="320"></canvas>
+
+                    <div class="legend" style="margin-top:14px;">
+                        <span style="font-weight:700;font-size:0.95rem;">Spectrogram (0–8 kHz)</span>
+                        <span style="display:inline-flex;align-items:center;gap:6px;">
+                            <span style="display:inline-block;width:90px;height:14px;border-radius:4px;background:linear-gradient(to right,#44015a,#3a5289,#208d8d,#5dc963,#fde725);"></span>Low → High
+                        </span>
+                    </div>
+                    <canvas id="spectrogram-chart" width="1000" height="180"></canvas>
+                </div>
+
+                <!-- Forced Alignment -->
+                <div class="align-panel">
+                    <h3>🎯 한글 Forced Alignment</h3>
+                    <div class="align-actions">
+                        <button type="button" id="run-alignment-btn">Forced Alignment 실행</button>
+                        <span class="align-status" id="align-status">버튼을 눌러 단어 단위 정렬을 실행합니다.</span>
+                    </div>
+                    <div class="align-result-inner" id="alignment-result-panel">
+                        <div class="align-transcription" id="alignment-transcription"></div>
+                        <div class="counting-duration" id="counting-duration"></div>
+                        <div class="accuracy-box">
+                            <label class="ref-label" for="reference-text">Reference 발화(정답)</label>
+                            <input type="text" id="reference-text" class="ref-input"
+                                   placeholder="예: 그림에 해당하는 목표 단어를 공백으로 구분해 입력하세요">
+                            <div class="accuracy-result" id="accuracy-result"></div>
+                        </div>
+                        <table class="word-table" id="alignment-word-table"></table>
+                    </div>
+                </div>
+            </section>
+
+            {{ analysis_result|json_script:"analysis-data" }}
+            <script>
+            (function () {
+                const analysisNode = document.getElementById("analysis-data");
+                if (!analysisNode) { return; }
+                const analysis = JSON.parse(analysisNode.textContent);
+
+                const canvas = document.getElementById("waveform-chart");
+                if (!canvas) { return; }
+                const ctx = canvas.getContext("2d");
+                const W = canvas.width;
+                const H = canvas.height;
+                const pad = { top: 24, right: 24, bottom: 38, left: 52 };
+                const plotW = W - pad.left - pad.right;
+                const plotH = H - pad.top - pad.bottom;
+
+                const waveformValues = analysis.waveform_points || [];
+                const waveformTimes  = analysis.waveform_times  || [];
+                const envelopeValues = analysis.envelope_points || [];
+                const envelopeTimes  = analysis.envelope_times  || [];
+                const peakTimes      = analysis.peak_times      || [];
+                const totalDuration  = analysis.duration_seconds || 0;
+                const zoomEnabled    = Boolean(analysis.zoom_enabled);
+
+                let visibleDuration = totalDuration || 1;
+                let windowStart = 0;
+                let alignmentData = null; // word_segments from WhisperX (mutable)
+                let autoTranscription = ""; // auto transcription text for accuracy
+
+                // ── Drag state for alignment boundaries ───────────────────
+                // Each boundary: { segIdx, side }  side = 'start' | 'end'
+                let draggingBoundary = null;  // null | { segIdx, side }
+                const HIT_PX = 8; // px tolerance for hit-test
+
+                // ── Region selection state ─────────────────────────────────
+                let selectionStart = null;
+                let selectionEnd = null;
+                let isSelecting = false;
+                let dragMoved = false;
+                let suppressNextCanvasClick = false;
+                let segmentPlayStart = null;
+                let segmentPlayEnd = null;
+                let segmentAudioContext = null;
+                let segmentAudioBuffer = null;
+                let segmentAudioSource = null;
+                let segmentAudioLoadPromise = null;
+
+                function timeForX(canvasX) {
+                    const clamped = Math.min(Math.max(canvasX, pad.left), pad.left + plotW);
+                    return windowStart + ((clamped - pad.left) / plotW) * visibleDuration;
+                }
+
+                /** Returns {segIdx, side} of the nearest boundary within HIT_PX, or null */
+                function hitTestBoundary(canvasX) {
+                    if (!alignmentData) { return null; }
+                    let best = null, bestDist = HIT_PX + 1;
+                    alignmentData.forEach((seg, i) => {
+                        for (const side of ["start", "end"]) {
+                            const t = side === "start" ? seg.start : seg.end;
+                            if (t == null) { return; }
+                            const bx = xForTime(t);
+                            const dist = Math.abs(canvasX - bx);
+                            if (dist <= HIT_PX && dist < bestDist) {
+                                bestDist = dist;
+                                best = { segIdx: i, side };
+                            }
+                        }
+                    });
+                    return best;
+                }
+
+                /**
+                 * If the hit boundary is shared with an adjacent word
+                 * (i.e. word[i].end === word[i+1].start within 5 ms),
+                 * returns the adjacent boundary descriptor; otherwise null.
+                 */
+                function detectLinkedBoundary(hit) {
+                    const LINK_EPS = 0.005;
+                    if (hit.side === "end") {
+                        const nextIdx = hit.segIdx + 1;
+                        if (nextIdx < alignmentData.length) {
+                            const a = alignmentData[hit.segIdx].end;
+                            const b = alignmentData[nextIdx].start;
+                            if (a != null && b != null && Math.abs(a - b) < LINK_EPS) {
+                                return { segIdx: nextIdx, side: "start" };
+                            }
+                        }
+                    } else {
+                        const prevIdx = hit.segIdx - 1;
+                        if (prevIdx >= 0) {
+                            const a = alignmentData[hit.segIdx].start;
+                            const b = alignmentData[prevIdx].end;
+                            if (a != null && b != null && Math.abs(a - b) < LINK_EPS) {
+                                return { segIdx: prevIdx, side: "end" };
+                            }
+                        }
+                    }
+                    return null;
+                }
+
+                /**
+                 * Apply a drag time to draggingBoundary (and its linked boundary if any).
+                 * Clamps t so neither segment collapses below 1 ms.
+                 */
+                function applyDragTime(rawT) {
+                    let t = Math.max(0, Math.min(rawT, totalDuration));
+                    const seg = alignmentData[draggingBoundary.segIdx];
+                    if (draggingBoundary.linked) {
+                        const linkedSeg = alignmentData[draggingBoundary.linked.segIdx];
+                        if (draggingBoundary.side === "end") {
+                            // word[segIdx].end  ↔  word[linked.segIdx].start
+                            t = Math.max(t, (seg.start ?? 0) + 0.001);
+                            t = Math.min(t, (linkedSeg.end ?? totalDuration) - 0.001);
+                            seg.end = t;
+                            linkedSeg.start = t;
+                        } else {
+                            // word[segIdx].start  ↔  word[linked.segIdx].end
+                            t = Math.max(t, (linkedSeg.start ?? 0) + 0.001);
+                            t = Math.min(t, (seg.end ?? totalDuration) - 0.001);
+                            seg.start = t;
+                            linkedSeg.end = t;
+                        }
+                    } else {
+                        if (draggingBoundary.side === "start") {
+                            seg.start = Math.min(t, (seg.end ?? totalDuration) - 0.001);
+                        } else {
+                            seg.end = Math.max(t, (seg.start ?? 0) + 0.001);
+                        }
+                    }
+                }
+
+                const zoomInBtn    = document.getElementById("zoom-in");
+                const zoomOutBtn   = document.getElementById("zoom-out");
+                const offsetSlider = document.getElementById("window-offset");
+                const windowLabel  = document.getElementById("window-label");
+                const waveformPlayer     = document.getElementById("waveform-player");
+                const playSelectionButton  = document.getElementById("play-selection");
+                const clearSelectionButton = document.getElementById("clear-selection");
+                const selectionRangeLabel  = document.getElementById("selection-range-label");
+
+                if (!zoomEnabled) { visibleDuration = totalDuration || 1; }
+
+                function setSliderBounds() {
+                    if (!offsetSlider) { return; }
+                    const maxOff = Math.max(totalDuration - visibleDuration, 0);
+                    offsetSlider.max   = String(maxOff);
+                    offsetSlider.value = String(Math.min(windowStart, maxOff));
+                    offsetSlider.disabled = maxOff <= 0;
+                }
+
+                function xForTime(t) {
+                    return pad.left + ((t - windowStart) / visibleDuration) * plotW;
+                }
+
+                function getVisible(times, values) {
+                    const end = windowStart + visibleDuration;
+                    const out = [];
+                    for (let i = 0; i < times.length; i++) {
+                        if (times[i] >= windowStart && times[i] <= end) {
+                            out.push({ t: times[i], v: values[i] });
+                        }
+                    }
+                    return out;
+                }
+
+                function getSelectionRange() {
+                    if (selectionStart === null || selectionEnd === null) { return null; }
+                    const start = Math.max(0, Math.min(selectionStart, selectionEnd));
+                    const end   = Math.min(totalDuration, Math.max(selectionStart, selectionEnd));
+                    if ((end - start) < 0.02) { return null; }
+                    return { start, end };
+                }
+
+                function updateSelectionLabel() {
+                    if (!selectionRangeLabel) { return; }
+                    const range = getSelectionRange();
+                    if (!range) {
+                        selectionRangeLabel.textContent = "선택 없음";
+                        return;
+                    }
+                    const dur = (range.end - range.start).toFixed(3);
+                    selectionRangeLabel.textContent = `${range.start.toFixed(3)}s – ${range.end.toFixed(3)}s (${dur}s)`;
+                }
+
+                function drawSelectionOverlay() {
+                    const range = getSelectionRange();
+                    if (!range) { return; }
+                    const startX = xForTime(range.start);
+                    const endX   = xForTime(range.end);
+                    const x  = Math.max(Math.min(startX, endX), pad.left);
+                    const x2 = Math.min(Math.max(startX, endX), pad.left + plotW);
+                    const w  = Math.max(x2 - x, 0);
+                    if (w <= 0) { return; }
+                    ctx.save();
+                    ctx.fillStyle = "rgba(29, 78, 216, 0.12)";
+                    ctx.fillRect(x, pad.top, w, plotH);
+                    ctx.strokeStyle = "rgba(29, 78, 216, 0.5)";
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(x, pad.top, w, plotH);
+                    ctx.restore();
+                }
+
+                function drawWaveform() {
+                    ctx.clearRect(0, 0, W, H);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, W, H);
+                    // Axes
+                    ctx.strokeStyle = "#c7d2e8";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pad.left, pad.top);
+                    ctx.lineTo(pad.left, H - pad.bottom);
+                    ctx.lineTo(W - pad.right, H - pad.bottom);
+                    ctx.stroke();
+
+                    const midY = pad.top + plotH / 2;
+
+                    // Waveform
+                    const visWave = getVisible(waveformTimes, waveformValues);
+                    if (visWave.length > 1) {
+                        ctx.strokeStyle = "#64748b";
+                        ctx.lineWidth = 1.2;
+                        ctx.beginPath();
+                        visWave.forEach((pt, i) => {
+                            const x = xForTime(pt.t);
+                            const y = midY - pt.v * (plotH / 2) * 0.88;
+                            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        });
+                        ctx.stroke();
+                    }
+
+                    // Envelope
+                    const visEnv = getVisible(envelopeTimes, envelopeValues);
+                    if (visEnv.length > 1) {
+                        ctx.strokeStyle = "#93c5fd";
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        visEnv.forEach((pt, i) => {
+                            const x = xForTime(pt.t);
+                            const y = midY - pt.v * (plotH / 2) * 0.85;
+                            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        });
+                        ctx.stroke();
+                    }
+
+                    // ── Selection overlay ──────────────────────────────────
+                    drawSelectionOverlay();
+
+                    // ── Forced alignment word segments ──────────────────────
+                    const winEnd = windowStart + visibleDuration;
+                    if (alignmentData && alignmentData.length > 0) {
+                        const COLORS = [
+                            "rgba(16,185,129,0.18)", "rgba(99,102,241,0.18)",
+                            "rgba(244,63,94,0.18)",  "rgba(234,179,8,0.18)",
+                            "rgba(14,165,233,0.18)", "rgba(168,85,247,0.18)",
+                        ];
+                        const BORDER = [
+                            "#10b981","#6366f1","#f43f5e","#eab308","#0ea5e9","#a855f7",
+                        ];
+                        alignmentData.forEach((seg, idx) => {
+                            const s = seg.start ?? null;
+                            const e = seg.end ?? null;
+                            const word = (seg.word || "").trim();
+                            if (s === null || e === null || e <= s) { return; }
+                            if (e < windowStart || s > winEnd) { return; }
+
+                            const x1 = xForTime(Math.max(s, windowStart));
+                            const x2 = xForTime(Math.min(e, winEnd));
+                            const ci = idx % COLORS.length;
+
+                            // Background fill
+                            ctx.fillStyle = COLORS[ci];
+                            ctx.fillRect(x1, pad.top, x2 - x1, plotH);
+
+                            // Draw each boundary (start / end) as a line
+                            for (const side of ["start", "end"]) {
+                                const t = side === "start" ? s : e;
+                                // Allow small tolerance for floating-point edge values
+                                if (t < windowStart - 0.05 || t > winEnd + 0.05) { continue; }
+                                // Clamp to plot edges so first/last boundaries are always fully visible
+                                const bx = Math.max(pad.left, Math.min(pad.left + plotW, xForTime(t)));
+                                const isDragging = draggingBoundary &&
+                                    draggingBoundary.segIdx === idx &&
+                                    draggingBoundary.side === side;
+                                ctx.save();
+                                ctx.strokeStyle = isDragging ? "#ffffff" : BORDER[ci];
+                                ctx.lineWidth = isDragging ? 2.5 : 1.5;
+                                if (!isDragging) { ctx.setLineDash([4, 3]); }
+                                ctx.beginPath();
+                                ctx.moveTo(bx, pad.top);
+                                ctx.lineTo(bx, pad.top + plotH);
+                                ctx.stroke();
+                                ctx.setLineDash([]);
+                                // Handle diamond
+                                ctx.fillStyle = isDragging ? "#fff" : BORDER[ci];
+                                ctx.beginPath();
+                                ctx.moveTo(bx,       pad.top + plotH / 2 - 7);
+                                ctx.lineTo(bx + 6,   pad.top + plotH / 2);
+                                ctx.lineTo(bx,       pad.top + plotH / 2 + 7);
+                                ctx.lineTo(bx - 6,   pad.top + plotH / 2);
+                                ctx.closePath();
+                                ctx.fill();
+                                ctx.restore();
+                            }
+
+                            // Word label
+                            if (word && x2 - x1 > 8) {
+                                ctx.font = "bold 13px 'Noto Sans KR', sans-serif";
+                                const tw = ctx.measureText(word).width;
+                                const labelX = x1 + Math.max(0, (x2 - x1 - tw) / 2);
+                                ctx.fillStyle = "rgba(255,255,255,0.88)";
+                                ctx.fillRect(labelX - 2, pad.top + 18, tw + 4, 18);
+                                ctx.fillStyle = BORDER[ci];
+                                ctx.fillText(word, labelX, pad.top + 33);
+                            }
+                        });
+                    }
+
+                    // Time axis ticks
+                    ctx.fillStyle = "#6b7280";
+                    ctx.font = "12px sans-serif";
+                    const nTicks = 6;
+                    for (let i = 0; i <= nTicks; i++) {
+                        const t = windowStart + (i / nTicks) * visibleDuration;
+                        const x = xForTime(t);
+                        ctx.fillText(t.toFixed(1) + "s", x - 14, H - pad.bottom + 18);
+                    }
+
+                    // Y label
+                    ctx.save();
+                    ctx.translate(16, H / 2 + 20);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText("Amplitude", 0, 0);
+                    ctx.restore();
+
+                    if (windowLabel) {
+                        windowLabel.textContent = `${windowStart.toFixed(1)}s – ${(windowStart + visibleDuration).toFixed(1)}s`;
+                    }
+                    updateSelectionLabel();
+                }
+
+                // Spectrogram
+                function drawSpectrogram() {
+                    const specCanvas = document.getElementById("spectrogram-chart");
+                    const spec = analysis.spectrogram;
+                    if (!specCanvas || !spec || !spec.data || !spec.data.length) { return; }
+
+                    const sCtx = specCanvas.getContext("2d");
+                    const sW = specCanvas.width;
+                    const sH = specCanvas.height;
+                    const sPad = { top: 10, right: 24, bottom: 32, left: 52 };
+                    const sInnerW = sW - sPad.left - sPad.right;
+                    const sInnerH = sH - sPad.top - sPad.bottom;
+
+                    sCtx.clearRect(0, 0, sW, sH);
+                    sCtx.fillStyle = "#000";
+                    sCtx.fillRect(sPad.left, sPad.top, sInnerW, sInnerH);
+
+                    const nFreq = spec.data.length;
+                    const nTime = spec.data[0].length;
+                    const times = spec.times;
+                    const freqs = spec.freqs;
+                    if (!nFreq || !nTime) { return; }
+
+                    const tMin = windowStart;
+                    const tMax = windowStart + visibleDuration;
+
+                    // Find visible time columns
+                    const colIndices = [];
+                    for (let j = 0; j < nTime; j++) {
+                        if (times[j] >= tMin && times[j] <= tMax) { colIndices.push(j); }
+                    }
+                    if (colIndices.length === 0) { return; }
+
+                    const cellW = sInnerW / colIndices.length;
+                    const cellH = sInnerH / nFreq;
+
+                    // Viridis palette
+                    function viridis(v) {
+                        const c = [
+                            [68,1,84],[72,35,116],[64,67,135],[52,94,141],[41,120,142],
+                            [32,144,140],[34,167,132],[68,190,112],[121,209,81],[189,223,38],[253,231,37]
+                        ];
+                        const idx = Math.min(Math.floor(v * (c.length - 1)), c.length - 2);
+                        const t2 = v * (c.length - 1) - idx;
+                        const r = Math.round(c[idx][0] + t2 * (c[idx+1][0] - c[idx][0]));
+                        const g = Math.round(c[idx][1] + t2 * (c[idx+1][1] - c[idx][1]));
+                        const b = Math.round(c[idx][2] + t2 * (c[idx+1][2] - c[idx][2]));
+                        return `rgb(${r},${g},${b})`;
+                    }
+
+                    colIndices.forEach((j, ci) => {
+                        for (let fi = 0; fi < nFreq; fi++) {
+                            const val = spec.data[fi][j];
+                            sCtx.fillStyle = viridis(val);
+                            const px = sPad.left + ci * cellW;
+                            const py = sPad.top + (nFreq - 1 - fi) * cellH;
+                            sCtx.fillRect(px, py, Math.ceil(cellW) + 1, Math.ceil(cellH) + 1);
+                        }
+                    });
+
+                    // Forced alignment word segments on spectrogram
+                    if (alignmentData && alignmentData.length > 0) {
+                        const SBORDER = [
+                            "#10b981","#6366f1","#f43f5e","#eab308","#0ea5e9","#a855f7",
+                        ];
+                        alignmentData.forEach((seg, idx) => {
+                            const s = seg.start ?? seg.begin ?? null;
+                            const e = seg.end ?? null;
+                            const word = (seg.word || "").trim();
+                            if (s === null || e === null || e <= s) { return; }
+                            if (e < tMin || s > tMax) { return; }
+
+                            const sx1 = sPad.left + (Math.max(s, tMin) - tMin) / visibleDuration * sInnerW;
+                            const sx2 = sPad.left + (Math.min(e, tMax) - tMin) / visibleDuration * sInnerW;
+                            const ci = idx % SBORDER.length;
+
+                            sCtx.strokeStyle = SBORDER[ci];
+                            sCtx.lineWidth = 1.5;
+                            // Draw start boundary
+                            if (s >= tMin - 0.05 && s <= tMax + 0.05) {
+                                const bx1 = Math.max(sPad.left, Math.min(sPad.left + sInnerW, sx1));
+                                sCtx.setLineDash([3, 3]);
+                                sCtx.beginPath();
+                                sCtx.moveTo(bx1, sPad.top);
+                                sCtx.lineTo(bx1, sPad.top + sInnerH);
+                                sCtx.stroke();
+                                sCtx.setLineDash([]);
+                            }
+                            // Draw end boundary
+                            if (e >= tMin - 0.05 && e <= tMax + 0.05) {
+                                const bx2 = Math.max(sPad.left, Math.min(sPad.left + sInnerW, sx2));
+                                sCtx.setLineDash([3, 3]);
+                                sCtx.beginPath();
+                                sCtx.moveTo(bx2, sPad.top);
+                                sCtx.lineTo(bx2, sPad.top + sInnerH);
+                                sCtx.stroke();
+                                sCtx.setLineDash([]);
+                            }
+
+                            if (word && sx2 - sx1 > 6) {
+                                sCtx.font = "bold 11px 'Noto Sans KR', sans-serif";
+                                const tw = sCtx.measureText(word).width;
+                                const lx = sx1 + Math.max(0, (sx2 - sx1 - tw) / 2);
+                                sCtx.fillStyle = "rgba(0,0,0,0.55)";
+                                sCtx.fillRect(lx - 1, sPad.top + 2, tw + 2, 14);
+                                sCtx.fillStyle = "#fff";
+                                sCtx.fillText(word, lx, sPad.top + 13);
+                            }
+                        });
+                    }
+
+                    // Axes labels
+                    sCtx.fillStyle = "#e5e7eb";
+                    sCtx.font = "11px sans-serif";
+                    sCtx.fillText("Hz", sPad.left - 28, sPad.top + 10);
+                    if (freqs.length) {
+                        sCtx.fillText(Math.round(freqs[freqs.length - 1]).toString(), sPad.left - 38, sPad.top + 10);
+                        sCtx.fillText(Math.round(freqs[0]).toString(), sPad.left - 28, sPad.top + sInnerH - 2);
+                    }
+                    sCtx.fillStyle = "#6b7280";
+                    for (let i = 0; i <= 5; i++) {
+                        const t = tMin + (i / 5) * visibleDuration;
+                        const x = sPad.left + (i / 5) * sInnerW;
+                        sCtx.fillText(t.toFixed(1) + "s", x - 10, sH - 8);
+                    }
+                }
+
+                function render() {
+                    drawWaveform();
+                    drawSpectrogram();
+                    updateCountingDuration();
+                }
+
+                // ── Word timing metrics (first word start → last word end) ──
+                const countingDurationEl = document.getElementById("counting-duration");
+                function updateCountingDuration() {
+                    if (!countingDurationEl) { return; }
+                    if (!alignmentData || alignmentData.length === 0) {
+                        countingDurationEl.textContent = "";
+                        return;
+                    }
+                    const startTime = Number(alignmentData[0].start);
+                    const endTime   = Number(alignmentData[alignmentData.length - 1].end);
+                    if (!isFinite(startTime) || !isFinite(endTime) || endTime <= startTime) {
+                        countingDurationEl.textContent = "";
+                        return;
+                    }
+                    const durationSec = endTime - startTime;
+                    const firstWord = alignmentData[0].word || "";
+                    const lastWord  = alignmentData[alignmentData.length - 1].word || "";
+
+                    // Count Hangul syllables (each Hangul syllable block = one syllable)
+                    let syllableCount = 0;
+                    alignmentData.forEach((seg) => {
+                        const text = seg.word || "";
+                        for (const ch of text) {
+                            const code = ch.codePointAt(0);
+                            if (code >= 0xAC00 && code <= 0xD7A3) { syllableCount += 1; }
+                        }
+                    });
+                    const speakingRate = durationSec > 0 ? syllableCount / durationSec : 0;
+
+                    // Total pause = sum of silent gaps between consecutive words
+                    let pauseSec = 0;
+                    for (let i = 0; i < alignmentData.length - 1; i++) {
+                        const gap = Number(alignmentData[i + 1].start) - Number(alignmentData[i].end);
+                        if (isFinite(gap) && gap > 0) { pauseSec += gap; }
+                    }
+                    const pauseRatio = durationSec > 0 ? (pauseSec / durationSec) * 100 : 0;
+
+                    // Phonation time = total span minus pauses; articulation rate excludes pauses
+                    const phonationSec = Math.max(durationSec - pauseSec, 0);
+                    const articulationRate = phonationSec > 0 ? syllableCount / phonationSec : 0;
+
+                    countingDurationEl.innerHTML =
+                        `발화 소요 시간: <span class="cd-value">${durationSec.toFixed(3)} s</span> ` +
+                        `(${Math.round(durationSec * 1000)} ms)` +
+                        `<br>발화 속도(Speaking rate): <span class="cd-value">${speakingRate.toFixed(2)} 음절/초</span> ` +
+                        `<span class="cd-sub">(${syllableCount}음절 ÷ 전체 ${durationSec.toFixed(3)}s)</span>` +
+                        `<br>조음 속도(Articulation rate): <span class="cd-value">${articulationRate.toFixed(2)} 음절/초</span> ` +
+                        `<span class="cd-sub">(${syllableCount}음절 ÷ 순발화 ${phonationSec.toFixed(3)}s, 휴지 제외)</span>` +
+                        `<br>휴지 비율(Pause ratio): <span class="cd-value">${pauseRatio.toFixed(1)} %</span> ` +
+                        `<span class="cd-sub">(휴지 ${pauseSec.toFixed(3)}s ÷ ${durationSec.toFixed(3)}s × 100)</span>` +
+                        `<br><span class="cd-sub">「${firstWord}」 시작 ${startTime.toFixed(3)}s → ` +
+                        `「${lastWord}」 끝 ${endTime.toFixed(3)}s</span>`;
+                }
+
+                // ── Accuracy: reference vs. auto transcription ──
+                const referenceInput  = document.getElementById("reference-text");
+                const accuracyResultEl = document.getElementById("accuracy-result");
+
+                // Levenshtein edit distance between two token arrays
+                function editDistance(a, b) {
+                    const m = a.length, n = b.length;
+                    if (m === 0) { return n; }
+                    if (n === 0) { return m; }
+                    let prev = new Array(n + 1);
+                    for (let j = 0; j <= n; j++) { prev[j] = j; }
+                    for (let i = 1; i <= m; i++) {
+                        let cur = [i];
+                        for (let j = 1; j <= n; j++) {
+                            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                            cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+                        }
+                        prev = cur;
+                    }
+                    return prev[n];
+                }
+
+                // Keep only Hangul syllable blocks (가–힣) as a flat array
+                function hangulSyllables(text) {
+                    const out = [];
+                    for (const ch of (text || "")) {
+                        const code = ch.codePointAt(0);
+                        if (code >= 0xAC00 && code <= 0xD7A3) { out.push(ch); }
+                    }
+                    return out;
+                }
+
+                function updateAccuracy() {
+                    if (!accuracyResultEl) { return; }
+                    const reference = referenceInput ? referenceInput.value.trim() : "";
+                    if (!reference || !autoTranscription) {
+                        accuracyResultEl.innerHTML =
+                            `<span class="acc-sub">Reference 발화를 입력하면 자동 전사와 비교해 정확도를 계산합니다.</span>`;
+                        return;
+                    }
+
+                    // Word-level (WER → accuracy)
+                    const refWords = reference.split(/\s+/).filter(Boolean);
+                    const hypWords = autoTranscription.trim().split(/\s+/).filter(Boolean);
+                    const wordDist = editDistance(refWords, hypWords);
+                    const wer = refWords.length > 0 ? wordDist / refWords.length : 0;
+                    const wordAcc = Math.max(0, (1 - wer) * 100);
+
+                    // Syllable-level (CER → accuracy)
+                    const refSyl = hangulSyllables(reference);
+                    const hypSyl = hangulSyllables(autoTranscription);
+                    const sylDist = editDistance(refSyl, hypSyl);
+                    const cer = refSyl.length > 0 ? sylDist / refSyl.length : 0;
+                    const sylAcc = Math.max(0, (1 - cer) * 100);
+
+                    accuracyResultEl.innerHTML =
+                        `단어 정확도(WER 기반): <span class="acc-value">${wordAcc.toFixed(1)} %</span> ` +
+                        `<span class="acc-sub">(오류 ${wordDist} / 단어 ${refWords.length}, WER ${(wer * 100).toFixed(1)}%)</span>` +
+                        `<br>음절 정확도(CER 기반): <span class="acc-value">${sylAcc.toFixed(1)} %</span> ` +
+                        `<span class="acc-sub">(오류 ${sylDist} / 음절 ${refSyl.length}, CER ${(cer * 100).toFixed(1)}%)</span>` +
+                        `<br><span class="acc-sub">자동 전사: ${autoTranscription || "(없음)"}</span>`;
+                }
+
+                if (referenceInput) {
+                    referenceInput.addEventListener("input", updateAccuracy);
+                }
+
+                setSliderBounds();
+                render();
+
+                // ── Canvas coordinate helper (accounting for CSS scaling) ──
+                function canvasXFromEvent(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = W / rect.width;
+                    return (e.clientX - rect.left) * scaleX;
+                }
+
+                function canvasYFromEvent(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleY = H / rect.height;
+                    return (e.clientY - rect.top) * scaleY;
+                }
+
+                function insidePlot(cx, cy) {
+                    return cx >= pad.left && cx <= pad.left + plotW &&
+                           cy >= pad.top  && cy <= pad.top  + plotH;
+                }
+
+                // ── Boundary drag interaction ──────────────────────────────
+                canvas.addEventListener("mousemove", (e) => {
+                    const cx = canvasXFromEvent(e);
+                    const cy = canvasYFromEvent(e);
+                    if (draggingBoundary) {
+                        applyDragTime(timeForX(cx));
+                        render();
+                        return;
+                    }
+                    if (isSelecting) {
+                        selectionEnd = timeForX(cx);
+                        dragMoved = true;
+                        render();
+                        return;
+                    }
+                    // Hover cursor
+                    if (alignmentData && hitTestBoundary(cx)) {
+                        canvas.style.cursor = "ew-resize";
+                    } else if (insidePlot(cx, cy)) {
+                        canvas.style.cursor = "crosshair";
+                    } else {
+                        canvas.style.cursor = "default";
+                    }
+                });
+
+                canvas.addEventListener("mousedown", (e) => {
+                    if (e.button !== 0) { return; }
+                    const cx = canvasXFromEvent(e);
+                    const cy = canvasYFromEvent(e);
+                    if (alignmentData) {
+                        const hit = hitTestBoundary(cx);
+                        if (hit) {
+                            e.preventDefault();
+                            draggingBoundary = { segIdx: hit.segIdx, side: hit.side, linked: detectLinkedBoundary(hit) };
+                            canvas.style.cursor = "ew-resize";
+                            return;
+                        }
+                    }
+                    if (!insidePlot(cx, cy)) { return; }
+                    // Start region selection
+                    isSelecting = true;
+                    dragMoved = false;
+                    selectionStart = timeForX(cx);
+                    selectionEnd = selectionStart;
+                    render();
+                });
+
+                function stopDrag() {
+                    if (draggingBoundary) {
+                        draggingBoundary = null;
+                        canvas.style.cursor = "default";
+                        renderAlignmentTable(alignmentData);
+                        render();
+                    }
+                    if (isSelecting) {
+                        isSelecting = false;
+                        if (dragMoved) { suppressNextCanvasClick = true; }
+                        render();
+                    }
+                }
+
+                window.addEventListener("mouseup", stopDrag);
+
+                canvas.addEventListener("click", (e) => {
+                    if (suppressNextCanvasClick) {
+                        suppressNextCanvasClick = false;
+                        return;
+                    }
+                });
+
+                canvas.addEventListener("mouseleave", () => {
+                    canvas.style.cursor = "default";
+                });
+
+                // Touch support
+                canvas.addEventListener("touchstart", (e) => {
+                    if (!alignmentData) { return; }
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = W / rect.width;
+                    const cx = (e.touches[0].clientX - rect.left) * scaleX;
+                    const hit = hitTestBoundary(cx);
+                    if (hit) {
+                        e.preventDefault();
+                        draggingBoundary = { segIdx: hit.segIdx, side: hit.side, linked: detectLinkedBoundary(hit) };
+                    }
+                }, { passive: false });
+
+                canvas.addEventListener("touchmove", (e) => {
+                    if (!draggingBoundary) { return; }
+                    e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    const scaleX = W / rect.width;
+                    const cx = (e.touches[0].clientX - rect.left) * scaleX;
+                    applyDragTime(timeForX(cx));
+                    render();
+                }, { passive: false });
+
+                canvas.addEventListener("touchend", stopDrag);
+
+                // ── Segment playback (Web Audio API) ──────────────────────
+                function stopSegmentPlayback() {
+                    if (segmentAudioSource) {
+                        segmentAudioSource.onended = null;
+                        segmentAudioSource.stop();
+                        segmentAudioSource.disconnect();
+                        segmentAudioSource = null;
+                    }
+                    segmentPlayStart = null;
+                    segmentPlayEnd = null;
+                }
+
+                function getSegmentAudioContext() {
+                    if (segmentAudioContext) { return segmentAudioContext; }
+                    const ACtx = window.AudioContext || window.webkitAudioContext;
+                    if (!ACtx) { return null; }
+                    segmentAudioContext = new ACtx();
+                    return segmentAudioContext;
+                }
+
+                async function loadSegmentAudioBuffer() {
+                    if (segmentAudioBuffer) { return segmentAudioBuffer; }
+                    if (segmentAudioLoadPromise) { return segmentAudioLoadPromise; }
+                    const sourceUrl = waveformPlayer?.currentSrc || waveformPlayer?.src;
+                    if (!sourceUrl) { throw new Error("Audio source not found"); }
+                    const audioContext = getSegmentAudioContext();
+                    if (!audioContext) { throw new Error("AudioContext unavailable"); }
+                    segmentAudioLoadPromise = fetch(sourceUrl)
+                        .then((r) => { if (!r.ok) { throw new Error("Audio fetch failed"); } return r.arrayBuffer(); })
+                        .then((buf) => audioContext.decodeAudioData(buf))
+                        .then((decoded) => { segmentAudioBuffer = decoded; segmentAudioLoadPromise = null; return decoded; })
+                        .catch((err) => { segmentAudioLoadPromise = null; throw err; });
+                    return segmentAudioLoadPromise;
+                }
+
+                if (playSelectionButton) {
+                    playSelectionButton.addEventListener("click", async () => {
+                        const range = getSelectionRange();
+                        if (!range) { return; }
+                        stopSegmentPlayback();
+                        segmentPlayStart = range.start;
+                        segmentPlayEnd = range.end;
+                        try {
+                            const audioContext = getSegmentAudioContext();
+                            const audioBuffer = await loadSegmentAudioBuffer();
+                            if (!audioContext || !audioBuffer) { throw new Error("Segment playback unavailable"); }
+                            await audioContext.resume();
+                            const source = audioContext.createBufferSource();
+                            source.buffer = audioBuffer;
+                            source.connect(audioContext.destination);
+                            source.onended = () => {
+                                if (segmentAudioSource === source) {
+                                    segmentAudioSource.disconnect();
+                                    segmentAudioSource = null;
+                                    segmentPlayStart = null;
+                                    segmentPlayEnd = null;
+                                }
+                            };
+                            segmentAudioSource = source;
+                            source.start(0, range.start, Math.max(range.end - range.start, 0.01));
+                        } catch (_err) {
+                            stopSegmentPlayback();
+                        }
+                    });
+                }
+
+                if (clearSelectionButton) {
+                    clearSelectionButton.addEventListener("click", () => {
+                        selectionStart = null;
+                        selectionEnd = null;
+                        stopSegmentPlayback();
+                        render();
+                    });
+                }
+
+                if (waveformPlayer) {
+                    waveformPlayer.addEventListener("play", () => {
+                        if (segmentAudioSource) { stopSegmentPlayback(); }
+                    });
+                }
+
+                // Zoom controls
+                if (zoomInBtn) {
+                    zoomInBtn.addEventListener("click", () => {
+                        visibleDuration = Math.max(visibleDuration * 0.6, 1.0);
+                        setSliderBounds();
+                        render();
+                    });
+                }
+                if (zoomOutBtn) {
+                    zoomOutBtn.addEventListener("click", () => {
+                        visibleDuration = Math.min(visibleDuration / 0.6, totalDuration);
+                        setSliderBounds();
+                        render();
+                    });
+                }
+                if (offsetSlider) {
+                    offsetSlider.addEventListener("input", () => {
+                        windowStart = parseFloat(offsetSlider.value) || 0;
+                        render();
+                    });
+                }
+
+                // Sync waveform player cursor with canvas
+                const player = document.getElementById("waveform-player");
+                if (player) {
+                    player.addEventListener("timeupdate", () => {
+                        const t = player.currentTime;
+                        if (visibleDuration < totalDuration) {
+                            const half = visibleDuration / 2;
+                            if (t < windowStart || t > windowStart + visibleDuration) {
+                                windowStart = Math.max(0, Math.min(t - half, totalDuration - visibleDuration));
+                                setSliderBounds();
+                            }
+                        }
+                        render();
+                        // Draw playhead
+                        if (t >= windowStart && t <= windowStart + visibleDuration) {
+                            const x = pad.left + ((t - windowStart) / visibleDuration) * plotW;
+                            ctx.save();
+                            ctx.strokeStyle = "rgba(29,78,216,0.6)";
+                            ctx.lineWidth = 1.5;
+                            ctx.beginPath();
+                            ctx.moveTo(x, pad.top);
+                            ctx.lineTo(x, H - pad.bottom);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    });
+                }
+
+                // ── Forced Alignment AJAX ──────────────────────────────────
+                function getCsrf() {
+                    for (const c of document.cookie.split(";")) {
+                        const t = c.trim();
+                        if (t.startsWith("csrftoken=")) { return decodeURIComponent(t.slice(10)); }
+                    }
+                    return "";
+                }
+
+                const alignBtn     = document.getElementById("run-alignment-btn");
+                const alignStatus  = document.getElementById("align-status");
+                const alignPanel   = document.getElementById("alignment-result-panel");
+                const alignText    = document.getElementById("alignment-transcription");
+                const alignTable   = document.getElementById("alignment-word-table");
+
+                function renderAlignmentTable(words) {
+                    if (!alignTable) { return; }
+                    alignTable.innerHTML = "";
+                    const header = alignTable.createTHead();
+                    const hr = header.insertRow();
+                    ["#", "단어", "시작(s)", "끝(s)", "길이(ms)", "점수"].forEach(h => {
+                        const th = document.createElement("th");
+                        th.textContent = h;
+                        hr.appendChild(th);
+                    });
+                    const tbody = alignTable.createTBody();
+                    words.forEach((w, i) => {
+                        const tr = tbody.insertRow();
+                        tr.dataset.segIdx = i;
+                        const dur = w.end !== undefined && w.start !== undefined
+                            ? Math.round((w.end - w.start) * 1000) : "-";
+                        const score = w.score !== undefined ? Number(w.score).toFixed(3) : "-";
+
+                        // Index cell
+                        tr.insertCell().textContent = i + 1;
+
+                        // Word cell
+                        tr.insertCell().textContent = w.word;
+
+                        // Start cell – editable
+                        const startTd = tr.insertCell();
+                        startTd.contentEditable = "true";
+                        startTd.className = "editable-time";
+                        startTd.textContent = Number(w.start).toFixed(3);
+                        startTd.addEventListener("blur", () => {
+                            const val = parseFloat(startTd.textContent);
+                            if (!isNaN(val)) {
+                                alignmentData[i].start = Math.max(0, Math.min(val, (alignmentData[i].end ?? totalDuration) - 0.001));
+                                startTd.textContent = alignmentData[i].start.toFixed(3);
+                                render();
+                            } else {
+                                startTd.textContent = Number(alignmentData[i].start).toFixed(3);
+                            }
+                        });
+                        startTd.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); startTd.blur(); } });
+
+                        // End cell – editable
+                        const endTd = tr.insertCell();
+                        endTd.contentEditable = "true";
+                        endTd.className = "editable-time";
+                        endTd.textContent = Number(w.end).toFixed(3);
+                        endTd.addEventListener("blur", () => {
+                            const val = parseFloat(endTd.textContent);
+                            if (!isNaN(val)) {
+                                alignmentData[i].end = Math.min(totalDuration, Math.max(val, (alignmentData[i].start ?? 0) + 0.001));
+                                endTd.textContent = alignmentData[i].end.toFixed(3);
+                                render();
+                            } else {
+                                endTd.textContent = Number(alignmentData[i].end).toFixed(3);
+                            }
+                        });
+                        endTd.addEventListener("keydown", (ev) => { if (ev.key === "Enter") { ev.preventDefault(); endTd.blur(); } });
+
+                        tr.insertCell().textContent = dur;
+                        tr.insertCell().textContent = score;
+                    });
+                }
+
+                if (alignBtn) {
+                    alignBtn.addEventListener("click", async () => {
+                        alignBtn.disabled = true;
+                        alignBtn.textContent = "분석 중…";
+                        if (alignStatus) { alignStatus.textContent = "Forced Alignment 처리 중입니다. 수십 초 걸릴 수 있습니다."; alignStatus.style.color = "#1d4ed8"; }
+
+                        try {
+                            const resp = await fetch("{% url 'voice_analysis:picture_button_align' %}", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", "X-CSRFToken": getCsrf() },
+                                body: JSON.stringify({ audio_preview_url: analysis.audio_preview_url }),
+                            });
+                            const data = await resp.json();
+
+                            if (!data.success) {
+                                if (alignStatus) { alignStatus.textContent = "오류: " + (data.error || "알 수 없는 오류"); alignStatus.style.color = "#dc2626"; }
+                                alignBtn.disabled = false;
+                                alignBtn.textContent = "Forced Alignment 재시도";
+                                return;
+                            }
+
+                            alignmentData = data.word_segments || [];
+                            const backendLabel = data.backend === "mfa"
+                                ? "MFA (Montreal Forced Aligner)"
+                                : data.backend === "kfaligner"
+                                ? "kfaligner (HTK)"
+                                : data.backend === "whisperx"
+                                    ? "WhisperX"
+                                    : "Whisper (word_timestamps)";
+                            if (alignStatus) { alignStatus.textContent = `완료 — ${alignmentData.length}개 단어 정렬됨 (${backendLabel})`; alignStatus.style.color = "#16a34a"; }
+                            alignBtn.textContent = "Forced Alignment 재실행";
+                            alignBtn.disabled = false;
+
+                            if (alignPanel) { alignPanel.style.display = "block"; }
+                            if (alignText) { alignText.textContent = data.transcription || ""; }
+                            autoTranscription = data.transcription || "";
+                            renderAlignmentTable(alignmentData);
+                            render();
+                            updateAccuracy();
+                        } catch (err) {
+                            if (alignStatus) { alignStatus.textContent = "네트워크 오류: " + err.message; alignStatus.style.color = "#dc2626"; }
+                            alignBtn.disabled = false;
+                            alignBtn.textContent = "Forced Alignment 재시도";
+                        }
+                    });
+                }
+
+            }());
+            </script>
+        {% endif %}
+    </main>
+</body>
+</html>

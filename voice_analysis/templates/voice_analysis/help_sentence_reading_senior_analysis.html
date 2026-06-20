@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문장 읽기 분석 — 도움말</title>
+    <style>
+        :root {
+            --bg: #f0f4ff;
+            --panel: #f8faff;
+            --ink: #1f2937;
+            --accent: #2563eb;
+            --accent2: #0369a1;
+            --warn: #b45309;
+            --line: #c7d2e8;
+            --muted: #6b7280;
+            --green: #16a34a;
+            --red: #dc2626;
+            --orange: #d97706;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Pretendard", "Noto Sans KR", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 28%),
+                linear-gradient(135deg, #e8eeff 0%, var(--bg) 45%, #e6ecfa 100%);
+        }
+        .page {
+            width: min(860px, calc(100vw - 32px));
+            margin: 40px auto 80px;
+            padding: 40px 40px 48px;
+            border: 1px solid rgba(199, 210, 232, 0.8);
+            border-radius: 28px;
+            background: rgba(248, 250, 255, 0.97);
+            box-shadow: 0 24px 80px rgba(31, 41, 55, 0.08);
+        }
+        h1 { margin: 0 0 6px; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.04em; color: var(--accent); }
+        .subtitle { margin: 0 0 36px; color: var(--muted); font-size: 0.97rem; }
+        h2 { margin: 40px 0 14px; font-size: 1.25rem; letter-spacing: -0.02em; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 12px; }
+        h3 { margin: 24px 0 10px; font-size: 1.05rem; color: var(--ink); }
+        p { margin: 0 0 12px; line-height: 1.75; }
+        ul, ol { margin: 0 0 14px; padding-left: 1.5em; line-height: 1.85; }
+        li { margin-bottom: 4px; }
+        code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.88em; background: #e8eeff; border: 1px solid #c7d2e8; border-radius: 5px; padding: 1px 5px; }
+        .card { padding: 22px 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); margin-bottom: 20px; }
+        .card h3:first-child { margin-top: 0; }
+        .metric-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-top: 8px; }
+        .metric-table th { text-align: left; padding: 9px 14px; background: #e8eeff; font-weight: 700; border-bottom: 2px solid var(--line); }
+        .metric-table td { padding: 9px 14px; border-bottom: 1px solid #dde4f0; vertical-align: top; line-height: 1.6; }
+        .metric-table tr:last-child td { border-bottom: none; }
+        .metric-name { white-space: nowrap; font-weight: 700; color: var(--accent2); min-width: 140px; }
+        .unit { color: var(--muted); font-size: 0.85em; }
+        .steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+        .steps li { counter-increment: step; display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+        .steps li::before { content: counter(step); flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+        .note { padding: 14px 18px; border-radius: 12px; font-size: 0.9rem; line-height: 1.7; margin-top: 14px; }
+        .note-info  { background: #e0f2fe; border-left: 4px solid #0284c7; }
+        .note-warn  { background: #fef9c3; border-left: 4px solid #ca8a04; }
+        .note-green { background: #dcfce7; border-left: 4px solid var(--green); }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--accent); text-decoration: none; font-weight: 600; margin-bottom: 28px; }
+        .back-link:hover { text-decoration: underline; }
+        .toc { padding: 16px 20px; border: 1px solid var(--line); border-radius: 14px; background: #e8eeff; font-size: 0.9rem; margin-bottom: 32px; }
+        .toc p { margin: 0 0 8px; font-weight: 700; }
+        .toc ol { margin: 0; }
+        .toc a { color: var(--accent2); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <a href="{% url 'voice_analysis:sentence_reading_senior_analysis' %}" class="back-link">← 문장 읽기 분석으로 돌아가기</a>
+
+    <h1>문장 읽기 분석 도움말</h1>
+    <p class="subtitle">Sentence Reading Senior Analysis — 기능 안내 및 분석 지표 해설</p>
+
+    <nav class="toc">
+        <p>목차</p>
+        <ol>
+            <li><a href="#overview">페이지 개요</a></li>
+            <li><a href="#workflow">분석 워크플로</a></li>
+            <li><a href="#waveform">파형(Waveform) 시각화</a></li>
+            <li><a href="#alignment">Forced Alignment</a></li>
+            <li><a href="#metrics">발화 타이밍 · 정확도 지표</a></li>
+            <li><a href="#tips">사용 팁</a></li>
+        </ol>
+    </nav>
+
+    <h2 id="overview">1. 페이지 개요</h2>
+    <p>
+        문장 읽기 분석 페이지는 화자가 <strong>제시된 문장을 소리 내어 읽은</strong> 음성 파일을
+        분석하는 도구입니다. 주로 노인 화자를 대상으로 하며, Forced Alignment를 통해 각 단어의
+        시작·종료 시간을 파형 위에 시각화하고 수동으로 경계를 조정할 수 있습니다.
+    </p>
+    <p>
+        파킨슨병·실어증·발음 장애 등의 임상 연구에서 문장 읽기 중 <strong>발화 속도</strong>,
+        <strong>단어 간 휴지(pause)</strong>, <strong>조음 정확도</strong>를 정량적으로 분석하는 데 활용합니다.
+    </p>
+
+    <h2 id="workflow">2. 분석 워크플로</h2>
+    <div class="card">
+        <ol class="steps">
+            <li>
+                <div>
+                    <strong>파일 업로드 또는 연결</strong><br>
+                    <code>.wav</code>·<code>.mp3</code> 등 오디오 파일을 직접 업로드하거나,
+                    음성 레코드 상세 페이지의 <em>📝 문장 분석하기</em> 버튼으로 자동 연결합니다.
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>파형·스펙트로그램 확인</strong><br>
+                    분석 실행 후 파형(진폭 envelope 포함)과 스펙트로그램이 표시됩니다.
+                    화자 정보가 있을 경우 자동으로 매칭되어 표시됩니다.
+                </div>
+            </li>
+            <li>
+                <div>
+                    <strong>Forced Alignment 실행 (선택)</strong><br>
+                    <em>Forced Alignment 실행</em> 버튼을 누르면 각 단어의 시작·종료 시간이 산출되어
+                    파형과 스펙트로그램에 오버레이됩니다.
+                    단어 경계선을 드래그하거나 테이블을 직접 편집해 수동 조정할 수 있습니다.
+                </div>
+            </li>
+        </ol>
+    </div>
+
+    <h2 id="waveform">3. 파형(Waveform) 시각화</h2>
+    <div class="card">
+        <p>
+            오디오 전체 파형을 Canvas에 렌더링합니다.
+            원본 파형(회색) 위에 진폭 Envelope(하늘색)가 겹쳐 표시됩니다.
+        </p>
+        <h3>줌(Zoom) 기능</h3>
+        <p>
+            파일 길이가 10초를 초과하면 <em>Zoom In / Zoom Out</em> 버튼과 스크롤바가 활성화됩니다.
+            문장 읽기는 발화 길이가 길어질 수 있으므로, 줌 기능으로 특정 단어 구간을 확대하여
+            발화 경계를 정확하게 검토할 수 있습니다.
+        </p>
+        <div class="note note-info">
+            Forced Alignment를 실행하면 각 단어 구간이 반투명 색상 블록으로 표시되고,
+            단어 시작·종료 경계선이 점선으로 그려집니다.
+        </div>
+    </div>
+
+    <h2 id="alignment">4. Forced Alignment</h2>
+    <div class="card">
+        <h3>동작 방식</h3>
+        <p>
+            <em>Forced Alignment 실행</em> 버튼을 누르면 서버에서 오디오를 Whisper로 전사하고,
+            각 단어의 시작·종료 시간(초)을 추출합니다.
+        </p>
+        <table class="metric-table">
+            <tr><th>백엔드</th><th>조건</th><th>특징</th></tr>
+            <tr>
+                <td class="metric-name">WhisperX</td>
+                <td><code>whisperx</code> 패키지 설치 시 우선 사용</td>
+                <td>CTC 기반 강제 정렬 — 더 정밀한 단어 경계</td>
+            </tr>
+            <tr>
+                <td class="metric-name">openai-whisper<br><span style="color:var(--muted);font-size:0.85em;">(fallback)</span></td>
+                <td>WhisperX 미설치 시 자동 전환</td>
+                <td>Cross-attention DTW 기반 word_timestamps</td>
+            </tr>
+        </table>
+
+        <h3 style="margin-top:20px;">단어 경계선 수동 조정</h3>
+        <p>
+            파형 캔버스에서 단어 경계선(◇ 다이아몬드 핸들)을 <strong>마우스·터치 드래그</strong>로 이동하면
+            해당 단어의 시작 또는 종료 시간이 실시간으로 수정됩니다.
+        </p>
+        <h3>테이블 직접 편집</h3>
+        <p>
+            테이블의 <em>시작(s)</em>·<em>종료(s)</em> 셀을 클릭하면 직접 수치를 입력할 수 있습니다.
+            입력 후 포커스를 잃으면 파형에 즉시 반영됩니다.
+        </p>
+        <div class="note note-warn">
+            문장 읽기 음성에서 조사, 연음 등으로 인해 단어 경계가 불명확할 수 있습니다.
+            자동 정렬 결과를 파형과 대조하며 수동 조정을 권장합니다.
+        </div>
+    </div>
+
+    <h2 id="metrics">5. 발화 타이밍 · 정확도 지표</h2>
+    <div class="card">
+        <p>
+            Forced Alignment를 실행하면 정렬된 단어 경계를 바탕으로
+            <strong>첫 단어 시작부터 마지막 단어 끝까지</strong>의 발화 타이밍 지표와
+            전사 정확도가 자동으로 계산되어 정렬 결과 패널에 표시됩니다.
+            테이블을 편집하거나 경계선을 드래그하면 타이밍 지표가 실시간으로 갱신됩니다.
+        </p>
+        <table class="metric-table">
+            <tr><th>지표</th><th>계산 방식</th><th>단위</th></tr>
+            <tr>
+                <td class="metric-name">발화 소요 시간<br><span class="unit">(Duration)</span></td>
+                <td>마지막 단어 종료 시간 − 첫 단어 시작 시간</td>
+                <td>초 (s)</td>
+            </tr>
+            <tr>
+                <td class="metric-name">발화 속도<br><span class="unit">(Speaking rate)</span></td>
+                <td>전체 음절 수 ÷ <strong>전체 소요 시간</strong> (휴지 포함)<br>
+                    한글 음절 블록(가–힣) 글자 수를 음절로 셉니다.</td>
+                <td>음절/초</td>
+            </tr>
+            <tr>
+                <td class="metric-name">조음 속도<br><span class="unit">(Articulation rate)</span></td>
+                <td>전체 음절 수 ÷ <strong>순수 발화 시간</strong> (= 소요 시간 − 휴지 총합)<br>
+                    휴지를 제외한 실제 조음 구간만으로 계산하므로 항상 발화 속도 이상입니다.</td>
+                <td>음절/초</td>
+            </tr>
+            <tr>
+                <td class="metric-name">휴지 비율<br><span class="unit">(Pause ratio)</span></td>
+                <td>단어 사이 무음(silence) 구간 총합 ÷ 소요 시간 × 100</td>
+                <td>%</td>
+            </tr>
+        </table>
+
+        <h3>전사 정확도(Accuracy)</h3>
+        <p>
+            <strong>Reference 문장(정답)</strong>과 <strong>자동 전사 결과</strong>를
+            편집 거리(Levenshtein distance) 기반으로 비교합니다. Reference 입력란에
+            읽기 목표 문장을 입력하면 정확도가 즉시 계산됩니다.
+        </p>
+        <table class="metric-table">
+            <tr><th>지표</th><th>계산 방식</th><th>단위</th></tr>
+            <tr>
+                <td class="metric-name">단어 정확도<br><span class="unit">(WER 기반)</span></td>
+                <td><code>(1 − 단어 편집거리 ÷ reference 단어 수) × 100</code></td>
+                <td>%</td>
+            </tr>
+            <tr>
+                <td class="metric-name">음절 정확도<br><span class="unit">(CER 기반)</span></td>
+                <td><code>(1 − 한글 음절 편집거리 ÷ reference 음절 수) × 100</code></td>
+                <td>%</td>
+            </tr>
+        </table>
+        <div class="note note-green">
+            타이밍 지표는 단어 경계에 의존하므로, 경계가 부정확하면 먼저 파형·테이블에서
+            수동 조정한 뒤 값을 확인하세요. 정확도는 전사 텍스트에만 의존하며 Reference 수정 시 재계산됩니다.
+        </div>
+    </div>
+
+    <h2 id="tips">6. 사용 팁</h2>
+    <div class="card">
+        <ul>
+            <li>
+                <strong>휴지(pause) 확인</strong> — 단어 경계 간 간격이 넓은 구간은 화자가
+                발화 도중 쉬었음을 의미합니다. 파형의 에너지가 낮아지는 구간과 비교하세요.
+            </li>
+            <li>
+                <strong>Score 열 확인</strong> — 인식 신뢰도가 0.5 미만인 단어는 수동 검토가 필요합니다.
+            </li>
+            <li>
+                <strong>스펙트로그램 대조</strong> — 정렬 결과와 스펙트로그램의 에너지 분포를
+                겹쳐보면 경계 정확도를 시각적으로 검증할 수 있습니다.
+            </li>
+            <li>
+                <strong>음성 레코드 연결</strong> — 레코드 상세 페이지에서 접근하면 화자 정보가
+                자동으로 표시됩니다.
+            </li>
+        </ul>
+    </div>
+
+</div>
+</body>
+</html>

@@ -86,6 +86,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 from .models import AudioRecord
+from .location_stats import build_upload_location_data
 from pydub import AudioSegment  # 의존성 때문에 임시 주석
 from .whisper_utils import transcribe_audio, transcribe_and_align_whisperx, format_alignment_for_frontend, _scrub_prompt_leakage, _strip_non_korean_scripts  # whisperx 의존성 때문에 임시 주석
 import re
@@ -4303,64 +4304,8 @@ def userprofile(request):
     connection.close()
     connection.connect()
     
-    # === 데이터 전송 위치 통계 (category_specific_data의 region 기반) ===
-    # 지역별 업로드 횟수 집계
-    upload_locations = defaultdict(int)
-    
-    # region 필드가 있는 레코드들
-    records_with_region = AudioRecord.objects.exclude(region__isnull=True).exclude(region__exact='')
-    
-    for record in records_with_region:
-        region = record.region
-        if region:
-            upload_locations[region] += 1
-    
-    # 또는 category_specific_data에서 region 추출
-    records_with_category_data = AudioRecord.objects.exclude(category_specific_data__isnull=True)
-    
-    for record in records_with_category_data:
-        category_data = record.category_specific_data or {}
-        region = category_data.get('region') or category_data.get('place')
-        if region and region not in ['', 'null', None]:
-            upload_locations[region] += 1
-    
-    # 지역 좌표 매핑 (한국 주요 지역)
-    region_coordinates = {
-        '서울': {'lat': 37.5665, 'lng': 126.9780},
-        '경기': {'lat': 37.4138, 'lng': 127.5183},
-        '인천': {'lat': 37.4563, 'lng': 126.7052},
-        '강원': {'lat': 37.8228, 'lng': 128.1555},
-        '충북': {'lat': 36.8, 'lng': 127.7},
-        '충남': {'lat': 36.5184, 'lng': 126.8000},
-        '대전': {'lat': 36.3504, 'lng': 127.3845},
-        '전북': {'lat': 35.7175, 'lng': 127.153},
-        '전남': {'lat': 34.8679, 'lng': 126.991},
-        '광주': {'lat': 35.1595, 'lng': 126.8526},
-        '경북': {'lat': 36.4919, 'lng': 128.8889},
-        '경남': {'lat': 35.4606, 'lng': 128.2132},
-        '대구': {'lat': 35.8714, 'lng': 128.6014},
-        '울산': {'lat': 35.5384, 'lng': 129.3114},
-        '부산': {'lat': 35.1796, 'lng': 129.0756},
-        '제주': {'lat': 33.4996, 'lng': 126.5312},
-        '가정': {'lat': 37.5665, 'lng': 126.9780},  # 기본값
-        '병원': {'lat': 37.5665, 'lng': 126.9780},
-        '센터': {'lat': 37.5665, 'lng': 126.9780},
-        '어린이집': {'lat': 37.5665, 'lng': 126.9780},
-    }
-    
-    # 업로드 위치 데이터 (지역 + 좌표 + 빈도수)
-    upload_location_data = []
-    for region, count in upload_locations.items():
-        if region in region_coordinates:
-            upload_location_data.append({
-                'region': region,
-                'count': count,
-                'lat': region_coordinates[region]['lat'],
-                'lng': region_coordinates[region]['lng']
-            })
-    
-    # count 기준 내림차순 정렬
-    upload_location_data.sort(key=lambda x: x['count'], reverse=True)
+    # === 데이터 전송 위치 통계 (권역 기준) ===
+    upload_location_data = build_upload_location_data()
     
     # === IP 접근 위치 통계 (추후 구현을 위한 샘플 데이터) ===
     # 실제로는 Django의 request 로그나 별도 IP 추적 모델이 필요

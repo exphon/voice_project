@@ -789,6 +789,10 @@ class AudioUploadView(APIView):
             upload_timestamp = request.data.get('upload_timestamp')
             local_saved = request.data.get('local_saved')
             metadata_json = request.data.get('metadata_json')
+            # 앱이 메타데이터를 'metadata_json' 키의 파일로 보내면 request.data에 파일 객체가 들어온다.
+            # 파일 내용은 아래 metadata_file 처리에서 읽으므로 여기서는 비워 둔다.
+            if hasattr(metadata_json, 'read'):
+                metadata_json = None
             identifier = request.data.get('identifier')
 
             if identifier is not None:
@@ -1410,8 +1414,10 @@ class AudioUploadView(APIView):
                 if metadata_original_filename:
                     combined_metadata['metadata_original_filename'] = metadata_original_filename
 
+                # 파일을 열기 전에 직렬화해서, 실패해도 0바이트 파일이 남지 않게 한다
+                metadata_content = json.dumps(combined_metadata, ensure_ascii=False, indent=2)
                 with default_storage.open(metadata_storage_path, 'w') as metadata_fp:
-                    metadata_fp.write(json.dumps(combined_metadata, ensure_ascii=False, indent=2))
+                    metadata_fp.write(metadata_content)
 
                 metadata_relative_path = metadata_storage_path
                 metadata_filename = metadata_storage_filename

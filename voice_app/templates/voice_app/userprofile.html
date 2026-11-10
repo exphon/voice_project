@@ -212,9 +212,11 @@ function initMaps() {
     uploadMap = L.map('uploadMap').setView(koreaCenter, 7);
     
     // OpenStreetMap 타일 레이어 추가 (무료!)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // OSM 타일 정책상 Referer가 필요 (사이트 기본 Referrer-Policy: same-origin이면 차단됨)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 18,
+        referrerPolicy: 'strict-origin-when-cross-origin',
     }).addTo(uploadMap);
     
     // 업로드 위치 마커 추가
@@ -260,9 +262,11 @@ function initMaps() {
     ipMap = L.map('ipMap').setView(koreaCenter, 7);
     
     // OpenStreetMap 타일 레이어 추가
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // OSM 타일 정책상 Referer가 필요 (사이트 기본 Referrer-Policy: same-origin이면 차단됨)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 18,
+        referrerPolicy: 'strict-origin-when-cross-origin',
     }).addTo(ipMap);
     
     // IP 접근 위치 마커 추가

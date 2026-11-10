@@ -14,6 +14,7 @@
     conflict  : DB 값이 정상/파킨슨병인데 xlsx와 다름            → --include-conflicts
     blank     : DB 값이 비어 있는 파일 (주로 문장읽기 과제)       → --fill-blank
 제외 대상:
+    xlsx에서 진단명 셀이 하이라이트된 행 (중복·대상자 제외 표시)
     xlsx 안에서 ID가 중복되거나, xlsx 이름과 DB 이름이 다른 대상자 (ID 매핑 자체가 의심됨)
 
 --apply 시 변경 전 값을 CSV로 백업합니다.
@@ -41,6 +42,17 @@ def _norm_id(value):
     if isinstance(value, float) and value.is_integer():
         value = int(value)
     return re.sub(r'\s', '', str(value))
+
+
+def _is_highlighted(cell):
+    fill = getattr(cell, 'fill', None)
+    if fill is None or fill.fill_type != 'solid':
+        return False
+    color = fill.fgColor
+    # 흰색 배경(theme 0, FFFFFFFF)은 하이라이트로 보지 않음
+    if color.type == 'theme':
+        return color.theme != 0
+    return color.type == 'rgb' and color.rgb not in ('00000000', 'FFFFFFFF')
 
 
 def _norm_name(value):
@@ -105,13 +117,17 @@ class Command(BaseCommand):
     def _load_xlsx(self, path):
         try:
             wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-            rows = list(wb[SHEET].iter_rows(values_only=True))
+            rows = list(wb[SHEET].iter_rows())
         except Exception as e:
             raise CommandError(f'xlsx 읽기 실패: {e}')
-        header = rows[1]
+        header = [c.value for c in rows[1]]
         col = {k: header.index(k) for k in ('ID', '이름', '진단명')}
         out = []
-        for line_no, row in enumerate(rows[2:], start=3):
+        for line_no, cells in enumerate(rows[2:], start=3):
+            # 하이라이트(셀 배경색)된 행은 중복·대상자 제외 표시이므로 보정 기준에서 뺀다
+            if _is_highlighted(cells[col['진단명']]):
+                continue
+            row = [c.value for c in cells]
             ident = _norm_id(row[col['ID']])
             diagnosis = str(row[col['진단명']] or '').strip()
             if row[col['이름']] and re.fullmatch(r'S\d+', ident) and diagnosis in VALID_DIAGNOSES:

@@ -58,3 +58,19 @@ class SeniorUploadMetadataFileTest(TestCase):
             saved = json.load(f)
         self.assertEqual(saved['client_metadata'], self.metadata)
         self.assertIn('metadata_path', record.category_specific_data)
+
+
+class MediaAccessTest(TestCase):
+    """media/ 아래 녹음·메타데이터 파일은 로그인한 사용자에게만 제공한다."""
+
+    def test_anonymous_is_redirected_to_login(self):
+        resp = self.client.get('/media/audio/senior/S00000/x.json')
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/accounts/login/', resp['Location'])
+
+    def test_logged_in_user_reaches_file_server(self):
+        from django.contrib.auth import get_user_model
+        user = get_user_model().objects.create_user('media_tester', password='pw-12345')
+        self.client.force_login(user)
+        resp = self.client.get('/media/audio/senior/S00000/없는파일.json')
+        self.assertEqual(resp.status_code, 404)

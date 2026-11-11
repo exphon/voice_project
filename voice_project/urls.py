@@ -1,5 +1,9 @@
+import re
+
 from django.contrib import admin
-from django.urls import path, include
+from django.contrib.auth.decorators import login_required
+from django.urls import path, include, re_path
+from django.views.static import serve
 from django.conf import settings
 from django.conf.urls.static import static  
 from django.http import JsonResponse
@@ -28,8 +32,12 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),  # accounts 앱 URL 추가
 ]
 
-# 미디어 파일 URL 패턴 추가 (개발 환경)
+# 미디어 파일(녹음, 메타데이터, 전사)에는 대상자 개인정보가 들어 있으므로 로그인한 사용자에게만 제공한다
+urlpatterns += [
+    re_path(r'^%s(?P<path>.*)$' % re.escape(settings.MEDIA_URL.lstrip('/')),
+            login_required(serve), {'document_root': settings.MEDIA_ROOT}),
+]
+
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     # Assets 파일 URL 패턴 추가 (오디오 문제 파일 등)
     urlpatterns += static(settings.ASSETS_URL, document_root=settings.ASSETS_ROOT)
